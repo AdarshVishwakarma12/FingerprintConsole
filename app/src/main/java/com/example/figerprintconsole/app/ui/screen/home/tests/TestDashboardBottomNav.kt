@@ -7,5 +7,11 @@ import com.example.figerprintconsole.app.ui.home.components.DashboardBottomNav
 @Preview(showBackground = true)
 @Composable
 fun TestDashboardBottomNav() {
-    DashboardBottomNav()
+    DashboardBottomNav(
+        {},
+        {},
+        {},
+        {},
+        {}
+    )
 }

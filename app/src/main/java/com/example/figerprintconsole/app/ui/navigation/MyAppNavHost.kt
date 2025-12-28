@@ -1,27 +1,67 @@
 package com.example.figerprintconsole.app.ui.navigation
 //
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.navigation.compose.NavHost
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.example.figerprintconsole.app.ui.home.FingerprintDashboard
-import com.example.figerprintconsole.app.ui.testScreen.TestScreen
+import com.example.figerprintconsole.app.ui.screen.users.UsersListScreen
 
-//
 @Composable
-fun MyAppNavHost() {
-
-    val navController = rememberNavController()
+fun MyAppNavHost(
+    navController: NavHostController,
+    innerPadding: PaddingValues
+) {
 
     NavHost(
         navController = navController,
-        startDestination = Route.HOME_SCREEN
+        startDestination = Route.HOME_SCREEN,
+        modifier = Modifier.padding(innerPadding)
     ) {
         composable(route = Route.HOME_SCREEN) {
-            TestScreen(
+            FingerprintDashboard(
+                onLogsNavigationClick = { navController.navigate(Route.LOGS_SCREEN) },
 
+                onDeviceClick = { },
+                onActivityClick = { },
+
+                recentActivities = emptyList(),
+                devices = emptyList(),
+                currentUserName = "None",
+
+                onRefresh = { }
             )
+        }
+
+        composable(route = Route.ENROLL_SCREEN) {
+//            FingerprintEnrollmentScreen(
+//
+//            )
+        }
+
+        composable(route = Route.USER_SCREEN) {
+            UsersListScreen(
+                emptyList(),
+                {},
+                {},
+                {},
+                {}
+            )
+        }
+
+        composable(route = Route.DEVICES_SCREEN) {
+
+        }
+
+        composable(route = Route.LOGS_SCREEN) {
+
+        }
+
+        composable(route = Route.SETTING_SCREEN) {
+
         }
     }
 }

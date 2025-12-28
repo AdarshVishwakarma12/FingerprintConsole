@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.figerprintconsole.app.ui.navigation.MyAppNavHost
 
 class MainActivity : AppCompatActivity() {
@@ -11,7 +12,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            MyAppNavHost()
+            val navController = rememberNavController()
+            MyAppScaffold(navController)
         }
     }
 }

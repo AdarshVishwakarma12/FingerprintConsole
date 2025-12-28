@@ -1,6 +1,5 @@
-package com.example.figerprintconsole.app.ui.testScreen
+package com.example.figerprintconsole.app.ui.screen.testScreen
 
-import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow

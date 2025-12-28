@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.users.utils
+package com.example.figerprintconsole.app.ui.screen.users.utils
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance

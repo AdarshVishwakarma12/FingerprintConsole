@@ -11,11 +11,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import java.time.LocalDateTime
 import androidx.compose.material3.MaterialTheme
-import com.example.figerprintconsole.app.ui.home.components.DashboardBottomNav
-import com.example.figerprintconsole.app.ui.home.components.DashboardHeader
 import com.example.figerprintconsole.app.ui.home.components.DashboardTopBar
 import com.example.figerprintconsole.app.ui.home.components.DevicesStatusSection
 import com.example.figerprintconsole.app.ui.home.components.NotificationsPanel
+import com.example.figerprintconsole.app.ui.home.components.RecentActivitiesSection
 import com.example.figerprintconsole.app.ui.home.state.ActivityAction
 import com.example.figerprintconsole.app.ui.home.state.DashboardStats
 import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
@@ -23,30 +22,38 @@ import com.example.figerprintconsole.app.ui.home.state.DeviceStatusType
 import com.example.figerprintconsole.app.ui.home.state.DeviceType
 import com.example.figerprintconsole.app.ui.home.state.QuickAction
 import com.example.figerprintconsole.app.ui.home.state.RecentActivity
+import com.example.figerprintconsole.app.ui.screen.home.components.DashboardHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FingerprintDashboard(
-    stats: DashboardStats,
-    recentActivities: List<RecentActivity>,
-    quickActions: List<QuickAction>,
-    devices: List<DeviceStatus>,
-    onQuickActionClick: (String) -> Unit,
-    currentUserName: String,
-    onUserClick: (String) -> Unit,
+    onLogsNavigationClick: () -> Unit,
     onDeviceClick: (String) -> Unit,
     onActivityClick: (String) -> Unit,
+
+    recentActivities: List<RecentActivity>,
+    devices: List<DeviceStatus>,
+
+    currentUserName: String,
+
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
     isLoading: Boolean = false
 ) {
-    val scrollState = rememberScrollState()
     var showNotifications by remember { mutableStateOf(false) }
     var showUserMenu by remember { mutableStateOf(false) }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
+
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        val isLargeScreen = maxWidth > 800.dp
+
+        Column(
+
+        ) {
             DashboardTopBar(
                 userName = currentUserName,
                 showNotifications = showNotifications,
@@ -54,29 +61,16 @@ fun FingerprintDashboard(
                 onProfileClick = { showUserMenu = !showUserMenu },
                 onSearch = {}
             )
-        },
-        floatingActionButton = {
-            // QuickScanFAB(onClick = { /* Handle quick scan */ })
-        },
-        bottomBar = {
-            DashboardBottomNav()
-        }
-    ) { paddingValues ->
-        BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(scrollState)
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            val isLargeScreen = maxWidth > 800.dp
+
+
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = if (isLargeScreen) 32.dp else 16.dp)
-                    .padding(top = 16.dp, bottom = 88.dp)
+                    .padding(top = 16.dp, bottom = 10.dp)
             ) {
+
                 // Header with greeting
                 DashboardHeader(
                     onRefresh = onRefresh,
@@ -84,76 +78,24 @@ fun FingerprintDashboard(
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    DevicesStatusSection(
+                        devices = devices,
+                        onDeviceClick = onDeviceClick
+                    )
 
-                // Stats Cards Grid
-//                StatsGrid(
-//                    stats = stats,
-//                    isLargeScreen = isLargeScreen
-//                )
-//
-//                Spacer(modifier = Modifier.height(32.dp))
-//
-//                // Main Content Area
-//                if (isLargeScreen) {
-//                    // Desktop layout
-//                    Row(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        horizontalArrangement = Arrangement.spacedBy(24.dp)
-//                    ) {
-//                        // Left Column: Activities & Devices
-//                        Column(
-//                            modifier = Modifier.weight(2f),
-//                            verticalArrangement = Arrangement.spacedBy(24.dp)
-//                        ) {
-//                            RecentActivitiesSection(
-//                                activities = recentActivities,
-//                                onActivityClick = onActivityClick,
-//                                onViewAllClick = { /* Navigate to activity log */ }
-//                            )
-//
-//                            DevicesStatusSection(
-//                                devices = devices,
-//                                onDeviceClick = onDeviceClick
-//                            )
-//                        }
-//
-//                        // Right Column: Quick Actions & System Health
-//                        Column(
-//                            modifier = Modifier.weight(1f),
-//                            verticalArrangement = Arrangement.spacedBy(24.dp)
-//                        ) {
-//                            QuickActionsSection(
-//                                actions = quickActions,
-//                                onActionClick = onQuickActionClick
-//                            )
-//                        }
-//                    }
-//                } else {
-//                    // Mobile layout
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(24.dp)
-                    ) {
-//                        QuickActionsSection(
-//                            actions = quickActions,
-//                            onActionClick = onQuickActionClick
-//                        )
-//
-//                        RecentActivitiesSection(
-//                            activities = recentActivities,
-//                            onActivityClick = onActivityClick,
-//                            onViewAllClick = { /* Navigate to activity log */ }
-//                        )
-//
-                        DevicesStatusSection(
-                            devices = devices,
-                            onDeviceClick = onDeviceClick
-                        )
-                    }
-//                }
+                    RecentActivitiesSection(
+                        activities = recentActivities,
+                        onActivityClick = onActivityClick,
+                        onViewAllClick = { onLogsNavigationClick }
+                    )
+                }
             }
-//        }
-//
-//        // Notifications Panel
+        }
+
+        // Notifications Panel
         if (showNotifications) {
             NotificationsPanel(
                 onDismiss = { showNotifications = false },
@@ -168,7 +110,6 @@ fun FingerprintDashboard(
 //                onLogout = { /* Handle logout */ },
 //                onSettings = { /* Navigate to settings */ }
 //            )
-        }
     }
 }
 
@@ -192,10 +133,10 @@ fun PreviewFingerprintDashboard() {
                     id = "$i",
                     userId = "user$i",
                     userName = listOf(
-                        "John Doe",
-                        "Jane Smith",
-                        "Bob Johnson",
-                        "Alice Williams"
+                        "Adarsh",
+                        "Arvind",
+                        "Afnan",
+                        "Ayushi"
                     )[i % 4],
                     action = ActivityAction.entries[i % ActivityAction.entries.size],
                     timestamp = LocalDateTime.now().minusMinutes((i * 30).toLong()),
@@ -277,17 +218,13 @@ fun PreviewFingerprintDashboard() {
         }
 
         FingerprintDashboard(
-            stats = sampleStats,
-            recentActivities = sampleActivities,
-            quickActions = quickActions,
-            devices = sampleDevices,
-            onQuickActionClick = { },
-            currentUserName = "Advind",
-            onUserClick = { },
+            onLogsNavigationClick = {},
             onDeviceClick = { },
+            recentActivities = sampleActivities,
+            devices = sampleDevices,
             onActivityClick = { },
             onRefresh = { },
-            isLoading = false
+            currentUserName = "None"
         )
     }
 }

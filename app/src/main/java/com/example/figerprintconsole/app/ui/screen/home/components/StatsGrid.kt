@@ -1,16 +1,20 @@
 package com.example.figerprintconsole.app.ui.home.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -63,13 +67,9 @@ fun StatsGrid(
         )
     }
 
-    LazyVerticalGrid(
-        columns = if (isLargeScreen)
-            GridCells.Fixed(4)
-        else GridCells.Fixed(2),
+    LazyRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(statsItems) { stat ->
             StatCard(stat = stat)

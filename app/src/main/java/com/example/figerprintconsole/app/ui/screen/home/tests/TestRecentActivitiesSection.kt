@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.home.tests
+package com.example.figerprintconsole.app.ui.screen.home.tests
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,8 +32,10 @@ fun TestRecentActivitiesSection() {
         )
     )
 
+    val recentActivity1 = emptyList<RecentActivity>()
+
     RecentActivitiesSection(
-        activities = recentActivity,
+        activities = recentActivity1,
         onActivityClick = {},
         onViewAllClick = {}
     )

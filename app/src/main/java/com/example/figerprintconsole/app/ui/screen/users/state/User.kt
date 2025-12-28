@@ -1,6 +1,5 @@
-package com.example.figerprintconsole.app.ui.users.state
+package com.example.figerprintconsole.app.ui.screen.users.state
 
-import com.example.figerprintconsole.app.ui.users.state.EnrollmentStatus
 import java.time.LocalDateTime
 
 data class User(

@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.testScreen
+package com.example.figerprintconsole.app.ui.screen.testScreen
 
 sealed class TestScreenEvent {
     object LoadUsers: TestScreenEvent()

@@ -7,7 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.figerprintconsole.app.ui.home.components.DashboardHeader
+import com.example.figerprintconsole.app.ui.screen.home.components.DashboardHeader
 import kotlinx.coroutines.delay
 
 @Preview(showBackground = true)

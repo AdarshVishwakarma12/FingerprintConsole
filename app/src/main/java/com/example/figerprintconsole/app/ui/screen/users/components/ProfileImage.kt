@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.users.components
+package com.example.figerprintconsole.app.ui.screen.users.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -10,22 +10,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.figerprintconsole.app.ui.users.state.EnrollmentStatus
-import com.example.figerprintconsole.app.ui.users.state.User
+import com.example.figerprintconsole.app.ui.screen.users.state.EnrollmentStatus
+import com.example.figerprintconsole.app.ui.screen.users.state.User
 import java.time.LocalDateTime
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.figerprintconsole.app.ui.users.utils.UserUtils
+import com.example.figerprintconsole.app.ui.screen.users.utils.UserUtils
 
 @Composable
 fun ProfileImage(
     user: User,
-    size: androidx.compose.ui.unit.Dp,
+    size: Dp,
     modifier: Modifier = Modifier
 ) {
 

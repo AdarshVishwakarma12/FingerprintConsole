@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.users.components
+package com.example.figerprintconsole.app.ui.screen.users.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.figerprintconsole.app.ui.users.EnrollmentStatus
+import com.example.figerprintconsole.app.ui.screen.users.EnrollmentStatus
 
 @Composable
 fun Tags(

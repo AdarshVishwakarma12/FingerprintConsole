@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.users
+package com.example.figerprintconsole.app.ui.screen.users
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
@@ -26,6 +26,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 
 
 // User data model
@@ -58,12 +60,12 @@ enum class UserListDisplayMode {
 @Composable
 fun UsersListScreen(
     users: List<User>,
-    displayMode: UserListDisplayMode = UserListDisplayMode.LIST,
     onUserClick: (User) -> Unit,
     onEnrollUser: (User) -> Unit,
     onDeleteUser: (User) -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     modifier: Modifier = Modifier,
+    displayMode: UserListDisplayMode = UserListDisplayMode.LIST,
     isLoading: Boolean = false,
     searchQuery: String = ""
 ) {
@@ -577,7 +579,7 @@ private fun CompactUserItem(
 @Composable
 private fun UserAvatar(
     user: User,
-    size: androidx.compose.ui.unit.Dp,
+    size: Dp,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -883,7 +885,7 @@ private fun UserDetailsDialog(
 
 @Composable
 private fun UserDetailsRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     label: String,
     value: String
 ) {

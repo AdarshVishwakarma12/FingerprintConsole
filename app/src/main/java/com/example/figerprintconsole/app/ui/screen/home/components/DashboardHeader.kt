@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.home.components
+package com.example.figerprintconsole.app.ui.screen.home.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
