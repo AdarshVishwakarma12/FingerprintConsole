@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.enroll
+package com.example.figerprintconsole.app.ui.screen.enroll
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer

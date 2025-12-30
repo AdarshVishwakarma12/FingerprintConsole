@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.screen.users.state
+package com.example.figerprintconsole.app.domain.model
 
 enum class EnrollmentStatus {
     ENROLLED,

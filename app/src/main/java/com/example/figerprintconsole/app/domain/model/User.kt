@@ -1,9 +1,11 @@
-package com.example.figerprintconsole.app.ui.screen.users.state
+package com.example.figerprintconsole.app.domain.model
 
 import java.time.LocalDateTime
 
 data class User(
     val id: String,
+    val fingerprintId: Int,
+    val employeeId: String,
     val name: String,
     val email: String,
     val profileImage: String? = null,

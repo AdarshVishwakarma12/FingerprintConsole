@@ -2,6 +2,8 @@ package com.example.figerprintconsole.app.ui.screen.users.utils
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 object UserUtils {
     fun contentColorFor(background: Color): Color {
@@ -26,5 +28,10 @@ object UserUtils {
         )
         val index = name.hashCode() % colors.size
         return colors[if (index < 0) -index else index]
+    }
+
+    fun formatDate(date: LocalDateTime): String {
+        val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm")
+        return date.format(formatter)
     }
 }

@@ -1,5 +1,5 @@
 package com.example.figerprintconsole.app.ui.navigation
-//
+
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -8,6 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.figerprintconsole.app.ui.home.FingerprintDashboard
+import com.example.figerprintconsole.app.ui.screen.devices.DeviceScreen
 import com.example.figerprintconsole.app.ui.screen.users.UsersListScreen
 
 @Composable
@@ -44,16 +45,13 @@ fun MyAppNavHost(
 
         composable(route = Route.USER_SCREEN) {
             UsersListScreen(
-                emptyList(),
-                {},
-                {},
-                {},
-                {}
+                onEnrollUser = { },
+                onEnrollNewUser = { navController.navigate(Route.ENROLL_SCREEN) }
             )
         }
 
         composable(route = Route.DEVICES_SCREEN) {
-
+            DeviceScreen(emptyList(), { })
         }
 
         composable(route = Route.LOGS_SCREEN) {
