@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.enroll.components
+package com.example.figerprintconsole.app.ui.screen.enroll.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,8 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
-import com.example.figerprintconsole.app.ui.enroll.utils.UtilsEnrollScreen
+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+import com.example.figerprintconsole.app.ui.screen.enroll.utils.UtilsEnrollScreen
 
 @Composable
 fun EnrollmentProgressSection(

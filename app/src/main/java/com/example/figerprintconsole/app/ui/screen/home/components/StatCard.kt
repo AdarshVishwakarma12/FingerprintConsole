@@ -23,7 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.figerprintconsole.app.ui.home.state.StatItem
+import com.example.figerprintconsole.app.domain.model.StatItem
 
 @Composable
 fun StatCard(stat: StatItem) {

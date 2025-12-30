@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.figerprintconsole.app.ui.home.components.QuickActionsSection
-import com.example.figerprintconsole.app.ui.home.state.QuickAction
+import com.example.figerprintconsole.app.domain.model.QuickAction
 
 @Preview(showBackground = true)
 @Composable

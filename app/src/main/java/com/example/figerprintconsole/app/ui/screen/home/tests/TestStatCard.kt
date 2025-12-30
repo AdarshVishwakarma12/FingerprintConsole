@@ -5,7 +5,7 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.figerprintconsole.app.ui.home.state.StatItem
+import com.example.figerprintconsole.app.domain.model.StatItem
 import com.example.figerprintconsole.app.ui.home.components.StatCard
 
 @Preview(showBackground = true)

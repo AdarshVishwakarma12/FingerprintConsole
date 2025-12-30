@@ -13,15 +13,13 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import com.example.figerprintconsole.app.ui.home.state.BottomNavItem
+import com.example.figerprintconsole.app.domain.model.BottomNavItem
+import com.example.figerprintconsole.app.ui.navigation.Route
 
 @Composable
 fun DashboardBottomNav(
+    currentRoute: String?,
     onDashboardNavigationClick: () -> Unit,
     onUsersNavigationClick: () -> Unit,
     onDeviceNavigationClick: () -> Unit,
@@ -29,23 +27,21 @@ fun DashboardBottomNav(
     onSettingsNavigationClick: () -> Unit
 
 ) {
-    var selectedItem by remember { mutableIntStateOf(0) }
 
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         listOf(
-            BottomNavItem("Dashboard", Icons.Default.Dashboard),
-            BottomNavItem("Users", Icons.Default.People),
-            BottomNavItem("Devices", Icons.Default.Devices),
-            BottomNavItem("Logs", Icons.Default.History),
-            BottomNavItem("Settings", Icons.Default.Settings)
+            BottomNavItem(Route.HOME_SCREEN, "Dashboard", Icons.Default.Dashboard),
+            BottomNavItem(Route.USER_SCREEN, "Users", Icons.Default.People),
+            BottomNavItem(Route.DEVICES_SCREEN, "Devices", Icons.Default.Devices),
+            BottomNavItem(Route.LOGS_SCREEN, "Logs", Icons.Default.History),
+            BottomNavItem(Route.SETTING_SCREEN, "Settings", Icons.Default.Settings)
         ).forEachIndexed { index, item ->
-            NavigationBarItem(
-                selected = selectedItem == index,
-                onClick = {
-                    selectedItem = index
 
+            NavigationBarItem(
+                selected = currentRoute == item.route,
+                onClick = {
                     when (index) {
                         0 -> onDashboardNavigationClick()
                         1 -> onUsersNavigationClick()

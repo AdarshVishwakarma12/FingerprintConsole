@@ -8,8 +8,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.figerprintconsole.app.ui.screen.enroll.FingerprintEnrollmentScreen
-import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
+import com.example.figerprintconsole.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
 import kotlinx.coroutines.delay
 
 @Preview(showBackground = true, showSystemUi = true)

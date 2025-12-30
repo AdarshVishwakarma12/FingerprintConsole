@@ -15,13 +15,13 @@ import com.example.figerprintconsole.app.ui.home.components.DashboardTopBar
 import com.example.figerprintconsole.app.ui.home.components.DevicesStatusSection
 import com.example.figerprintconsole.app.ui.home.components.NotificationsPanel
 import com.example.figerprintconsole.app.ui.home.components.RecentActivitiesSection
-import com.example.figerprintconsole.app.ui.home.state.ActivityAction
-import com.example.figerprintconsole.app.ui.home.state.DashboardStats
-import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
-import com.example.figerprintconsole.app.ui.home.state.DeviceStatusType
-import com.example.figerprintconsole.app.ui.home.state.DeviceType
-import com.example.figerprintconsole.app.ui.home.state.QuickAction
-import com.example.figerprintconsole.app.ui.home.state.RecentActivity
+import com.example.figerprintconsole.app.domain.model.ActivityAction
+import com.example.figerprintconsole.app.domain.model.DashboardStats
+import com.example.figerprintconsole.app.domain.model.DeviceStatus
+import com.example.figerprintconsole.app.domain.model.DeviceStatusType
+import com.example.figerprintconsole.app.domain.model.DeviceType
+import com.example.figerprintconsole.app.domain.model.QuickAction
+import com.example.figerprintconsole.app.domain.model.RecentActivity
 import com.example.figerprintconsole.app.ui.screen.home.components.DashboardHeader
 
 @OptIn(ExperimentalMaterial3Api::class)

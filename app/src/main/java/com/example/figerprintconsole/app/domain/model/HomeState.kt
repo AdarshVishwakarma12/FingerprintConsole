@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.home.state
+package com.example.figerprintconsole.app.domain.model
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -76,6 +76,7 @@ data class StatItem(
 )
 
 data class BottomNavItem(
+    val route: String,
     val label: String,
     val icon: ImageVector
 )

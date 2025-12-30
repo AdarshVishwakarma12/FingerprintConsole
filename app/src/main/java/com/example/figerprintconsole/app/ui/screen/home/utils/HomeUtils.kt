@@ -7,8 +7,8 @@ import androidx.compose.material.icons.filled.PointOfSale
 import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.example.figerprintconsole.app.ui.home.state.DeviceStatusType
-import com.example.figerprintconsole.app.ui.home.state.DeviceType
+import com.example.figerprintconsole.app.domain.model.DeviceStatusType
+import com.example.figerprintconsole.app.domain.model.DeviceType
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

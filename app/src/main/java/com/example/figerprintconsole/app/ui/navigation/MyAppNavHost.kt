@@ -9,6 +9,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.figerprintconsole.app.ui.home.FingerprintDashboard
 import com.example.figerprintconsole.app.ui.screen.devices.DeviceScreen
+import com.example.figerprintconsole.app.ui.screen.enroll.StartEnrollmentProcess
+import com.example.figerprintconsole.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
 import com.example.figerprintconsole.app.ui.screen.users.UsersListScreen
 
 @Composable
@@ -38,9 +41,9 @@ fun MyAppNavHost(
         }
 
         composable(route = Route.ENROLL_SCREEN) {
-//            FingerprintEnrollmentScreen(
-//
-//            )
+            StartEnrollmentProcess(
+                onCompleteEnrollment = { navController.navigate(Route.USER_SCREEN) }
+            )
         }
 
         composable(route = Route.USER_SCREEN) {

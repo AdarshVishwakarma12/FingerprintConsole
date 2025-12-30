@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.enroll.state
+package com.example.figerprintconsole.app.ui.screen.enroll.state
 
 data class EnrollmentState (
     val currentStep: Int = 1,

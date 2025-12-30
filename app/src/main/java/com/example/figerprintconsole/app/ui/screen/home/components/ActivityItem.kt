@@ -32,8 +32,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.figerprintconsole.app.ui.home.state.ActivityAction
-import com.example.figerprintconsole.app.ui.home.state.RecentActivity
+import com.example.figerprintconsole.app.domain.model.ActivityAction
+import com.example.figerprintconsole.app.domain.model.RecentActivity
 import com.example.figerprintconsole.app.ui.home.utils.HomeUtils
 
 @Composable

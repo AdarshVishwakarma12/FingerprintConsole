@@ -1,6 +1,5 @@
 package com.example.figerprintconsole.app.ui.home.components
 
-import android.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,7 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
+import com.example.figerprintconsole.app.domain.model.DeviceStatus
 import com.example.figerprintconsole.app.ui.home.utils.HomeUtils
 
 @Composable

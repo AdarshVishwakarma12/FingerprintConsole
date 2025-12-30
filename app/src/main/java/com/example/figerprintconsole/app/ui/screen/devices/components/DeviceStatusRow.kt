@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
+import com.example.figerprintconsole.app.domain.model.DeviceStatus
 import com.example.figerprintconsole.app.ui.home.utils.HomeUtils
 
 

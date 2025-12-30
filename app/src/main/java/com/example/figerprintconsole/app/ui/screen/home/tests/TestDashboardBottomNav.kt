@@ -8,6 +8,7 @@ import com.example.figerprintconsole.app.ui.home.components.DashboardBottomNav
 @Composable
 fun TestDashboardBottomNav() {
     DashboardBottomNav(
+        null,
         {},
         {},
         {},

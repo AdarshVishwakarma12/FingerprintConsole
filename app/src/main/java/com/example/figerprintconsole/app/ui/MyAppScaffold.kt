@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import com.example.figerprintconsole.app.ui.home.components.DashboardBottomNav
-import com.example.figerprintconsole.app.ui.home.components.DashboardTopBar
 import com.example.figerprintconsole.app.ui.navigation.MyAppNavHost
 import com.example.figerprintconsole.app.ui.navigation.Route
 
@@ -15,6 +14,7 @@ import com.example.figerprintconsole.app.ui.navigation.Route
 @Composable
 fun MyAppScaffold(
     navController: NavHostController,
+    currentRoute: String?,
     modifier: Modifier = Modifier,
 ) {
 
@@ -25,6 +25,7 @@ fun MyAppScaffold(
 
         bottomBar = {
             DashboardBottomNav(
+                currentRoute,
                 onDashboardNavigationClick = {
                     navController.navigate(Route.HOME_SCREEN) {
                         popUpTo(Route.HOME_SCREEN) { inclusive = true }
