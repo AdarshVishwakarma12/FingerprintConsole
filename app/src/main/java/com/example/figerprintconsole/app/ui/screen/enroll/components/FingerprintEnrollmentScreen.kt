@@ -14,14 +14,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.figerprintconsole.app.domain.model.NewEnrollUser
 import com.example.figerprintconsole.app.ui.enroll.components.ErrorMessage
+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentScreenState
 import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+import com.example.figerprintconsole.app.utils.AppConstant
+import com.example.figerprintconsole.app.utils.DebugType
 
 @Composable
 fun FingerprintEnrollmentScreen(
-    state: EnrollmentState,
+    uiState: EnrollmentScreenState,
+    stateData: EnrollmentState,
     onStartEnrollment: () -> Unit,
     onRetry: () -> Unit,
     onComplete: () -> Unit,
+    onCompleteEnrollment: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -32,35 +37,40 @@ fun FingerprintEnrollmentScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Title section
-            EnrollmentHeader(state)
+            EnrollmentHeader(uiState, stateData)
 
             Spacer(modifier = Modifier.height(48.dp))
 
             // Progress and instruction
-            EnrollmentProgressSection(state)
+            EnrollmentProgressSection(stateData)
 
             Spacer(modifier = Modifier.height(32.dp))
 
             // Enrollment actions -> handles start and stop
             // EnrollmentActionOne -> handles
 
-            when {
-                (!state.isEnrolling) -> {
-                    // This is most likely to call onStartEnrollment
+            AppConstant.debugMessage("Current UiState: $uiState && data: $stateData")
+            when(uiState) {
+                is EnrollmentScreenState.IDLE -> {
+                    // Call onStartEnrollment
                     EnrollmentActions(
-                        state = state,
+                        uiState = uiState,
+                        state = stateData,
                         onStartEnrollment = onStartEnrollment,
                         onRetry = onRetry,
-                        onComplete = onComplete
+                        onComplete = onComplete,
+                        onCompleteEnrollment = onCompleteEnrollment
                     )
                 }
 
-                (state.currentStep == 1) -> {
+                is EnrollmentScreenState.UserInput -> {
+                    AppConstant.debugMessage("The UserInput is been rendered!", debugType = DebugType.DESCRIPTION)
                     EnrollmentActionOne(
-                        state = state,
+                        uiState = uiState,
+                        state = stateData,
                         onRetry = onRetry,
                         onComplete = onComplete,
                         newUser = NewEnrollUser(),
@@ -68,26 +78,36 @@ fun FingerprintEnrollmentScreen(
                     )
                 }
 
-                (state.currentStep == 2 || state.currentStep == 3) -> {
+                is EnrollmentScreenState.EnrollingStepOne, EnrollmentScreenState.EnrollingStepTwo -> {
                     EnrollmentActionTwo(
-                        state = state,
+                        uiState = uiState,
+                        state = stateData,
                         onRetry = onRetry,
                         onComplete = onComplete
                     )
                 }
 
-                (state.currentStep == 4) -> {
+                is EnrollmentScreenState.Verifying -> {
+                    // level up
+                    // No Verification for now!
+                    onComplete()
+                }
+
+                is EnrollmentScreenState.Completed -> {
                     EnrollmentActions(
-                        state = state,
+                        uiState = uiState,
+                        state = stateData,
                         onStartEnrollment = onStartEnrollment,
                         onRetry = onRetry,
-                        onComplete = onComplete
+                        onComplete = onComplete,
+                        onCompleteEnrollment = onCompleteEnrollment
                     )
                 }
+                else -> { }
             }
 
             // Error message if any
-            state.errorMessage?.let {
+            stateData.errorMessage?.let {
                 Spacer(modifier = Modifier.height(16.dp))
                 ErrorMessage(it)
             }

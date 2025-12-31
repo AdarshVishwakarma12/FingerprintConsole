@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PersonAdd
@@ -23,31 +25,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentScreenState
 import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+import com.example.figerprintconsole.app.utils.AppConstant
 
 @Composable
 fun EnrollmentActions(
+    uiState: EnrollmentScreenState,
     state: EnrollmentState,
     onStartEnrollment: () -> Unit,
     onRetry: () -> Unit,
-    onComplete: () -> Unit
+    onComplete: () -> Unit,
+    onCompleteEnrollment: () -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize() // take full screen
-            .padding(16.dp)
     ) {
         // Status Section (takes remaining space)
         Column(
             modifier = Modifier
-                .weight(1f) // fills available vertical space
+                .weight(1f)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            when {
+            when(uiState) {
                 // Add the current UI State -> Success / Failed
-                state.isCompleted -> {
+                is EnrollmentScreenState.Completed -> {
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = "Completed",
@@ -62,7 +67,8 @@ fun EnrollmentActions(
                     )
                 }
 
-                !state.isEnrolling -> {
+                is EnrollmentScreenState.IDLE -> {
+                    AppConstant.debugMessage("The State is IDLE @ Enrollment Actions...")
                     Icon(
                         imageVector = Icons.Default.PersonAdd,
                         contentDescription = "Start Enrollment",
@@ -76,17 +82,16 @@ fun EnrollmentActions(
                         fontWeight = FontWeight.SemiBold
                     )
                 }
+                else -> { }
             }
         }
-
-        Spacer(modifier = Modifier.weight(1f))
 
         // Buttons Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            if (!state.isCompleted && !state.isEnrolling) {
+            if (uiState == EnrollmentScreenState.IDLE) {
                 Button(
                     onClick = onStartEnrollment,
                     modifier = Modifier.weight(1f),
@@ -101,9 +106,9 @@ fun EnrollmentActions(
                 }
             }
 
-            if (state.isCompleted) {
+            if (uiState == EnrollmentScreenState.Completed) {
                 Button(
-                    onClick = onComplete,
+                    onClick = onCompleteEnrollment,
                     modifier = Modifier.weight(1f),
                     shape = MaterialTheme.shapes.large
                 ) {

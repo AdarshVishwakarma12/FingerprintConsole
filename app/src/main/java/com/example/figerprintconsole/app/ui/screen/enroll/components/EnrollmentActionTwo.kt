@@ -13,12 +13,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentScreenState
 import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
 import com.example.figerprintconsole.app.utils.AppConstant
 import kotlinx.coroutines.delay
 
 @Composable
 fun EnrollmentActionTwo(
+    uiState: EnrollmentScreenState,
     state: EnrollmentState,
     onRetry: () -> Unit,
     onComplete: () -> Unit
@@ -27,8 +29,9 @@ fun EnrollmentActionTwo(
     // Handle Action Two and Three Collectively
     /* The animation(Just Add a text for now) + Update State + delay(5000) / Wait Infinite(with timeout) + Check if enrolled Success */
 
-    // We may experience some crash if we rotate the screen for now!!
+    // We may experience some crash if we rotate the screen for now / or Change tHEME!!
     // I need structure like hell!!!(something i've never done before)
+    // This business logic inside UI is dangerous!, Kindly move to viewModel!!!
     LaunchedEffect(state) {
         if(state.currentStep == 2) {
             delay(4000)

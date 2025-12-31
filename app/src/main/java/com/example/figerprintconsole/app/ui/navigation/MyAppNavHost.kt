@@ -10,8 +10,6 @@ import androidx.navigation.compose.composable
 import com.example.figerprintconsole.app.ui.home.FingerprintDashboard
 import com.example.figerprintconsole.app.ui.screen.devices.DeviceScreen
 import com.example.figerprintconsole.app.ui.screen.enroll.StartEnrollmentProcess
-import com.example.figerprintconsole.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
-import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
 import com.example.figerprintconsole.app.ui.screen.users.UsersListScreen
 
 @Composable

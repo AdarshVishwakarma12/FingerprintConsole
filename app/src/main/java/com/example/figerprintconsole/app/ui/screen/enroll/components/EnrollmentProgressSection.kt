@@ -47,7 +47,7 @@ fun EnrollmentProgressSection(
 
             // Current Instruction
             Text(
-                text = UtilsEnrollScreen.getStepInstruction(state.currentStep, state.isEnrolling),
+                text = UtilsEnrollScreen.getStepInstruction(state.currentStep, state.isEnrolling, state.isCompleted),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,

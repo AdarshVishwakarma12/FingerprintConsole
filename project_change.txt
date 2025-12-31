@@ -1,1244 +1,2038 @@
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/domain/model/HomeState.kt b/app/src/main/java/com/example/figerprintconsole/app/domain/model/HomeState.kt
-index 1fa33a7..259aa27 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/domain/model/HomeState.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/domain/model/HomeState.kt
-@@ -1,4 +1,4 @@
--package com.example.figerprintconsole.app.ui.home.state
-+package com.example.figerprintconsole.app.domain.model
- 
- import androidx.compose.ui.graphics.Color
- import androidx.compose.ui.graphics.vector.ImageVector
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/domain/model/NewEnrollUser.kt b/app/src/main/java/com/example/figerprintconsole/app/domain/model/NewEnrollUser.kt
-index fd93119..d5a8690 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/domain/model/NewEnrollUser.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/domain/model/NewEnrollUser.kt
-@@ -1,2 +1,11 @@
--package com.example.figerprintconsole.app.domain.model 
-+package com.example.figerprintconsole.app.domain.model
- 
-+data class NewEnrollUser(
-+    val name: String = "",
-+    val email: String = "",
-+    val employeeId: String = "",
-+    val phone: String = "",
-+    val department: String = "",
-+    val timeZone: String = "UTC",
-+    val isValid: Boolean = false
-+)
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/MainActivity.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/MainActivity.kt
-index e289d9f..9acde99 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/MainActivity.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/MainActivity.kt
-@@ -3,6 +3,8 @@ package com.example.figerprintconsole.app.ui
- import android.os.Bundle
- import androidx.activity.compose.setContent
- import androidx.appcompat.app.AppCompatActivity
-+import androidx.compose.runtime.getValue
-+import androidx.navigation.compose.currentBackStackEntryAsState
- import androidx.navigation.compose.rememberNavController
- import dagger.hilt.android.AndroidEntryPoint
- 
-@@ -13,7 +15,9 @@ class MainActivity : AppCompatActivity() {
- 
-         setContent {
-             val navController = rememberNavController()
--            MyAppScaffold(navController)
-+            val navBackStackEntry by navController.currentBackStackEntryAsState()
-+            val currentRoute = navBackStackEntry?.destination?.route
-+            MyAppScaffold(navController, currentRoute)
-         }
-     }
- }
-\ No newline at end of file
+diff --git a/.kotlin/sessions/kotlin-compiler-15306819205517622254.salive b/.kotlin/sessions/kotlin-compiler-15306819205517622254.salive
+deleted file mode 100644
+index e69de29..0000000
 diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/MyAppScaffold.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/MyAppScaffold.kt
-index 548c6be..91a0e4c 100644
+index 91a0e4c..a776082 100644
 --- a/app/src/main/java/com/example/figerprintconsole/app/ui/MyAppScaffold.kt
 +++ b/app/src/main/java/com/example/figerprintconsole/app/ui/MyAppScaffold.kt
-@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
+@@ -6,7 +6,7 @@ import androidx.compose.material3.Scaffold
+ import androidx.compose.runtime.Composable
  import androidx.compose.ui.Modifier
  import androidx.navigation.NavHostController
- import com.example.figerprintconsole.app.ui.home.components.DashboardBottomNav
--import com.example.figerprintconsole.app.ui.home.components.DashboardTopBar
+-import com.example.figerprintconsole.app.ui.home.components.DashboardBottomNav
++import com.example.figerprintconsole.app.ui.screen.home.components.DashboardBottomNav
  import com.example.figerprintconsole.app.ui.navigation.MyAppNavHost
  import com.example.figerprintconsole.app.ui.navigation.Route
  
-@@ -15,6 +14,7 @@ import com.example.figerprintconsole.app.ui.navigation.Route
- @Composable
- fun MyAppScaffold(
-     navController: NavHostController,
-+    currentRoute: String?,
-     modifier: Modifier = Modifier,
- ) {
- 
-@@ -25,6 +25,7 @@ fun MyAppScaffold(
- 
-         bottomBar = {
-             DashboardBottomNav(
-+                currentRoute,
-                 onDashboardNavigationClick = {
-                     navController.navigate(Route.HOME_SCREEN) {
-                         popUpTo(Route.HOME_SCREEN) { inclusive = true }
 diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/navigation/MyAppNavHost.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/navigation/MyAppNavHost.kt
-index fedcd79..2df473e 100644
+index 2df473e..6b5fdad 100644
 --- a/app/src/main/java/com/example/figerprintconsole/app/ui/navigation/MyAppNavHost.kt
 +++ b/app/src/main/java/com/example/figerprintconsole/app/ui/navigation/MyAppNavHost.kt
-@@ -9,6 +9,9 @@ import androidx.navigation.compose.NavHost
- import androidx.navigation.compose.composable
+@@ -10,8 +10,6 @@ import androidx.navigation.compose.composable
  import com.example.figerprintconsole.app.ui.home.FingerprintDashboard
  import com.example.figerprintconsole.app.ui.screen.devices.DeviceScreen
-+import com.example.figerprintconsole.app.ui.screen.enroll.StartEnrollmentProcess
-+import com.example.figerprintconsole.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+ import com.example.figerprintconsole.app.ui.screen.enroll.StartEnrollmentProcess
+-import com.example.figerprintconsole.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
+-import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
  import com.example.figerprintconsole.app.ui.screen.users.UsersListScreen
  
  @Composable
-@@ -38,9 +41,9 @@ fun MyAppNavHost(
-         }
- 
-         composable(route = Route.ENROLL_SCREEN) {
--//            FingerprintEnrollmentScreen(
--//
--//            )
-+            StartEnrollmentProcess(
-+                onCompleteEnrollment = { navController.navigate(Route.USER_SCREEN) }
-+            )
-         }
- 
-         composable(route = Route.USER_SCREEN) {
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/DevicesScreen.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/DevicesScreen.kt
-index f6ddfb2..db18d60 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/DevicesScreen.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/DevicesScreen.kt
-@@ -1,26 +1,11 @@
- package com.example.figerprintconsole.app.ui.screen.devices
- 
--import androidx.compose.foundation.layout.Column
--import androidx.compose.foundation.layout.Row
--import androidx.compose.foundation.layout.Spacer
--import androidx.compose.foundation.layout.fillMaxWidth
--import androidx.compose.foundation.layout.padding
--import androidx.compose.foundation.layout.width
- import androidx.compose.foundation.lazy.LazyColumn
- import androidx.compose.foundation.lazy.items
--import androidx.compose.material3.Divider
--import androidx.compose.material3.MaterialTheme
--import androidx.compose.material3.Text
- import androidx.compose.runtime.Composable
--import androidx.compose.ui.Alignment
--import androidx.compose.ui.Modifier
--import androidx.compose.ui.text.font.FontWeight
--import androidx.compose.ui.unit.dp
--import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
--import com.example.figerprintconsole.app.ui.home.utils.HomeUtils
-+import com.example.figerprintconsole.app.domain.model.DeviceStatus
- import com.example.figerprintconsole.app.ui.screen.devices.components.DeviceStatusRow
- import com.example.figerprintconsole.app.ui.screen.devices.components.NoDevicesEmptyState
--import com.example.figerprintconsole.app.ui.screen.devices.components.StatusDot
- 
- 
- @Composable
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/components/DeviceStatusRow.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/components/DeviceStatusRow.kt
-index 08101d3..2758236 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/components/DeviceStatusRow.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/components/DeviceStatusRow.kt
-@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
- import androidx.compose.ui.Modifier
- import androidx.compose.ui.text.font.FontWeight
- import androidx.compose.ui.unit.dp
--import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
-+import com.example.figerprintconsole.app.domain.model.DeviceStatus
- import com.example.figerprintconsole.app.ui.home.utils.HomeUtils
- 
- 
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/StartEnrollmentProcess.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/StartEnrollmentProcess.kt
-index cd2775e..cfe8353 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/StartEnrollmentProcess.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/StartEnrollmentProcess.kt
-@@ -1,4 +1,50 @@
+diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/EnrollmentViewModel.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/EnrollmentViewModel.kt
+index 19a1555..ec43baa 100644
+--- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/EnrollmentViewModel.kt
++++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/EnrollmentViewModel.kt
+@@ -1,4 +1,122 @@
  package com.example.figerprintconsole.app.ui.screen.enroll
  
--class StartEnrollmentProcess {
-+import androidx.compose.runtime.Composable
-+import androidx.compose.runtime.LaunchedEffect
-+import androidx.compose.runtime.getValue
-+import androidx.compose.runtime.mutableIntStateOf
-+import androidx.compose.runtime.mutableStateOf
-+import androidx.compose.runtime.remember
-+import androidx.compose.runtime.setValue
-+import com.example.figerprintconsole.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
+-class EnrollmentViewModel {
++import androidx.lifecycle.ViewModel
++import com.example.figerprintconsole.app.ui.screen.enroll.event.EnrollScreenEvent
++import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentScreenState
 +import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
++import dagger.hilt.android.lifecycle.HiltViewModel
++import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.StateFlow
++import javax.inject.Inject
 +
-+@Composable
-+fun StartEnrollmentProcess(
-+    onCompleteEnrollment: () -> Unit
-+) {
-+    var currentStateStep by remember { mutableIntStateOf(0) }
-+    var state by remember { mutableStateOf(EnrollmentState()) }
++@HiltViewModel
++class EnrollmentViewModel @Inject constructor(
++): ViewModel() {
 +
-+    LaunchedEffect(key1 = currentStateStep) {
++    private val _currentUiState = MutableStateFlow<EnrollmentScreenState>(EnrollmentScreenState.IDLE)
++    val currentUiState: StateFlow<EnrollmentScreenState> = _currentUiState
 +
-+        if(currentStateStep == state.totalSteps) {
-+            state = state.copy(
-+                isCompleted = true,
-+                currentStep = currentStateStep,
-+                enrollmentProgress = 1f,
-+                enrollmentMessage = "Enrollment successful!"
-+            )
-+        } else {
-+            state = state.copy(
-+                currentStep = currentStateStep,
-+                enrollmentProgress = (currentStateStep) * 0.25f,
-+                enrollmentMessage = "Scanning... ${(currentStateStep) * 25}%"
-+            )
++    private val _currentStateData = MutableStateFlow(EnrollmentState())
++    val currentStateData: StateFlow<EnrollmentState> = _currentStateData
++
++    fun onEvent(event: EnrollScreenEvent) {
++        when(event) {
++            is EnrollScreenEvent.LevelUp -> { levelUpToNextState() }
++            is EnrollScreenEvent.IDLE -> { }
++            is EnrollScreenEvent.UserInput -> { levelUpToUserInput() }
++            is EnrollScreenEvent.EnrollingStepOne -> { levelUpToEnrollmentStepOne() }
++            is EnrollScreenEvent.EnrollingStepTwo -> { levelUpToEnrollmentStepTwo() }
++            is EnrollScreenEvent.Verifying -> { levelUpToVerifying() }
++            is EnrollScreenEvent.Completed -> { levelUpToComplete() }
++            is EnrollScreenEvent.CANCEL -> { }
++            is EnrollScreenEvent.Error -> { }
 +        }
 +    }
 +
-+    FingerprintEnrollmentScreen(
-+        state = state,
-+        onStartEnrollment = {
-+            state = state.copy(isEnrolling = true)
-+            currentStateStep = (currentStateStep + 1).coerceAtMost(state.totalSteps) // max(a, b)
-+        },
-+        onRetry = { state = EnrollmentState() },
-+        onComplete = {
-+            if(currentStateStep >= state.totalSteps) onCompleteEnrollment()
-+            currentStateStep += 1
++    fun levelUpToNextState() {
++        // Check Current UiState
++        when (_currentUiState.value) {
++            EnrollmentScreenState.IDLE -> { levelUpToUserInput() }
++            EnrollmentScreenState.UserInput -> { levelUpToEnrollmentStepOne() }
++            EnrollmentScreenState.EnrollingStepOne -> { levelUpToEnrollmentStepTwo() }
++            EnrollmentScreenState.EnrollingStepTwo -> { levelUpToVerifying() }
++            EnrollmentScreenState.Verifying -> { levelUpToComplete() }
++            EnrollmentScreenState.Completed -> { }
++            is EnrollmentScreenState.Error -> { }
 +        }
-+    )
++    }
++
++    fun levelUpToUserInput() {
++        // Change the UiState
++        _currentUiState.value = EnrollmentScreenState.UserInput
++
++        // Change the state Data
++        _currentStateData.value = _currentStateData.value.copy(
++            currentStep = 1,
++            isEnrolling = true,
++            enrollmentProgress = .25f,
++            enrollmentMessage = "",
++            isCompleted = false,
++            errorMessage = null,
++        )
++    }
++    fun levelUpToEnrollmentStepOne() {
++        // Change the UiState
++        _currentUiState.value = EnrollmentScreenState.EnrollingStepOne
++
++        // Change the state Data
++        _currentStateData.value = _currentStateData.value.copy(
++            currentStep = 2,
++            isEnrolling = true,
++            enrollmentProgress = .50f,
++            enrollmentMessage = "",
++            isCompleted = false,
++            errorMessage = null,
++        )
++    }
++    fun levelUpToEnrollmentStepTwo() {
++        // Change the UiState
++        _currentUiState.value = EnrollmentScreenState.EnrollingStepTwo
++
++        // Change the state Data
++        _currentStateData.value = _currentStateData.value.copy(
++            currentStep = 3,
++            isEnrolling = true,
++            enrollmentProgress = .75f,
++            enrollmentMessage = "",
++            isCompleted = false,
++            errorMessage = null,
++        )
++    }
++    fun levelUpToVerifying() {
++        // Change the UiState
++        _currentUiState.value = EnrollmentScreenState.Verifying
++
++        // Change the state Data
++        _currentStateData.value = _currentStateData.value.copy(
++            currentStep = 4,
++            isEnrolling = true,
++            enrollmentProgress = .90f,
++            enrollmentMessage = "",
++            isCompleted = false,
++            errorMessage = null,
++        )
++    }
++    fun levelUpToComplete() {
++        // Change the UiState
++        _currentUiState.value = EnrollmentScreenState.Completed
++
++        // Change the state Data
++        _currentStateData.value = _currentStateData.value.copy(
++            currentStep = 4,
++            isEnrolling = false,
++            enrollmentProgress = 1f,
++            enrollmentMessage = "",
++            isCompleted = true,
++            errorMessage = null,
++        )
++    }
++
++    fun showError() {}
++
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/StartEnrollmentProcess.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/StartEnrollmentProcess.kt
+index cfe8353..39cabcd 100644
+--- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/StartEnrollmentProcess.kt
++++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/StartEnrollmentProcess.kt
+@@ -1,50 +1,32 @@
+ package com.example.figerprintconsole.app.ui.screen.enroll
+ 
+ import androidx.compose.runtime.Composable
+-import androidx.compose.runtime.LaunchedEffect
++import androidx.compose.runtime.collectAsState
+ import androidx.compose.runtime.getValue
+-import androidx.compose.runtime.mutableIntStateOf
+-import androidx.compose.runtime.mutableStateOf
+-import androidx.compose.runtime.remember
+-import androidx.compose.runtime.setValue
++import androidx.hilt.navigation.compose.hiltViewModel
+ import com.example.figerprintconsole.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
+-import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
++import com.example.figerprintconsole.app.ui.screen.enroll.event.EnrollScreenEvent
+ 
+ @Composable
+ fun StartEnrollmentProcess(
+-    onCompleteEnrollment: () -> Unit
++    onCompleteEnrollment: () -> Unit,
++    viewModel: EnrollmentViewModel = hiltViewModel()
+ ) {
+-    var currentStateStep by remember { mutableIntStateOf(0) }
+-    var state by remember { mutableStateOf(EnrollmentState()) }
+ 
+-    LaunchedEffect(key1 = currentStateStep) {
+-
+-        if(currentStateStep == state.totalSteps) {
+-            state = state.copy(
+-                isCompleted = true,
+-                currentStep = currentStateStep,
+-                enrollmentProgress = 1f,
+-                enrollmentMessage = "Enrollment successful!"
+-            )
+-        } else {
+-            state = state.copy(
+-                currentStep = currentStateStep,
+-                enrollmentProgress = (currentStateStep) * 0.25f,
+-                enrollmentMessage = "Scanning... ${(currentStateStep) * 25}%"
+-            )
+-        }
+-    }
++    // These two values changes together -> cause 2 recomposition -> Fix in later version!
++    val currentUiState by viewModel.currentUiState.collectAsState()
++    val currentStateData by viewModel.currentStateData.collectAsState()
+ 
+     FingerprintEnrollmentScreen(
+-        state = state,
+-        onStartEnrollment = {
+-            state = state.copy(isEnrolling = true)
+-            currentStateStep = (currentStateStep + 1).coerceAtMost(state.totalSteps) // max(a, b)
+-        },
+-        onRetry = { state = EnrollmentState() },
++        uiState = currentUiState,
++        stateData = currentStateData,
++        onStartEnrollment = { viewModel.onEvent(EnrollScreenEvent.UserInput) },
++        onRetry = { viewModel.onEvent(EnrollScreenEvent.IDLE) },
+         onComplete = {
+-            if(currentStateStep >= state.totalSteps) onCompleteEnrollment()
+-            currentStateStep += 1
+-        }
++            // Level 2 & 3 are only updated within viewmodel, currently the business logic is inside UI!!
++            // Fix as soon / or after connecting the Websocket!!
++            viewModel.onEvent(EnrollScreenEvent.LevelUp)
++                     },
++        onCompleteEnrollment = onCompleteEnrollment
+     )
  }
 \ No newline at end of file
 diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionOne.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionOne.kt
-index 528ccd6..7d03832 100644
+index 7d03832..4685c5d 100644
 --- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionOne.kt
 +++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionOne.kt
-@@ -1,4 +1,105 @@
- package com.example.figerprintconsole.app.ui.screen.enroll.components
- 
--class EnrollmentActionOne {
--}
-\ No newline at end of file
-+import androidx.compose.foundation.layout.Arrangement
-+import androidx.compose.foundation.layout.Column
-+import androidx.compose.foundation.layout.Row
-+import androidx.compose.foundation.layout.Spacer
-+import androidx.compose.foundation.layout.fillMaxWidth
-+import androidx.compose.material3.Button
-+import androidx.compose.material3.MaterialTheme
-+import androidx.compose.material3.OutlinedButton
-+import androidx.compose.material3.OutlinedTextField
-+import androidx.compose.material3.Text
-+import androidx.compose.runtime.Composable
-+import androidx.compose.ui.Modifier
-+import androidx.compose.ui.text.font.FontWeight
-+import androidx.compose.ui.unit.dp
-+import androidx.compose.ui.unit.sp
-+import com.example.figerprintconsole.app.domain.model.NewEnrollUser
-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
-+
-+@Composable
-+fun EnrollmentActionOne(
-+    state: EnrollmentState,
-+    onRetry: () -> Unit,
-+    onComplete: () -> Unit,
-+    newUser: NewEnrollUser,
-+    onInputChanged: (NewEnrollUser) -> Unit
-+) {
-+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-+
-+        OutlinedTextField(
-+            value = newUser.name,
-+            onValueChange = { onInputChanged(newUser.copy(name = it)) },
-+            label = { Text("Name") },
-+            modifier = Modifier.fillMaxWidth()
-+        )
-+
-+        OutlinedTextField(
-+            value = newUser.email,
-+            onValueChange = { onInputChanged(newUser.copy(email = it)) },
-+            label = { Text("Email") },
-+            modifier = Modifier.fillMaxWidth()
-+        )
-+
-+        OutlinedTextField(
-+            value = newUser.employeeId,
-+            onValueChange = { onInputChanged(newUser.copy(employeeId = it)) },
-+            label = { Text("Employee ID") },
-+            modifier = Modifier.fillMaxWidth()
-+        )
-+
-+        OutlinedTextField(
-+            value = newUser.phone,
-+            onValueChange = { onInputChanged(newUser.copy(phone = it)) },
-+            label = { Text("Phone") },
-+            modifier = Modifier.fillMaxWidth()
-+        )
-+
-+        OutlinedTextField(
-+            value = newUser.department,
-+            onValueChange = { onInputChanged(newUser.copy(department = it)) },
-+            label = { Text("Department") },
-+            modifier = Modifier.fillMaxWidth()
-+        )
-+
-+        // TimeZone (simple version for now)
-+        OutlinedTextField(
-+            value = newUser.timeZone,
-+            onValueChange = { onInputChanged(newUser.copy(timeZone = it)) },
-+            label = { Text("Time Zone") },
-+            modifier = Modifier.fillMaxWidth(),
-+            readOnly = true
-+        )
-+
-+        Spacer(modifier = Modifier.weight(1f))
-+
-+        Row(
-+            modifier = Modifier.fillMaxWidth(),
-+            horizontalArrangement = Arrangement.spacedBy(16.dp)
-+        ) {
-+            Button(
-+                onClick = onComplete,
-+                modifier = Modifier.weight(1f),
-+                shape = MaterialTheme.shapes.large,
-+                enabled = true
-+            ) {
-+                Text(
-+                    text = "Continue",
-+                    fontSize = 16.sp,
-+                    fontWeight = FontWeight.SemiBold
-+                )
-+            }
-+
-+            if (state.errorMessage != null) {
-+                OutlinedButton(
-+                    onClick = onRetry,
-+                    modifier = Modifier.weight(1f),
-+                    shape = MaterialTheme.shapes.large
-+                ) {
-+                    Text("Retry")
-+                }
-+            }
-+        }
-+    }
-+}
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionTwo.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionTwo.kt
-index 7a879c1..76246e9 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionTwo.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionTwo.kt
-@@ -1,4 +1,51 @@
- package com.example.figerprintconsole.app.ui.screen.enroll.components
- 
--class EnrollmentActionTwo {
-+import androidx.compose.foundation.layout.Arrangement
-+import androidx.compose.foundation.layout.Column
-+import androidx.compose.foundation.layout.fillMaxSize
-+import androidx.compose.foundation.layout.fillMaxWidth
-+import androidx.compose.material3.CircularProgressIndicator
-+import androidx.compose.material3.MaterialTheme
-+import androidx.compose.material3.Text
-+import androidx.compose.runtime.Composable
-+import androidx.compose.runtime.LaunchedEffect
-+import androidx.compose.ui.Alignment
-+import androidx.compose.ui.Modifier
-+import androidx.compose.ui.text.font.FontWeight
-+import androidx.compose.ui.unit.dp
-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
-+import com.example.figerprintconsole.app.utils.AppConstant
-+import kotlinx.coroutines.delay
-+
-+@Composable
-+fun EnrollmentActionTwo(
-+    state: EnrollmentState,
-+    onRetry: () -> Unit,
-+    onComplete: () -> Unit
-+) {
-+
-+    // Handle Action Two and Three Collectively
-+    /* The animation(Just Add a text for now) + Update State + delay(5000) / Wait Infinite(with timeout) + Check if enrolled Success */
-+
-+    // We may experience some crash if we rotate the screen for now!!
-+    // I need structure like hell!!!(something i've never done before)
-+    LaunchedEffect(state) {
-+        if(state.currentStep == 2) {
-+            delay(4000)
-+            onComplete()
-+        }
-+        // At step 3 check from the websocket, if we get enrolled response!!
-+        if(state.currentStep == 3) {
-+            delay(5000)
-+            onComplete()
-+        }
-+    }
-+
-+    Column(
-+        modifier = Modifier.fillMaxSize(),
-+        horizontalAlignment = Alignment.CenterHorizontally,
-+        verticalArrangement = Arrangement.spacedBy(16.dp)
-+    ) {
-+        CircularProgressIndicator()
-+    }
- }
-\ No newline at end of file
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActions.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActions.kt
-index 5e8c629..889bc8b 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActions.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActions.kt
-@@ -1,18 +1,29 @@
--package com.example.figerprintconsole.app.ui.enroll.components
-+package com.example.figerprintconsole.app.ui.screen.enroll.components
- 
+@@ -3,8 +3,9 @@ package com.example.figerprintconsole.app.ui.screen.enroll.components
  import androidx.compose.foundation.layout.Arrangement
-+import androidx.compose.foundation.layout.Column
+ import androidx.compose.foundation.layout.Column
  import androidx.compose.foundation.layout.Row
-+import androidx.compose.foundation.layout.Spacer
-+import androidx.compose.foundation.layout.fillMaxSize
+-import androidx.compose.foundation.layout.Spacer
  import androidx.compose.foundation.layout.fillMaxWidth
-+import androidx.compose.foundation.layout.height
-+import androidx.compose.foundation.layout.padding
-+import androidx.compose.foundation.layout.size
-+import androidx.compose.material.icons.Icons
-+import androidx.compose.material.icons.filled.Check
-+import androidx.compose.material.icons.filled.PersonAdd
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.verticalScroll
  import androidx.compose.material3.Button
-+import androidx.compose.material3.Icon
  import androidx.compose.material3.MaterialTheme
  import androidx.compose.material3.OutlinedButton
- import androidx.compose.material3.Text
- import androidx.compose.runtime.Composable
-+import androidx.compose.ui.Alignment
- import androidx.compose.ui.Modifier
- import androidx.compose.ui.text.font.FontWeight
+@@ -16,18 +17,25 @@ import androidx.compose.ui.text.font.FontWeight
  import androidx.compose.ui.unit.dp
  import androidx.compose.ui.unit.sp
--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
- 
- @Composable
- fun EnrollmentActions(
-@@ -21,47 +32,98 @@ fun EnrollmentActions(
-     onRetry: () -> Unit,
-     onComplete: () -> Unit
- ) {
--    Row(
--        modifier = Modifier.fillMaxWidth(),
--        horizontalArrangement = Arrangement.spacedBy(16.dp)
-+    Column(
-+        modifier = Modifier
-+            .fillMaxSize() // take full screen
-+            .padding(16.dp)
-     ) {
--        if (!state.isCompleted && !state.isEnrolling) {
--            Button(
--                onClick = onStartEnrollment,
--                modifier = Modifier.weight(1f),
--                shape = MaterialTheme.shapes.large,
--                enabled = !state.isEnrolling
--            ) {
--                Text(
--                    text = "Start Enrollment",
--                    fontSize = 16.sp,
--                    fontWeight = FontWeight.SemiBold
--                )
-+        // Status Section (takes remaining space)
-+        Column(
-+            modifier = Modifier
-+                .weight(1f) // fills available vertical space
-+                .fillMaxWidth(),
-+            verticalArrangement = Arrangement.Center,
-+            horizontalAlignment = Alignment.CenterHorizontally
-+        ) {
-+            when {
-+                // Add the current UI State -> Success / Failed
-+                state.isCompleted -> {
-+                    Icon(
-+                        imageVector = Icons.Default.Check,
-+                        contentDescription = "Completed",
-+                        tint = MaterialTheme.colorScheme.primary,
-+                        modifier = Modifier.size(64.dp)
-+                    )
-+                    Spacer(modifier = Modifier.height(8.dp))
-+                    Text(
-+                        text = "Enrollment Completed",
-+                        style = MaterialTheme.typography.titleMedium,
-+                        fontWeight = FontWeight.SemiBold
-+                    )
-+                }
-+
-+                !state.isEnrolling -> {
-+                    Icon(
-+                        imageVector = Icons.Default.PersonAdd,
-+                        contentDescription = "Start Enrollment",
-+                        tint = MaterialTheme.colorScheme.primary,
-+                        modifier = Modifier.size(64.dp)
-+                    )
-+                    Spacer(modifier = Modifier.height(8.dp))
-+                    Text(
-+                        text = "Ready to Start Enrollment",
-+                        style = MaterialTheme.typography.titleMedium,
-+                        fontWeight = FontWeight.SemiBold
-+                    )
-+                }
-             }
-         }
- 
--        if (state.isCompleted) {
--            Button(
--                onClick = onComplete,
--                modifier = Modifier.weight(1f),
--                shape = MaterialTheme.shapes.large
--            ) {
--                Text(
--                    text = "Continue",
--                    fontSize = 16.sp,
--                    fontWeight = FontWeight.SemiBold
--                )
-+        Spacer(modifier = Modifier.weight(1f))
-+
-+        // Buttons Row
-+        Row(
-+            modifier = Modifier.fillMaxWidth(),
-+            horizontalArrangement = Arrangement.spacedBy(16.dp)
-+        ) {
-+            if (!state.isCompleted && !state.isEnrolling) {
-+                Button(
-+                    onClick = onStartEnrollment,
-+                    modifier = Modifier.weight(1f),
-+                    shape = MaterialTheme.shapes.large,
-+                    enabled = true
-+                ) {
-+                    Text(
-+                        text = "Start Enrollment",
-+                        fontSize = 16.sp,
-+                        fontWeight = FontWeight.SemiBold
-+                    )
-+                }
-+            }
-+
-+            if (state.isCompleted) {
-+                Button(
-+                    onClick = onComplete,
-+                    modifier = Modifier.weight(1f),
-+                    shape = MaterialTheme.shapes.large
-+                ) {
-+                    Text(
-+                        text = "Continue",
-+                        fontSize = 16.sp,
-+                        fontWeight = FontWeight.SemiBold
-+                    )
-+                }
-             }
--        }
- 
--        if (state.errorMessage != null) {
--            OutlinedButton(
--                onClick = onRetry,
--                modifier = Modifier.weight(1f),
--                shape = MaterialTheme.shapes.large
--            ) {
--                Text("Retry")
-+            if (state.errorMessage != null) {
-+                OutlinedButton(
-+                    onClick = onRetry,
-+                    modifier = Modifier.weight(1f),
-+                    shape = MaterialTheme.shapes.large
-+                ) {
-+                    Text("Retry")
-+                }
-             }
-         }
-     }
--}
-\ No newline at end of file
-+}
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentHeader.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentHeader.kt
-index 849cd40..86acf9f 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentHeader.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentHeader.kt
-@@ -1,4 +1,4 @@
--package com.example.figerprintconsole.app.ui.enroll.components
-+package com.example.figerprintconsole.app.ui.screen.enroll.components
- 
- import androidx.compose.material3.Text
- import androidx.compose.foundation.layout.Column
-@@ -6,7 +6,7 @@ import androidx.compose.material3.MaterialTheme
- import androidx.compose.runtime.Composable
- import androidx.compose.ui.Alignment
- import androidx.compose.ui.text.font.FontWeight
--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
- 
- @Composable
- fun EnrollmentHeader(
-@@ -16,9 +16,15 @@ fun EnrollmentHeader(
-         horizontalAlignment = Alignment.CenterHorizontally
-     ) {
- 
-+        val text = if(state.isCompleted) {
-+            "Enrollment Complete!"// + state.enrollmentMessage + "Step: ${state.currentStep}"
-+        } else {
-+            "Fingerprint Enrollment"// + state.enrollmentMessage + "Step: ${state.currentStep}"
-+        }
-+
-         // Show Header
-         Text(
--            text = if (state.isCompleted) "Enrollment Complete!" else "Fingerprint Enrollment",
-+            text = text,
-             style = MaterialTheme.typography.headlineMedium,
-             fontWeight = FontWeight.Bold,
-             color = MaterialTheme.colorScheme.primary
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentProgressSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentProgressSection.kt
-index a3d5eb2..e1080e9 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentProgressSection.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentProgressSection.kt
-@@ -1,4 +1,4 @@
--package com.example.figerprintconsole.app.ui.enroll.components
-+package com.example.figerprintconsole.app.ui.screen.enroll.components
- 
- import androidx.compose.foundation.layout.Column
- import androidx.compose.foundation.layout.Spacer
-@@ -15,8 +15,8 @@ import androidx.compose.ui.Alignment
- import androidx.compose.ui.Modifier
- import androidx.compose.ui.text.style.TextAlign
- import androidx.compose.ui.unit.dp
--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
--import com.example.figerprintconsole.app.ui.enroll.utils.UtilsEnrollScreen
-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
-+import com.example.figerprintconsole.app.ui.screen.enroll.utils.UtilsEnrollScreen
- 
- @Composable
- fun EnrollmentProgressSection(
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt
-index f077b02..48f671c 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt
-@@ -1,4 +1,4 @@
--package com.example.figerprintconsole.app.ui.screen.enroll
-+package com.example.figerprintconsole.app.ui.screen.enroll.components
- 
- import androidx.compose.foundation.layout.Column
- import androidx.compose.foundation.layout.Spacer
-@@ -6,18 +6,14 @@ import androidx.compose.foundation.layout.fillMaxSize
- import androidx.compose.foundation.layout.fillMaxWidth
- import androidx.compose.foundation.layout.height
- import androidx.compose.foundation.layout.padding
--import androidx.compose.foundation.layout.size
- import androidx.compose.material3.MaterialTheme
- import androidx.compose.material3.Surface
- import androidx.compose.runtime.Composable
- import androidx.compose.ui.Alignment
- import androidx.compose.ui.Modifier
- import androidx.compose.ui.unit.dp
--import com.example.figerprintconsole.app.ui.enroll.components.EnrollmentActions
--import com.example.figerprintconsole.app.ui.enroll.components.EnrollmentHeader
--import com.example.figerprintconsole.app.ui.enroll.components.EnrollmentProgressSection
-+import com.example.figerprintconsole.app.domain.model.NewEnrollUser
- import com.example.figerprintconsole.app.ui.enroll.components.ErrorMessage
--import com.example.figerprintconsole.app.ui.enroll.components.FingerprintVisualization
+ import com.example.figerprintconsole.app.domain.model.NewEnrollUser
++import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentScreenState
  import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
  
  @Composable
-@@ -48,13 +44,47 @@ fun FingerprintEnrollmentScreen(
+ fun EnrollmentActionOne(
++    uiState: EnrollmentScreenState,
+     state: EnrollmentState,
+     onRetry: () -> Unit,
+     onComplete: () -> Unit,
+     newUser: NewEnrollUser,
+     onInputChanged: (NewEnrollUser) -> Unit
+ ) {
+-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
++    Column(
++        verticalArrangement = Arrangement.spacedBy(12.dp),
++        modifier = Modifier.verticalScroll(rememberScrollState()),
++    ) {
+ 
++        // These data need to be validated && Must be stored in viewModel temporarly..!!
++        // Otherwise there will be some side-effects!
+         OutlinedTextField(
+             value = newUser.name,
+             onValueChange = { onInputChanged(newUser.copy(name = it)) },
+@@ -72,8 +80,6 @@ fun EnrollmentActionOne(
+             readOnly = true
+         )
+ 
+-        Spacer(modifier = Modifier.weight(1f))
+-
+         Row(
+             modifier = Modifier.fillMaxWidth(),
+             horizontalArrangement = Arrangement.spacedBy(16.dp)
+diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionTwo.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionTwo.kt
+index 76246e9..7ef0b83 100644
+--- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionTwo.kt
++++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionTwo.kt
+@@ -13,12 +13,14 @@ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.unit.dp
++import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentScreenState
+ import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+ import com.example.figerprintconsole.app.utils.AppConstant
+ import kotlinx.coroutines.delay
+ 
+ @Composable
+ fun EnrollmentActionTwo(
++    uiState: EnrollmentScreenState,
+     state: EnrollmentState,
+     onRetry: () -> Unit,
+     onComplete: () -> Unit
+@@ -27,8 +29,9 @@ fun EnrollmentActionTwo(
+     // Handle Action Two and Three Collectively
+     /* The animation(Just Add a text for now) + Update State + delay(5000) / Wait Infinite(with timeout) + Check if enrolled Success */
+ 
+-    // We may experience some crash if we rotate the screen for now!!
++    // We may experience some crash if we rotate the screen for now / or Change tHEME!!
+     // I need structure like hell!!!(something i've never done before)
++    // This business logic inside UI is dangerous!, Kindly move to viewModel!!!
+     LaunchedEffect(state) {
+         if(state.currentStep == 2) {
+             delay(4000)
+diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActions.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActions.kt
+index 889bc8b..95d8a54 100644
+--- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActions.kt
++++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActions.kt
+@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
+ import androidx.compose.foundation.layout.height
+ import androidx.compose.foundation.layout.padding
+ import androidx.compose.foundation.layout.size
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.verticalScroll
+ import androidx.compose.material.icons.Icons
+ import androidx.compose.material.icons.filled.Check
+ import androidx.compose.material.icons.filled.PersonAdd
+@@ -23,31 +25,34 @@ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.sp
++import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentScreenState
+ import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
++import com.example.figerprintconsole.app.utils.AppConstant
+ 
+ @Composable
+ fun EnrollmentActions(
++    uiState: EnrollmentScreenState,
+     state: EnrollmentState,
+     onStartEnrollment: () -> Unit,
+     onRetry: () -> Unit,
+-    onComplete: () -> Unit
++    onComplete: () -> Unit,
++    onCompleteEnrollment: () -> Unit,
+ ) {
+     Column(
+         modifier = Modifier
+             .fillMaxSize() // take full screen
+-            .padding(16.dp)
+     ) {
+         // Status Section (takes remaining space)
+         Column(
+             modifier = Modifier
+-                .weight(1f) // fills available vertical space
++                .weight(1f)
+                 .fillMaxWidth(),
+             verticalArrangement = Arrangement.Center,
+             horizontalAlignment = Alignment.CenterHorizontally
+         ) {
+-            when {
++            when(uiState) {
+                 // Add the current UI State -> Success / Failed
+-                state.isCompleted -> {
++                is EnrollmentScreenState.Completed -> {
+                     Icon(
+                         imageVector = Icons.Default.Check,
+                         contentDescription = "Completed",
+@@ -62,7 +67,8 @@ fun EnrollmentActions(
+                     )
+                 }
+ 
+-                !state.isEnrolling -> {
++                is EnrollmentScreenState.IDLE -> {
++                    AppConstant.debugMessage("The State is IDLE @ Enrollment Actions...")
+                     Icon(
+                         imageVector = Icons.Default.PersonAdd,
+                         contentDescription = "Start Enrollment",
+@@ -76,17 +82,16 @@ fun EnrollmentActions(
+                         fontWeight = FontWeight.SemiBold
+                     )
+                 }
++                else -> { }
+             }
+         }
+ 
+-        Spacer(modifier = Modifier.weight(1f))
+-
+         // Buttons Row
+         Row(
+             modifier = Modifier.fillMaxWidth(),
+             horizontalArrangement = Arrangement.spacedBy(16.dp)
+         ) {
+-            if (!state.isCompleted && !state.isEnrolling) {
++            if (uiState == EnrollmentScreenState.IDLE) {
+                 Button(
+                     onClick = onStartEnrollment,
+                     modifier = Modifier.weight(1f),
+@@ -101,9 +106,9 @@ fun EnrollmentActions(
+                 }
+             }
+ 
+-            if (state.isCompleted) {
++            if (uiState == EnrollmentScreenState.Completed) {
+                 Button(
+-                    onClick = onComplete,
++                    onClick = onCompleteEnrollment,
+                     modifier = Modifier.weight(1f),
+                     shape = MaterialTheme.shapes.large
+                 ) {
+diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentHeader.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentHeader.kt
+index 86acf9f..e370fb8 100644
+--- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentHeader.kt
++++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentHeader.kt
+@@ -6,10 +6,12 @@ import androidx.compose.material3.MaterialTheme
+ import androidx.compose.runtime.Composable
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.text.font.FontWeight
++import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentScreenState
+ import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+ 
+ @Composable
+ fun EnrollmentHeader(
++    uiState: EnrollmentScreenState,
+     state: EnrollmentState
+ ) {
+     Column(
+@@ -17,9 +19,9 @@ fun EnrollmentHeader(
+     ) {
+ 
+         val text = if(state.isCompleted) {
+-            "Enrollment Complete!"// + state.enrollmentMessage + "Step: ${state.currentStep}"
++            "Enrollment Complete!" //+ uiState.toString() // + state.enrollmentMessage + "Step: ${state.currentStep}"
+         } else {
+-            "Fingerprint Enrollment"// + state.enrollmentMessage + "Step: ${state.currentStep}"
++            "Fingerprint Enrollment" //+ uiState.toString()// + state.enrollmentMessage + "Step: ${state.currentStep}"
+         }
+ 
+         // Show Header
+diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentProgressSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentProgressSection.kt
+index e1080e9..000cca5 100644
+--- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentProgressSection.kt
++++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentProgressSection.kt
+@@ -47,7 +47,7 @@ fun EnrollmentProgressSection(
+ 
+             // Current Instruction
+             Text(
+-                text = UtilsEnrollScreen.getStepInstruction(state.currentStep, state.isEnrolling),
++                text = UtilsEnrollScreen.getStepInstruction(state.currentStep, state.isEnrolling, state.isCompleted),
+                 style = MaterialTheme.typography.bodyLarge,
+                 color = MaterialTheme.colorScheme.onSurface,
+                 textAlign = TextAlign.Center,
+diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt
+index 48f671c..72d0294 100644
+--- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt
++++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt
+@@ -14,14 +14,19 @@ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.unit.dp
+ import com.example.figerprintconsole.app.domain.model.NewEnrollUser
+ import com.example.figerprintconsole.app.ui.enroll.components.ErrorMessage
++import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentScreenState
+ import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
++import com.example.figerprintconsole.app.utils.AppConstant
++import com.example.figerprintconsole.app.utils.DebugType
+ 
+ @Composable
+ fun FingerprintEnrollmentScreen(
+-    state: EnrollmentState,
++    uiState: EnrollmentScreenState,
++    stateData: EnrollmentState,
+     onStartEnrollment: () -> Unit,
+     onRetry: () -> Unit,
+     onComplete: () -> Unit,
++    onCompleteEnrollment: () -> Unit,
+     modifier: Modifier = Modifier
+ ) {
+     Surface(
+@@ -32,35 +37,40 @@ fun FingerprintEnrollmentScreen(
+             modifier = Modifier
+                 .fillMaxSize()
+                 .padding(24.dp),
+-            horizontalAlignment = Alignment.CenterHorizontally
++            horizontalAlignment = Alignment.CenterHorizontally,
+         ) {
+             // Title section
+-            EnrollmentHeader(state)
++            EnrollmentHeader(uiState, stateData)
+ 
+             Spacer(modifier = Modifier.height(48.dp))
+ 
+             // Progress and instruction
+-            EnrollmentProgressSection(state)
++            EnrollmentProgressSection(stateData)
  
              Spacer(modifier = Modifier.height(32.dp))
  
--            // Action buttons
--            EnrollmentActions(
--                state = state,
--                onStartEnrollment = onStartEnrollment,
--                onRetry = onRetry,
--                onComplete = onComplete
--            )
-+            // Enrollment actions -> handles start and stop
-+            // EnrollmentActionOne -> handles
-+
-+            when {
-+                (!state.isEnrolling) -> {
-+                    // This is most likely to call onStartEnrollment
-+                    EnrollmentActions(
-+                        state = state,
-+                        onStartEnrollment = onStartEnrollment,
-+                        onRetry = onRetry,
-+                        onComplete = onComplete
-+                    )
-+                }
-+
-+                (state.currentStep == 1) -> {
-+                    EnrollmentActionOne(
-+                        state = state,
-+                        onRetry = onRetry,
+             // Enrollment actions -> handles start and stop
+             // EnrollmentActionOne -> handles
+ 
+-            when {
+-                (!state.isEnrolling) -> {
+-                    // This is most likely to call onStartEnrollment
++            AppConstant.debugMessage("Current UiState: $uiState && data: $stateData")
++            when(uiState) {
++                is EnrollmentScreenState.IDLE -> {
++                    // Call onStartEnrollment
+                     EnrollmentActions(
+-                        state = state,
++                        uiState = uiState,
++                        state = stateData,
+                         onStartEnrollment = onStartEnrollment,
+                         onRetry = onRetry,
+-                        onComplete = onComplete
 +                        onComplete = onComplete,
-+                        newUser = NewEnrollUser(),
-+                        onInputChanged = {}
-+                    )
++                        onCompleteEnrollment = onCompleteEnrollment
+                     )
+                 }
+ 
+-                (state.currentStep == 1) -> {
++                is EnrollmentScreenState.UserInput -> {
++                    AppConstant.debugMessage("The UserInput is been rendered!", debugType = DebugType.DESCRIPTION)
+                     EnrollmentActionOne(
+-                        state = state,
++                        uiState = uiState,
++                        state = stateData,
+                         onRetry = onRetry,
+                         onComplete = onComplete,
+                         newUser = NewEnrollUser(),
+@@ -68,26 +78,36 @@ fun FingerprintEnrollmentScreen(
+                     )
+                 }
+ 
+-                (state.currentStep == 2 || state.currentStep == 3) -> {
++                is EnrollmentScreenState.EnrollingStepOne, EnrollmentScreenState.EnrollingStepTwo -> {
+                     EnrollmentActionTwo(
+-                        state = state,
++                        uiState = uiState,
++                        state = stateData,
+                         onRetry = onRetry,
+                         onComplete = onComplete
+                     )
+                 }
+ 
+-                (state.currentStep == 4) -> {
++                is EnrollmentScreenState.Verifying -> {
++                    // level up
++                    // No Verification for now!
++                    onComplete()
 +                }
 +
-+                (state.currentStep == 2 || state.currentStep == 3) -> {
-+                    EnrollmentActionTwo(
-+                        state = state,
-+                        onRetry = onRetry,
-+                        onComplete = onComplete
-+                    )
-+                }
-+
-+                (state.currentStep == 4) -> {
-+                    EnrollmentActions(
-+                        state = state,
-+                        onStartEnrollment = onStartEnrollment,
-+                        onRetry = onRetry,
-+                        onComplete = onComplete
-+                    )
-+                }
-+            }
++                is EnrollmentScreenState.Completed -> {
+                     EnrollmentActions(
+-                        state = state,
++                        uiState = uiState,
++                        state = stateData,
+                         onStartEnrollment = onStartEnrollment,
+                         onRetry = onRetry,
+-                        onComplete = onComplete
++                        onComplete = onComplete,
++                        onCompleteEnrollment = onCompleteEnrollment
+                     )
+                 }
++                else -> { }
+             }
  
              // Error message if any
-             state.errorMessage?.let {
+-            state.errorMessage?.let {
++            stateData.errorMessage?.let {
+                 Spacer(modifier = Modifier.height(16.dp))
+                 ErrorMessage(it)
+             }
 diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/event/EnrollScreenEvent.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/event/EnrollScreenEvent.kt
-index 8bc1143..d2fde5e 100644
+index d2fde5e..7566227 100644
 --- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/event/EnrollScreenEvent.kt
 +++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/event/EnrollScreenEvent.kt
-@@ -1,4 +1,7 @@
+@@ -1,7 +1,13 @@
  package com.example.figerprintconsole.app.ui.screen.enroll.event
  
--class EnrollScreenEvent {
-+import com.example.figerprintconsole.app.domain.model.NewEnrollUser
-+
-+sealed class EnrollScreenEvent {
-+
+-import com.example.figerprintconsole.app.domain.model.NewEnrollUser
+-
+ sealed class EnrollScreenEvent {
+-
++    object LevelUp: EnrollScreenEvent()
++    object IDLE: EnrollScreenEvent()
++    object UserInput: EnrollScreenEvent()
++    object EnrollingStepOne: EnrollScreenEvent()
++    object EnrollingStepTwo: EnrollScreenEvent()
++    object Verifying: EnrollScreenEvent()
++    object Completed: EnrollScreenEvent()
++    object CANCEL: EnrollScreenEvent()
++    data class Error(val message: String?): EnrollScreenEvent()
  }
 \ No newline at end of file
 diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentScreenState.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentScreenState.kt
-index 31f64f4..9177713 100644
+index 9177713..ce56ebd 100644
 --- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentScreenState.kt
 +++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentScreenState.kt
-@@ -1,4 +1,12 @@
+@@ -1,12 +1,11 @@
  package com.example.figerprintconsole.app.ui.screen.enroll.state
  
--class EnrollmentScreenState {
-+import com.example.figerprintconsole.app.domain.model.NewEnrollUser
-+
-+sealed class EnrollmentScreenState {
-+    object Initial
-+    data class UserInput(val userData: NewEnrollUser): EnrollmentScreenState()
-+    object FingerprintScan: EnrollmentScreenState()
-+    object FingerprintScanAgain: EnrollmentScreenState()
-+    object Completed: EnrollmentScreenState()
-+    data class Error(val message: String) : EnrollmentScreenState()
+-import com.example.figerprintconsole.app.domain.model.NewEnrollUser
+-
+ sealed class EnrollmentScreenState {
+-    object Initial
+-    data class UserInput(val userData: NewEnrollUser): EnrollmentScreenState()
+-    object FingerprintScan: EnrollmentScreenState()
+-    object FingerprintScanAgain: EnrollmentScreenState()
+-    object Completed: EnrollmentScreenState()
+-    data class Error(val message: String) : EnrollmentScreenState()
++        object IDLE: EnrollmentScreenState()
++        object UserInput: EnrollmentScreenState()
++        object EnrollingStepOne: EnrollmentScreenState()
++        object EnrollingStepTwo: EnrollmentScreenState()
++        object Verifying: EnrollmentScreenState()
++        object Completed: EnrollmentScreenState()
++        data class Error(val message: String?): EnrollmentScreenState()
  }
 \ No newline at end of file
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentState.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentState.kt
-index 51c8893..86141a3 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentState.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentState.kt
-@@ -1,4 +1,4 @@
--package com.example.figerprintconsole.app.ui.enroll.state
-+package com.example.figerprintconsole.app.ui.screen.enroll.state
- 
- data class EnrollmentState (
-     val currentStep: Int = 1,
 diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentActions.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentActions.kt
-index 0237993..d241c6e 100644
+index d241c6e..79553b7 100644
 --- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentActions.kt
 +++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentActions.kt
-@@ -2,8 +2,8 @@ package com.example.figerprintconsole.app.ui.enroll.tests
+@@ -1,13 +1,15 @@
+-package com.example.figerprintconsole.app.ui.enroll.tests
++package com.example.figerprintconsole.app.ui.screen.enroll.tests
  
  import androidx.compose.runtime.Composable
  import androidx.compose.ui.tooling.preview.Preview
--import com.example.figerprintconsole.app.ui.enroll.components.EnrollmentActions
--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
-+import com.example.figerprintconsole.app.ui.screen.enroll.components.EnrollmentActions
-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+ import com.example.figerprintconsole.app.ui.screen.enroll.components.EnrollmentActions
++import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentScreenState
+ import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
  
  @Preview(showBackground = true)
  @Composable
+ fun TestEnrollmentActions() {
+     val state = EnrollmentState()
+-    EnrollmentActions(state, {}, {}, {})
++    val uiState = EnrollmentScreenState.IDLE
++    EnrollmentActions(uiState, state, {}, {}, {}, {})
+ }
+\ No newline at end of file
 diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentHeader.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentHeader.kt
-index 683dd85..23f231a 100644
+index 23f231a..a01433b 100644
 --- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentHeader.kt
 +++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentHeader.kt
-@@ -2,8 +2,8 @@ package com.example.figerprintconsole.app.ui.enroll.tests
- 
+@@ -3,12 +3,14 @@ package com.example.figerprintconsole.app.ui.enroll.tests
  import androidx.compose.runtime.Composable
  import androidx.compose.ui.tooling.preview.Preview
--import com.example.figerprintconsole.app.ui.enroll.components.EnrollmentHeader
--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
-+import com.example.figerprintconsole.app.ui.screen.enroll.components.EnrollmentHeader
-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+ import com.example.figerprintconsole.app.ui.screen.enroll.components.EnrollmentHeader
++import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentScreenState
+ import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
  
  @Preview(showBackground = true)
  @Composable
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentProgressSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentProgressSection.kt
-index 70a3bbe..b181da0 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentProgressSection.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentProgressSection.kt
-@@ -2,8 +2,8 @@ package com.example.figerprintconsole.app.ui.enroll.tests
+ fun TestEnrollmentHeader() {
++    val uiState = EnrollmentScreenState.IDLE
+     val state = EnrollmentState()
  
- import androidx.compose.runtime.Composable
- import androidx.compose.ui.tooling.preview.Preview
--import com.example.figerprintconsole.app.ui.enroll.components.EnrollmentProgressSection
--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
-+import com.example.figerprintconsole.app.ui.screen.enroll.components.EnrollmentProgressSection
-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
- 
- @Preview(showBackground = true)
- @Composable
+-    EnrollmentHeader(state)
++    EnrollmentHeader(uiState, state)
+ }
+\ No newline at end of file
 diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestFingerprintEnrollment.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestFingerprintEnrollment.kt
-index 7664f8b..5d5aace 100644
+index 5d5aace..d068211 100644
 --- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestFingerprintEnrollment.kt
 +++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestFingerprintEnrollment.kt
-@@ -8,8 +8,8 @@ import androidx.compose.runtime.mutableStateOf
- import androidx.compose.runtime.remember
- import androidx.compose.runtime.setValue
- import androidx.compose.ui.tooling.preview.Preview
--import com.example.figerprintconsole.app.ui.screen.enroll.FingerprintEnrollmentScreen
--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
-+import com.example.figerprintconsole.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+@@ -12,41 +12,41 @@ import com.example.figerprintconsole.app.ui.screen.enroll.components.Fingerprint
+ import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
  import kotlinx.coroutines.delay
  
- @Preview(showBackground = true, showSystemUi = true)
+-@Preview(showBackground = true, showSystemUi = true)
+-@Composable
+-fun TestFingerprintEnrollmentScreen() {
+-    MaterialTheme {
+-        var state by remember { mutableStateOf(EnrollmentState()) }
+-
+-        LaunchedEffect(key1 = state.isEnrolling) {
+-            if (state.isEnrolling && state.enrollmentProgress < 1f) {
+-                repeat(4) { step ->
+-                    state = state.copy(
+-                        enrollmentMessage = "Scanning... ${(step + 1) * 25}%",
+-                        currentStep = step + 1,
+-                        enrollmentProgress = (step + 1) * 0.25f
+-                    )
+-                    delay(4000)
+-                }
+-                state = state.copy(
+-                    isCompleted = true,
+-                    enrollmentProgress = 1f,
+-                    enrollmentMessage = "Enrollment successful!"
+-                )
+-            }
+-        }
+-
+-        FingerprintEnrollmentScreen(
+-            state = state,
+-            onStartEnrollment = {
+-                state = state.copy(isEnrolling = true)
+-            },
+-            onRetry = {
+-                state = EnrollmentState()
+-            },
+-            onComplete = {
+-                // Handle completion
+-            }
+-        )
+-    }
+-}
+\ No newline at end of file
++//@Preview(showBackground = true, showSystemUi = true)
++//@Composable
++//fun TestFingerprintEnrollmentScreen() {
++//    MaterialTheme {
++//        var state by remember { mutableStateOf(EnrollmentState()) }
++//
++//        LaunchedEffect(key1 = state.isEnrolling) {
++//            if (state.isEnrolling && state.enrollmentProgress < 1f) {
++//                repeat(4) { step ->
++//                    state = state.copy(
++//                        enrollmentMessage = "Scanning... ${(step + 1) * 25}%",
++//                        currentStep = step + 1,
++//                        enrollmentProgress = (step + 1) * 0.25f
++//                    )
++//                    delay(4000)
++//                }
++//                state = state.copy(
++//                    isCompleted = true,
++//                    enrollmentProgress = 1f,
++//                    enrollmentMessage = "Enrollment successful!"
++//                )
++//            }
++//        }
++//
++//        FingerprintEnrollmentScreen(
++//            state = state,
++//            onStartEnrollment = {
++//                state = state.copy(isEnrolling = true)
++//            },
++//            onRetry = {
++//                state = EnrollmentState()
++//            },
++//            onComplete = {
++//                // Handle completion
++//            }
++//        )
++//    }
++//}
+\ No newline at end of file
 diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/utils/UtilsEnrollScreen.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/utils/UtilsEnrollScreen.kt
-index fe0927c..a7026b0 100644
+index a7026b0..939f5cc 100644
 --- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/utils/UtilsEnrollScreen.kt
 +++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/utils/UtilsEnrollScreen.kt
-@@ -1,15 +1,15 @@
--package com.example.figerprintconsole.app.ui.enroll.utils
-+package com.example.figerprintconsole.app.ui.screen.enroll.utils
+@@ -2,13 +2,14 @@ package com.example.figerprintconsole.app.ui.screen.enroll.utils
  
  // Helper function for step instructions
  object UtilsEnrollScreen {
-     fun getStepInstruction(step: Int, isEnrolling: Boolean): String {
+-    fun getStepInstruction(step: Int, isEnrolling: Boolean): String {
++    fun getStepInstruction(step: Int, isEnrolling: Boolean, isCompleted: Boolean): String {
          return when {
--            isEnrolling -> "Keep your finger on the sensor..."
--            step == 1 -> "Place your finger on the fingerprint sensor"
--            step == 2 -> "Lift and place your finger again"
--            step == 3 -> "Adjust finger position slightly"
--            step == 4 -> "One final scan for verification"
--            else -> "Follow the on-screen instructions"
-+            !isEnrolling -> "Press Start to Enroll New User"
-+            step == 1 -> "Enter User Information"
-+            step == 2 -> "Place your finger on the fingerprint sensor"
-+            step == 3 -> "Lift and place your finger again"
-+            step == 4 -> "Enrolled Success"
-+            else -> "Error While Enrolling New User"
++            isCompleted -> "User Enrolled!"
+             !isEnrolling -> "Press Start to Enroll New User"
+             step == 1 -> "Enter User Information"
+             step == 2 -> "Place your finger on the fingerprint sensor"
+             step == 3 -> "Lift and place your finger again"
+-            step == 4 -> "Enrolled Success"
++            step == 4 -> "Verify"
+             else -> "Error While Enrolling New User"
          }
      }
- }
-\ No newline at end of file
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/FingerprintDashboard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/FingerprintDashboard.kt
-index aab2aa3..6a0271b 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/FingerprintDashboard.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/FingerprintDashboard.kt
-@@ -15,13 +15,13 @@ import com.example.figerprintconsole.app.ui.home.components.DashboardTopBar
- import com.example.figerprintconsole.app.ui.home.components.DevicesStatusSection
- import com.example.figerprintconsole.app.ui.home.components.NotificationsPanel
- import com.example.figerprintconsole.app.ui.home.components.RecentActivitiesSection
--import com.example.figerprintconsole.app.ui.home.state.ActivityAction
--import com.example.figerprintconsole.app.ui.home.state.DashboardStats
--import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
--import com.example.figerprintconsole.app.ui.home.state.DeviceStatusType
--import com.example.figerprintconsole.app.ui.home.state.DeviceType
--import com.example.figerprintconsole.app.ui.home.state.QuickAction
--import com.example.figerprintconsole.app.ui.home.state.RecentActivity
-+import com.example.figerprintconsole.app.domain.model.ActivityAction
-+import com.example.figerprintconsole.app.domain.model.DashboardStats
-+import com.example.figerprintconsole.app.domain.model.DeviceStatus
-+import com.example.figerprintconsole.app.domain.model.DeviceStatusType
-+import com.example.figerprintconsole.app.domain.model.DeviceType
-+import com.example.figerprintconsole.app.domain.model.QuickAction
-+import com.example.figerprintconsole.app.domain.model.RecentActivity
- import com.example.figerprintconsole.app.ui.screen.home.components.DashboardHeader
- 
- @OptIn(ExperimentalMaterial3Api::class)
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/ActivityItem.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/ActivityItem.kt
-index 82fa0c5..ef01892 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/ActivityItem.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/ActivityItem.kt
-@@ -32,8 +32,8 @@ import androidx.compose.ui.graphics.Color
- import androidx.compose.ui.text.font.FontWeight
- import androidx.compose.ui.text.style.TextOverflow
- import androidx.compose.ui.unit.dp
--import com.example.figerprintconsole.app.ui.home.state.ActivityAction
--import com.example.figerprintconsole.app.ui.home.state.RecentActivity
-+import com.example.figerprintconsole.app.domain.model.ActivityAction
-+import com.example.figerprintconsole.app.domain.model.RecentActivity
- import com.example.figerprintconsole.app.ui.home.utils.HomeUtils
- 
- @Composable
 diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DashboardBottomNav.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DashboardBottomNav.kt
-index 0deabe4..fa81179 100644
+index fa81179..ef9731e 100644
 --- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DashboardBottomNav.kt
 +++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DashboardBottomNav.kt
-@@ -13,15 +13,13 @@ import androidx.compose.material3.NavigationBarItem
- import androidx.compose.material3.NavigationBarItemDefaults
- import androidx.compose.material3.Text
- import androidx.compose.runtime.Composable
--import androidx.compose.runtime.getValue
--import androidx.compose.runtime.mutableIntStateOf
--import androidx.compose.runtime.remember
--import androidx.compose.runtime.setValue
- import androidx.compose.ui.graphics.Color
--import com.example.figerprintconsole.app.ui.home.state.BottomNavItem
-+import com.example.figerprintconsole.app.domain.model.BottomNavItem
-+import com.example.figerprintconsole.app.ui.navigation.Route
+@@ -1,4 +1,4 @@
+-package com.example.figerprintconsole.app.ui.home.components
++package com.example.figerprintconsole.app.ui.screen.home.components
  
- @Composable
- fun DashboardBottomNav(
-+    currentRoute: String?,
-     onDashboardNavigationClick: () -> Unit,
-     onUsersNavigationClick: () -> Unit,
-     onDeviceNavigationClick: () -> Unit,
-@@ -29,23 +27,21 @@ fun DashboardBottomNav(
-     onSettingsNavigationClick: () -> Unit
- 
- ) {
--    var selectedItem by remember { mutableIntStateOf(0) }
- 
-     NavigationBar(
-         containerColor = MaterialTheme.colorScheme.surfaceVariant
-     ) {
-         listOf(
--            BottomNavItem("Dashboard", Icons.Default.Dashboard),
--            BottomNavItem("Users", Icons.Default.People),
--            BottomNavItem("Devices", Icons.Default.Devices),
--            BottomNavItem("Logs", Icons.Default.History),
--            BottomNavItem("Settings", Icons.Default.Settings)
-+            BottomNavItem(Route.HOME_SCREEN, "Dashboard", Icons.Default.Dashboard),
-+            BottomNavItem(Route.USER_SCREEN, "Users", Icons.Default.People),
-+            BottomNavItem(Route.DEVICES_SCREEN, "Devices", Icons.Default.Devices),
-+            BottomNavItem(Route.LOGS_SCREEN, "Logs", Icons.Default.History),
-+            BottomNavItem(Route.SETTING_SCREEN, "Settings", Icons.Default.Settings)
-         ).forEachIndexed { index, item ->
-+
-             NavigationBarItem(
--                selected = selectedItem == index,
-+                selected = currentRoute == item.route,
-                 onClick = {
--                    selectedItem = index
--
-                     when (index) {
-                         0 -> onDashboardNavigationClick()
-                         1 -> onUsersNavigationClick()
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusCard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusCard.kt
-index 1208439..5bee56a 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusCard.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusCard.kt
-@@ -1,6 +1,5 @@
- package com.example.figerprintconsole.app.ui.home.components
- 
--import android.R
- import androidx.compose.foundation.background
- import androidx.compose.foundation.border
- import androidx.compose.foundation.clickable
-@@ -27,7 +26,7 @@ import androidx.compose.ui.graphics.Color
- import androidx.compose.ui.text.font.FontWeight
- import androidx.compose.ui.text.style.TextOverflow
- import androidx.compose.ui.unit.dp
--import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
-+import com.example.figerprintconsole.app.domain.model.DeviceStatus
- import com.example.figerprintconsole.app.ui.home.utils.HomeUtils
- 
- @Composable
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusSection.kt
-index 3b9a7fb..7e51cc7 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusSection.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusSection.kt
-@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
- import androidx.compose.foundation.layout.Column
- import androidx.compose.foundation.layout.Row
- import androidx.compose.foundation.layout.Spacer
--import androidx.compose.foundation.layout.fillMaxSize
- import androidx.compose.foundation.layout.fillMaxWidth
- import androidx.compose.foundation.layout.height
- import androidx.compose.foundation.layout.padding
-@@ -14,9 +13,7 @@ import androidx.compose.foundation.lazy.LazyRow
- import androidx.compose.foundation.lazy.items
  import androidx.compose.material.icons.Icons
- import androidx.compose.material.icons.filled.Devices
--import androidx.compose.material.icons.filled.History
- import androidx.compose.material3.Card
--import androidx.compose.material3.Divider
- import androidx.compose.material3.Icon
- import androidx.compose.material3.MaterialTheme
- import androidx.compose.material3.Text
-@@ -24,10 +21,9 @@ import androidx.compose.runtime.Composable
- import androidx.compose.ui.Alignment
- import androidx.compose.ui.Modifier
- import androidx.compose.ui.graphics.Color
--import androidx.compose.ui.graphics.vector.Path
- import androidx.compose.ui.text.font.FontWeight
- import androidx.compose.ui.unit.dp
--import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
-+import com.example.figerprintconsole.app.domain.model.DeviceStatus
- 
- @Composable
- fun DevicesStatusSection(
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionCard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionCard.kt
-index 4f445cc..8bcda44 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionCard.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionCard.kt
-@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
- import androidx.compose.foundation.layout.Box
- import androidx.compose.foundation.layout.Column
- import androidx.compose.foundation.layout.Spacer
--import androidx.compose.foundation.layout.aspectRatio
--import androidx.compose.foundation.layout.fillMaxSize
- import androidx.compose.foundation.layout.fillMaxWidth
- import androidx.compose.foundation.layout.height
- import androidx.compose.foundation.layout.padding
-@@ -26,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
- import androidx.compose.ui.text.style.TextAlign
- import androidx.compose.ui.text.style.TextOverflow
- import androidx.compose.ui.unit.dp
--import com.example.figerprintconsole.app.ui.home.state.QuickAction
-+import com.example.figerprintconsole.app.domain.model.QuickAction
- 
- @Composable
- fun QuickActionCard(
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionsSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionsSection.kt
-index 5c17369..0161e02 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionsSection.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionsSection.kt
-@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
- import androidx.compose.foundation.layout.height
- import androidx.compose.foundation.layout.padding
- import androidx.compose.foundation.lazy.LazyRow
--import androidx.compose.foundation.lazy.grid.GridCells
--import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
--import androidx.compose.foundation.lazy.grid.items
- import androidx.compose.foundation.lazy.items
- import androidx.compose.material3.Card
- import androidx.compose.material3.MaterialTheme
-@@ -20,7 +17,7 @@ import androidx.compose.ui.Alignment
- import androidx.compose.ui.Modifier
- import androidx.compose.ui.text.font.FontWeight
- import androidx.compose.ui.unit.dp
--import com.example.figerprintconsole.app.ui.home.state.QuickAction
-+import com.example.figerprintconsole.app.domain.model.QuickAction
- 
- @Composable
- fun QuickActionsSection(
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/RecentActivitiesSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/RecentActivitiesSection.kt
-index 784f15f..0e85921 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/RecentActivitiesSection.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/RecentActivitiesSection.kt
-@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
- import androidx.compose.material.icons.filled.ChevronRight
- import androidx.compose.material.icons.filled.History
- import androidx.compose.material3.Card
--import androidx.compose.material3.Divider
- import androidx.compose.material3.HorizontalDivider
- import androidx.compose.material3.Icon
- import androidx.compose.material3.MaterialTheme
-@@ -29,7 +28,7 @@ import androidx.compose.ui.Modifier
- import androidx.compose.ui.graphics.Color
- import androidx.compose.ui.text.font.FontWeight
- import androidx.compose.ui.unit.dp
--import com.example.figerprintconsole.app.ui.home.state.RecentActivity
-+import com.example.figerprintconsole.app.domain.model.RecentActivity
- 
- @Composable
- fun RecentActivitiesSection(
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatCard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatCard.kt
-index 6fa3e44..19ca80c 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatCard.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatCard.kt
-@@ -23,7 +23,7 @@ import androidx.compose.ui.draw.clip
- import androidx.compose.ui.graphics.Color
- import androidx.compose.ui.text.font.FontWeight
- import androidx.compose.ui.unit.dp
--import com.example.figerprintconsole.app.ui.home.state.StatItem
-+import com.example.figerprintconsole.app.domain.model.StatItem
- 
- @Composable
- fun StatCard(stat: StatItem) {
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatsGrid.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatsGrid.kt
-index 22da910..fbfabe6 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatsGrid.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatsGrid.kt
-@@ -1,12 +1,8 @@
- package com.example.figerprintconsole.app.ui.home.components
- 
- import androidx.compose.foundation.layout.Arrangement
--import androidx.compose.foundation.layout.Row
- import androidx.compose.foundation.layout.fillMaxWidth
- import androidx.compose.foundation.lazy.LazyRow
--import androidx.compose.foundation.lazy.grid.GridCells
--import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
--import androidx.compose.foundation.lazy.grid.items
- import androidx.compose.foundation.lazy.items
- import androidx.compose.material.icons.Icons
- import androidx.compose.material.icons.filled.Devices
-@@ -14,13 +10,12 @@ import androidx.compose.material.icons.filled.Fingerprint
- import androidx.compose.material.icons.filled.People
- import androidx.compose.material.icons.filled.TrendingUp
- import androidx.compose.material3.MaterialTheme
--import androidx.compose.material3.Text
- import androidx.compose.runtime.Composable
- import androidx.compose.runtime.remember
- import androidx.compose.ui.Modifier
- import androidx.compose.ui.unit.dp
--import com.example.figerprintconsole.app.ui.home.state.DashboardStats
--import com.example.figerprintconsole.app.ui.home.state.StatItem
-+import com.example.figerprintconsole.app.domain.model.DashboardStats
-+import com.example.figerprintconsole.app.domain.model.StatItem
- 
- @Composable
- fun StatsGrid(
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TesetActivityItem.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TesetActivityItem.kt
-index 01f85a9..ba54ceb 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TesetActivityItem.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TesetActivityItem.kt
-@@ -2,9 +2,9 @@ package com.example.figerprintconsole.app.ui.home.tests
- 
- import androidx.compose.runtime.Composable
- import androidx.compose.ui.tooling.preview.Preview
--import com.example.figerprintconsole.app.ui.home.state.RecentActivity
-+import com.example.figerprintconsole.app.domain.model.RecentActivity
- import com.example.figerprintconsole.app.ui.home.components.ActivityItem
--import com.example.figerprintconsole.app.ui.home.state.ActivityAction
-+import com.example.figerprintconsole.app.domain.model.ActivityAction
- import java.time.LocalDateTime
- 
- @Preview(showBackground = true)
+ import androidx.compose.material.icons.filled.Dashboard
 diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDashboardBottomNav.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDashboardBottomNav.kt
-index b467835..2b70497 100644
+index 2b70497..222dd1e 100644
 --- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDashboardBottomNav.kt
 +++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDashboardBottomNav.kt
-@@ -8,6 +8,7 @@ import com.example.figerprintconsole.app.ui.home.components.DashboardBottomNav
- @Composable
- fun TestDashboardBottomNav() {
-     DashboardBottomNav(
-+        null,
-         {},
-         {},
-         {},
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDeviceStatusCard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDeviceStatusCard.kt
-index c9cc173..63092fd 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDeviceStatusCard.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDeviceStatusCard.kt
-@@ -2,10 +2,10 @@ package com.example.figerprintconsole.app.ui.home.tests
+@@ -2,7 +2,7 @@ package com.example.figerprintconsole.app.ui.home.tests
  
  import androidx.compose.runtime.Composable
  import androidx.compose.ui.tooling.preview.Preview
--import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
-+import com.example.figerprintconsole.app.domain.model.DeviceStatus
- import com.example.figerprintconsole.app.ui.home.components.DeviceStatusCard
--import com.example.figerprintconsole.app.ui.home.state.DeviceStatusType
--import com.example.figerprintconsole.app.ui.home.state.DeviceType
-+import com.example.figerprintconsole.app.domain.model.DeviceStatusType
-+import com.example.figerprintconsole.app.domain.model.DeviceType
- import java.time.LocalDateTime
- 
- @Preview(showBackground = true)
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionCard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionCard.kt
-index 5781220..dd0ab84 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionCard.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionCard.kt
-@@ -5,7 +5,7 @@ import androidx.compose.material.icons.filled.DeviceHub
- import androidx.compose.runtime.Composable
- import androidx.compose.ui.graphics.Color
- import androidx.compose.ui.tooling.preview.Preview
--import com.example.figerprintconsole.app.ui.home.state.QuickAction
-+import com.example.figerprintconsole.app.domain.model.QuickAction
- import com.example.figerprintconsole.app.ui.home.components.QuickActionCard
- 
- @Preview(showBackground = true)
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionsSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionsSection.kt
-index f68b66a..73d8ae9 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionsSection.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionsSection.kt
-@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
- import androidx.compose.ui.graphics.Color
- import androidx.compose.ui.tooling.preview.Preview
- import com.example.figerprintconsole.app.ui.home.components.QuickActionsSection
--import com.example.figerprintconsole.app.ui.home.state.QuickAction
-+import com.example.figerprintconsole.app.domain.model.QuickAction
+-import com.example.figerprintconsole.app.ui.home.components.DashboardBottomNav
++import com.example.figerprintconsole.app.ui.screen.home.components.DashboardBottomNav
  
  @Preview(showBackground = true)
  @Composable
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestRecentActivitiesSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestRecentActivitiesSection.kt
-index 6a357b2..096f21a 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestRecentActivitiesSection.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestRecentActivitiesSection.kt
-@@ -3,8 +3,8 @@ package com.example.figerprintconsole.app.ui.screen.home.tests
- import androidx.compose.runtime.Composable
- import androidx.compose.ui.tooling.preview.Preview
- import com.example.figerprintconsole.app.ui.home.components.RecentActivitiesSection
--import com.example.figerprintconsole.app.ui.home.state.ActivityAction
--import com.example.figerprintconsole.app.ui.home.state.RecentActivity
-+import com.example.figerprintconsole.app.domain.model.ActivityAction
-+import com.example.figerprintconsole.app.domain.model.RecentActivity
- import java.time.LocalDateTime
- 
- @Preview(showBackground = true)
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatCard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatCard.kt
-index cbca5ba..9a19026 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatCard.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatCard.kt
-@@ -5,7 +5,7 @@ import androidx.compose.material.icons.filled.People
- import androidx.compose.material3.MaterialTheme
- import androidx.compose.runtime.Composable
- import androidx.compose.ui.tooling.preview.Preview
--import com.example.figerprintconsole.app.ui.home.state.StatItem
-+import com.example.figerprintconsole.app.domain.model.StatItem
- import com.example.figerprintconsole.app.ui.home.components.StatCard
- 
- @Preview(showBackground = true)
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatsGrid.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatsGrid.kt
-index 605d412..843fd05 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatsGrid.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatsGrid.kt
-@@ -3,7 +3,7 @@ package com.example.figerprintconsole.app.ui.home.tests
- import androidx.compose.runtime.Composable
- import androidx.compose.ui.tooling.preview.Preview
- import com.example.figerprintconsole.app.ui.home.components.StatsGrid
--import com.example.figerprintconsole.app.ui.home.state.DashboardStats
-+import com.example.figerprintconsole.app.domain.model.DashboardStats
- 
- @Preview(showBackground = true)
- @Composable
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/utils/HomeUtils.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/utils/HomeUtils.kt
-index 68de709..0084a4c 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/utils/HomeUtils.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/utils/HomeUtils.kt
-@@ -7,8 +7,8 @@ import androidx.compose.material.icons.filled.PointOfSale
- import androidx.compose.material.icons.filled.Smartphone
- import androidx.compose.ui.graphics.Color
- import androidx.compose.ui.graphics.vector.ImageVector
--import com.example.figerprintconsole.app.ui.home.state.DeviceStatusType
--import com.example.figerprintconsole.app.ui.home.state.DeviceType
-+import com.example.figerprintconsole.app.domain.model.DeviceStatusType
-+import com.example.figerprintconsole.app.domain.model.DeviceType
- import java.time.LocalDateTime
- import java.time.format.DateTimeFormatter
- 
-diff --git a/app/src/main/java/com/example/figerprintconsole/app/utils/AppConstant.kt b/app/src/main/java/com/example/figerprintconsole/app/utils/AppConstant.kt
-index fe56c3d..a9c32ec 100644
---- a/app/src/main/java/com/example/figerprintconsole/app/utils/AppConstant.kt
-+++ b/app/src/main/java/com/example/figerprintconsole/app/utils/AppConstant.kt
-@@ -1,8 +1,26 @@
- package com.example.figerprintconsole.app.utils
- 
-+import android.util.Log
-+
- object AppConstant {
-     const val BASE_URL = "http://137.97.126.110:4005/"
-     const val GET_ALL_USERS_API = "api/users"
-     const val USER_GET_URL = "api/users/fp" // add the ID of user
-     const val GET_USER_BY_ID_API = "api/users/fp"
-+
-+    const val DEBUG = true
-+
-+    fun debugMessage(msg: String, tag: String = "UNKNOWN", debugType: DebugType = DebugType.INFO) {
-+        if(DEBUG) {
-+            if(debugType == DebugType.INFO) Log.i(tag, msg)
-+            if(debugType == DebugType.ERROR) Log.e(tag, msg)
-+            if(debugType == DebugType.DESCRIPTION) Log.d(tag, msg)
-+        }
-+    }
-+}
-+
-+enum class DebugType {
-+    ERROR,
-+    INFO,
-+    DESCRIPTION
- }
-\ No newline at end of file
+diff --git a/project_change.txt b/project_change.txt
+index 31a9408..82c7569 100644
+--- a/project_change.txt
++++ b/project_change.txt
+@@ -1,1244 +0,0 @@
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/domain/model/HomeState.kt b/app/src/main/java/com/example/figerprintconsole/app/domain/model/HomeState.kt
+-index 1fa33a7..259aa27 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/domain/model/HomeState.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/domain/model/HomeState.kt
+-@@ -1,4 +1,4 @@
+--package com.example.figerprintconsole.app.ui.home.state
+-+package com.example.figerprintconsole.app.domain.model
+- 
+- import androidx.compose.ui.graphics.Color
+- import androidx.compose.ui.graphics.vector.ImageVector
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/domain/model/NewEnrollUser.kt b/app/src/main/java/com/example/figerprintconsole/app/domain/model/NewEnrollUser.kt
+-index fd93119..d5a8690 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/domain/model/NewEnrollUser.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/domain/model/NewEnrollUser.kt
+-@@ -1,2 +1,11 @@
+--package com.example.figerprintconsole.app.domain.model 
+-+package com.example.figerprintconsole.app.domain.model
+- 
+-+data class NewEnrollUser(
+-+    val name: String = "",
+-+    val email: String = "",
+-+    val employeeId: String = "",
+-+    val phone: String = "",
+-+    val department: String = "",
+-+    val timeZone: String = "UTC",
+-+    val isValid: Boolean = false
+-+)
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/MainActivity.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/MainActivity.kt
+-index e289d9f..9acde99 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/MainActivity.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/MainActivity.kt
+-@@ -3,6 +3,8 @@ package com.example.figerprintconsole.app.ui
+- import android.os.Bundle
+- import androidx.activity.compose.setContent
+- import androidx.appcompat.app.AppCompatActivity
+-+import androidx.compose.runtime.getValue
+-+import androidx.navigation.compose.currentBackStackEntryAsState
+- import androidx.navigation.compose.rememberNavController
+- import dagger.hilt.android.AndroidEntryPoint
+- 
+-@@ -13,7 +15,9 @@ class MainActivity : AppCompatActivity() {
+- 
+-         setContent {
+-             val navController = rememberNavController()
+--            MyAppScaffold(navController)
+-+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+-+            val currentRoute = navBackStackEntry?.destination?.route
+-+            MyAppScaffold(navController, currentRoute)
+-         }
+-     }
+- }
+-\ No newline at end of file
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/MyAppScaffold.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/MyAppScaffold.kt
+-index 548c6be..91a0e4c 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/MyAppScaffold.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/MyAppScaffold.kt
+-@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
+- import androidx.compose.ui.Modifier
+- import androidx.navigation.NavHostController
+- import com.example.figerprintconsole.app.ui.home.components.DashboardBottomNav
+--import com.example.figerprintconsole.app.ui.home.components.DashboardTopBar
+- import com.example.figerprintconsole.app.ui.navigation.MyAppNavHost
+- import com.example.figerprintconsole.app.ui.navigation.Route
+- 
+-@@ -15,6 +14,7 @@ import com.example.figerprintconsole.app.ui.navigation.Route
+- @Composable
+- fun MyAppScaffold(
+-     navController: NavHostController,
+-+    currentRoute: String?,
+-     modifier: Modifier = Modifier,
+- ) {
+- 
+-@@ -25,6 +25,7 @@ fun MyAppScaffold(
+- 
+-         bottomBar = {
+-             DashboardBottomNav(
+-+                currentRoute,
+-                 onDashboardNavigationClick = {
+-                     navController.navigate(Route.HOME_SCREEN) {
+-                         popUpTo(Route.HOME_SCREEN) { inclusive = true }
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/navigation/MyAppNavHost.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/navigation/MyAppNavHost.kt
+-index fedcd79..2df473e 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/navigation/MyAppNavHost.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/navigation/MyAppNavHost.kt
+-@@ -9,6 +9,9 @@ import androidx.navigation.compose.NavHost
+- import androidx.navigation.compose.composable
+- import com.example.figerprintconsole.app.ui.home.FingerprintDashboard
+- import com.example.figerprintconsole.app.ui.screen.devices.DeviceScreen
+-+import com.example.figerprintconsole.app.ui.screen.enroll.StartEnrollmentProcess
+-+import com.example.figerprintconsole.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
+-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+- import com.example.figerprintconsole.app.ui.screen.users.UsersListScreen
+- 
+- @Composable
+-@@ -38,9 +41,9 @@ fun MyAppNavHost(
+-         }
+- 
+-         composable(route = Route.ENROLL_SCREEN) {
+--//            FingerprintEnrollmentScreen(
+--//
+--//            )
+-+            StartEnrollmentProcess(
+-+                onCompleteEnrollment = { navController.navigate(Route.USER_SCREEN) }
+-+            )
+-         }
+- 
+-         composable(route = Route.USER_SCREEN) {
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/DevicesScreen.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/DevicesScreen.kt
+-index f6ddfb2..db18d60 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/DevicesScreen.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/DevicesScreen.kt
+-@@ -1,26 +1,11 @@
+- package com.example.figerprintconsole.app.ui.screen.devices
+- 
+--import androidx.compose.foundation.layout.Column
+--import androidx.compose.foundation.layout.Row
+--import androidx.compose.foundation.layout.Spacer
+--import androidx.compose.foundation.layout.fillMaxWidth
+--import androidx.compose.foundation.layout.padding
+--import androidx.compose.foundation.layout.width
+- import androidx.compose.foundation.lazy.LazyColumn
+- import androidx.compose.foundation.lazy.items
+--import androidx.compose.material3.Divider
+--import androidx.compose.material3.MaterialTheme
+--import androidx.compose.material3.Text
+- import androidx.compose.runtime.Composable
+--import androidx.compose.ui.Alignment
+--import androidx.compose.ui.Modifier
+--import androidx.compose.ui.text.font.FontWeight
+--import androidx.compose.ui.unit.dp
+--import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
+--import com.example.figerprintconsole.app.ui.home.utils.HomeUtils
+-+import com.example.figerprintconsole.app.domain.model.DeviceStatus
+- import com.example.figerprintconsole.app.ui.screen.devices.components.DeviceStatusRow
+- import com.example.figerprintconsole.app.ui.screen.devices.components.NoDevicesEmptyState
+--import com.example.figerprintconsole.app.ui.screen.devices.components.StatusDot
+- 
+- 
+- @Composable
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/components/DeviceStatusRow.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/components/DeviceStatusRow.kt
+-index 08101d3..2758236 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/components/DeviceStatusRow.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/devices/components/DeviceStatusRow.kt
+-@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
+- import androidx.compose.ui.Modifier
+- import androidx.compose.ui.text.font.FontWeight
+- import androidx.compose.ui.unit.dp
+--import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
+-+import com.example.figerprintconsole.app.domain.model.DeviceStatus
+- import com.example.figerprintconsole.app.ui.home.utils.HomeUtils
+- 
+- 
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/StartEnrollmentProcess.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/StartEnrollmentProcess.kt
+-index cd2775e..cfe8353 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/StartEnrollmentProcess.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/StartEnrollmentProcess.kt
+-@@ -1,4 +1,50 @@
+- package com.example.figerprintconsole.app.ui.screen.enroll
+- 
+--class StartEnrollmentProcess {
+-+import androidx.compose.runtime.Composable
+-+import androidx.compose.runtime.LaunchedEffect
+-+import androidx.compose.runtime.getValue
+-+import androidx.compose.runtime.mutableIntStateOf
+-+import androidx.compose.runtime.mutableStateOf
+-+import androidx.compose.runtime.remember
+-+import androidx.compose.runtime.setValue
+-+import com.example.figerprintconsole.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
+-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+-+
+-+@Composable
+-+fun StartEnrollmentProcess(
+-+    onCompleteEnrollment: () -> Unit
+-+) {
+-+    var currentStateStep by remember { mutableIntStateOf(0) }
+-+    var state by remember { mutableStateOf(EnrollmentState()) }
+-+
+-+    LaunchedEffect(key1 = currentStateStep) {
+-+
+-+        if(currentStateStep == state.totalSteps) {
+-+            state = state.copy(
+-+                isCompleted = true,
+-+                currentStep = currentStateStep,
+-+                enrollmentProgress = 1f,
+-+                enrollmentMessage = "Enrollment successful!"
+-+            )
+-+        } else {
+-+            state = state.copy(
+-+                currentStep = currentStateStep,
+-+                enrollmentProgress = (currentStateStep) * 0.25f,
+-+                enrollmentMessage = "Scanning... ${(currentStateStep) * 25}%"
+-+            )
+-+        }
+-+    }
+-+
+-+    FingerprintEnrollmentScreen(
+-+        state = state,
+-+        onStartEnrollment = {
+-+            state = state.copy(isEnrolling = true)
+-+            currentStateStep = (currentStateStep + 1).coerceAtMost(state.totalSteps) // max(a, b)
+-+        },
+-+        onRetry = { state = EnrollmentState() },
+-+        onComplete = {
+-+            if(currentStateStep >= state.totalSteps) onCompleteEnrollment()
+-+            currentStateStep += 1
+-+        }
+-+    )
+- }
+-\ No newline at end of file
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionOne.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionOne.kt
+-index 528ccd6..7d03832 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionOne.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionOne.kt
+-@@ -1,4 +1,105 @@
+- package com.example.figerprintconsole.app.ui.screen.enroll.components
+- 
+--class EnrollmentActionOne {
+--}
+-\ No newline at end of file
+-+import androidx.compose.foundation.layout.Arrangement
+-+import androidx.compose.foundation.layout.Column
+-+import androidx.compose.foundation.layout.Row
+-+import androidx.compose.foundation.layout.Spacer
+-+import androidx.compose.foundation.layout.fillMaxWidth
+-+import androidx.compose.material3.Button
+-+import androidx.compose.material3.MaterialTheme
+-+import androidx.compose.material3.OutlinedButton
+-+import androidx.compose.material3.OutlinedTextField
+-+import androidx.compose.material3.Text
+-+import androidx.compose.runtime.Composable
+-+import androidx.compose.ui.Modifier
+-+import androidx.compose.ui.text.font.FontWeight
+-+import androidx.compose.ui.unit.dp
+-+import androidx.compose.ui.unit.sp
+-+import com.example.figerprintconsole.app.domain.model.NewEnrollUser
+-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+-+
+-+@Composable
+-+fun EnrollmentActionOne(
+-+    state: EnrollmentState,
+-+    onRetry: () -> Unit,
+-+    onComplete: () -> Unit,
+-+    newUser: NewEnrollUser,
+-+    onInputChanged: (NewEnrollUser) -> Unit
+-+) {
+-+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+-+
+-+        OutlinedTextField(
+-+            value = newUser.name,
+-+            onValueChange = { onInputChanged(newUser.copy(name = it)) },
+-+            label = { Text("Name") },
+-+            modifier = Modifier.fillMaxWidth()
+-+        )
+-+
+-+        OutlinedTextField(
+-+            value = newUser.email,
+-+            onValueChange = { onInputChanged(newUser.copy(email = it)) },
+-+            label = { Text("Email") },
+-+            modifier = Modifier.fillMaxWidth()
+-+        )
+-+
+-+        OutlinedTextField(
+-+            value = newUser.employeeId,
+-+            onValueChange = { onInputChanged(newUser.copy(employeeId = it)) },
+-+            label = { Text("Employee ID") },
+-+            modifier = Modifier.fillMaxWidth()
+-+        )
+-+
+-+        OutlinedTextField(
+-+            value = newUser.phone,
+-+            onValueChange = { onInputChanged(newUser.copy(phone = it)) },
+-+            label = { Text("Phone") },
+-+            modifier = Modifier.fillMaxWidth()
+-+        )
+-+
+-+        OutlinedTextField(
+-+            value = newUser.department,
+-+            onValueChange = { onInputChanged(newUser.copy(department = it)) },
+-+            label = { Text("Department") },
+-+            modifier = Modifier.fillMaxWidth()
+-+        )
+-+
+-+        // TimeZone (simple version for now)
+-+        OutlinedTextField(
+-+            value = newUser.timeZone,
+-+            onValueChange = { onInputChanged(newUser.copy(timeZone = it)) },
+-+            label = { Text("Time Zone") },
+-+            modifier = Modifier.fillMaxWidth(),
+-+            readOnly = true
+-+        )
+-+
+-+        Spacer(modifier = Modifier.weight(1f))
+-+
+-+        Row(
+-+            modifier = Modifier.fillMaxWidth(),
+-+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+-+        ) {
+-+            Button(
+-+                onClick = onComplete,
+-+                modifier = Modifier.weight(1f),
+-+                shape = MaterialTheme.shapes.large,
+-+                enabled = true
+-+            ) {
+-+                Text(
+-+                    text = "Continue",
+-+                    fontSize = 16.sp,
+-+                    fontWeight = FontWeight.SemiBold
+-+                )
+-+            }
+-+
+-+            if (state.errorMessage != null) {
+-+                OutlinedButton(
+-+                    onClick = onRetry,
+-+                    modifier = Modifier.weight(1f),
+-+                    shape = MaterialTheme.shapes.large
+-+                ) {
+-+                    Text("Retry")
+-+                }
+-+            }
+-+        }
+-+    }
+-+}
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionTwo.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionTwo.kt
+-index 7a879c1..76246e9 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionTwo.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActionTwo.kt
+-@@ -1,4 +1,51 @@
+- package com.example.figerprintconsole.app.ui.screen.enroll.components
+- 
+--class EnrollmentActionTwo {
+-+import androidx.compose.foundation.layout.Arrangement
+-+import androidx.compose.foundation.layout.Column
+-+import androidx.compose.foundation.layout.fillMaxSize
+-+import androidx.compose.foundation.layout.fillMaxWidth
+-+import androidx.compose.material3.CircularProgressIndicator
+-+import androidx.compose.material3.MaterialTheme
+-+import androidx.compose.material3.Text
+-+import androidx.compose.runtime.Composable
+-+import androidx.compose.runtime.LaunchedEffect
+-+import androidx.compose.ui.Alignment
+-+import androidx.compose.ui.Modifier
+-+import androidx.compose.ui.text.font.FontWeight
+-+import androidx.compose.ui.unit.dp
+-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+-+import com.example.figerprintconsole.app.utils.AppConstant
+-+import kotlinx.coroutines.delay
+-+
+-+@Composable
+-+fun EnrollmentActionTwo(
+-+    state: EnrollmentState,
+-+    onRetry: () -> Unit,
+-+    onComplete: () -> Unit
+-+) {
+-+
+-+    // Handle Action Two and Three Collectively
+-+    /* The animation(Just Add a text for now) + Update State + delay(5000) / Wait Infinite(with timeout) + Check if enrolled Success */
+-+
+-+    // We may experience some crash if we rotate the screen for now!!
+-+    // I need structure like hell!!!(something i've never done before)
+-+    LaunchedEffect(state) {
+-+        if(state.currentStep == 2) {
+-+            delay(4000)
+-+            onComplete()
+-+        }
+-+        // At step 3 check from the websocket, if we get enrolled response!!
+-+        if(state.currentStep == 3) {
+-+            delay(5000)
+-+            onComplete()
+-+        }
+-+    }
+-+
+-+    Column(
+-+        modifier = Modifier.fillMaxSize(),
+-+        horizontalAlignment = Alignment.CenterHorizontally,
+-+        verticalArrangement = Arrangement.spacedBy(16.dp)
+-+    ) {
+-+        CircularProgressIndicator()
+-+    }
+- }
+-\ No newline at end of file
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActions.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActions.kt
+-index 5e8c629..889bc8b 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActions.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentActions.kt
+-@@ -1,18 +1,29 @@
+--package com.example.figerprintconsole.app.ui.enroll.components
+-+package com.example.figerprintconsole.app.ui.screen.enroll.components
+- 
+- import androidx.compose.foundation.layout.Arrangement
+-+import androidx.compose.foundation.layout.Column
+- import androidx.compose.foundation.layout.Row
+-+import androidx.compose.foundation.layout.Spacer
+-+import androidx.compose.foundation.layout.fillMaxSize
+- import androidx.compose.foundation.layout.fillMaxWidth
+-+import androidx.compose.foundation.layout.height
+-+import androidx.compose.foundation.layout.padding
+-+import androidx.compose.foundation.layout.size
+-+import androidx.compose.material.icons.Icons
+-+import androidx.compose.material.icons.filled.Check
+-+import androidx.compose.material.icons.filled.PersonAdd
+- import androidx.compose.material3.Button
+-+import androidx.compose.material3.Icon
+- import androidx.compose.material3.MaterialTheme
+- import androidx.compose.material3.OutlinedButton
+- import androidx.compose.material3.Text
+- import androidx.compose.runtime.Composable
+-+import androidx.compose.ui.Alignment
+- import androidx.compose.ui.Modifier
+- import androidx.compose.ui.text.font.FontWeight
+- import androidx.compose.ui.unit.dp
+- import androidx.compose.ui.unit.sp
+--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
+-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+- 
+- @Composable
+- fun EnrollmentActions(
+-@@ -21,47 +32,98 @@ fun EnrollmentActions(
+-     onRetry: () -> Unit,
+-     onComplete: () -> Unit
+- ) {
+--    Row(
+--        modifier = Modifier.fillMaxWidth(),
+--        horizontalArrangement = Arrangement.spacedBy(16.dp)
+-+    Column(
+-+        modifier = Modifier
+-+            .fillMaxSize() // take full screen
+-+            .padding(16.dp)
+-     ) {
+--        if (!state.isCompleted && !state.isEnrolling) {
+--            Button(
+--                onClick = onStartEnrollment,
+--                modifier = Modifier.weight(1f),
+--                shape = MaterialTheme.shapes.large,
+--                enabled = !state.isEnrolling
+--            ) {
+--                Text(
+--                    text = "Start Enrollment",
+--                    fontSize = 16.sp,
+--                    fontWeight = FontWeight.SemiBold
+--                )
+-+        // Status Section (takes remaining space)
+-+        Column(
+-+            modifier = Modifier
+-+                .weight(1f) // fills available vertical space
+-+                .fillMaxWidth(),
+-+            verticalArrangement = Arrangement.Center,
+-+            horizontalAlignment = Alignment.CenterHorizontally
+-+        ) {
+-+            when {
+-+                // Add the current UI State -> Success / Failed
+-+                state.isCompleted -> {
+-+                    Icon(
+-+                        imageVector = Icons.Default.Check,
+-+                        contentDescription = "Completed",
+-+                        tint = MaterialTheme.colorScheme.primary,
+-+                        modifier = Modifier.size(64.dp)
+-+                    )
+-+                    Spacer(modifier = Modifier.height(8.dp))
+-+                    Text(
+-+                        text = "Enrollment Completed",
+-+                        style = MaterialTheme.typography.titleMedium,
+-+                        fontWeight = FontWeight.SemiBold
+-+                    )
+-+                }
+-+
+-+                !state.isEnrolling -> {
+-+                    Icon(
+-+                        imageVector = Icons.Default.PersonAdd,
+-+                        contentDescription = "Start Enrollment",
+-+                        tint = MaterialTheme.colorScheme.primary,
+-+                        modifier = Modifier.size(64.dp)
+-+                    )
+-+                    Spacer(modifier = Modifier.height(8.dp))
+-+                    Text(
+-+                        text = "Ready to Start Enrollment",
+-+                        style = MaterialTheme.typography.titleMedium,
+-+                        fontWeight = FontWeight.SemiBold
+-+                    )
+-+                }
+-             }
+-         }
+- 
+--        if (state.isCompleted) {
+--            Button(
+--                onClick = onComplete,
+--                modifier = Modifier.weight(1f),
+--                shape = MaterialTheme.shapes.large
+--            ) {
+--                Text(
+--                    text = "Continue",
+--                    fontSize = 16.sp,
+--                    fontWeight = FontWeight.SemiBold
+--                )
+-+        Spacer(modifier = Modifier.weight(1f))
+-+
+-+        // Buttons Row
+-+        Row(
+-+            modifier = Modifier.fillMaxWidth(),
+-+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+-+        ) {
+-+            if (!state.isCompleted && !state.isEnrolling) {
+-+                Button(
+-+                    onClick = onStartEnrollment,
+-+                    modifier = Modifier.weight(1f),
+-+                    shape = MaterialTheme.shapes.large,
+-+                    enabled = true
+-+                ) {
+-+                    Text(
+-+                        text = "Start Enrollment",
+-+                        fontSize = 16.sp,
+-+                        fontWeight = FontWeight.SemiBold
+-+                    )
+-+                }
+-+            }
+-+
+-+            if (state.isCompleted) {
+-+                Button(
+-+                    onClick = onComplete,
+-+                    modifier = Modifier.weight(1f),
+-+                    shape = MaterialTheme.shapes.large
+-+                ) {
+-+                    Text(
+-+                        text = "Continue",
+-+                        fontSize = 16.sp,
+-+                        fontWeight = FontWeight.SemiBold
+-+                    )
+-+                }
+-             }
+--        }
+- 
+--        if (state.errorMessage != null) {
+--            OutlinedButton(
+--                onClick = onRetry,
+--                modifier = Modifier.weight(1f),
+--                shape = MaterialTheme.shapes.large
+--            ) {
+--                Text("Retry")
+-+            if (state.errorMessage != null) {
+-+                OutlinedButton(
+-+                    onClick = onRetry,
+-+                    modifier = Modifier.weight(1f),
+-+                    shape = MaterialTheme.shapes.large
+-+                ) {
+-+                    Text("Retry")
+-+                }
+-             }
+-         }
+-     }
+--}
+-\ No newline at end of file
+-+}
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentHeader.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentHeader.kt
+-index 849cd40..86acf9f 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentHeader.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentHeader.kt
+-@@ -1,4 +1,4 @@
+--package com.example.figerprintconsole.app.ui.enroll.components
+-+package com.example.figerprintconsole.app.ui.screen.enroll.components
+- 
+- import androidx.compose.material3.Text
+- import androidx.compose.foundation.layout.Column
+-@@ -6,7 +6,7 @@ import androidx.compose.material3.MaterialTheme
+- import androidx.compose.runtime.Composable
+- import androidx.compose.ui.Alignment
+- import androidx.compose.ui.text.font.FontWeight
+--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
+-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+- 
+- @Composable
+- fun EnrollmentHeader(
+-@@ -16,9 +16,15 @@ fun EnrollmentHeader(
+-         horizontalAlignment = Alignment.CenterHorizontally
+-     ) {
+- 
+-+        val text = if(state.isCompleted) {
+-+            "Enrollment Complete!"// + state.enrollmentMessage + "Step: ${state.currentStep}"
+-+        } else {
+-+            "Fingerprint Enrollment"// + state.enrollmentMessage + "Step: ${state.currentStep}"
+-+        }
+-+
+-         // Show Header
+-         Text(
+--            text = if (state.isCompleted) "Enrollment Complete!" else "Fingerprint Enrollment",
+-+            text = text,
+-             style = MaterialTheme.typography.headlineMedium,
+-             fontWeight = FontWeight.Bold,
+-             color = MaterialTheme.colorScheme.primary
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentProgressSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentProgressSection.kt
+-index a3d5eb2..e1080e9 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentProgressSection.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/EnrollmentProgressSection.kt
+-@@ -1,4 +1,4 @@
+--package com.example.figerprintconsole.app.ui.enroll.components
+-+package com.example.figerprintconsole.app.ui.screen.enroll.components
+- 
+- import androidx.compose.foundation.layout.Column
+- import androidx.compose.foundation.layout.Spacer
+-@@ -15,8 +15,8 @@ import androidx.compose.ui.Alignment
+- import androidx.compose.ui.Modifier
+- import androidx.compose.ui.text.style.TextAlign
+- import androidx.compose.ui.unit.dp
+--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
+--import com.example.figerprintconsole.app.ui.enroll.utils.UtilsEnrollScreen
+-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+-+import com.example.figerprintconsole.app.ui.screen.enroll.utils.UtilsEnrollScreen
+- 
+- @Composable
+- fun EnrollmentProgressSection(
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt
+-index f077b02..48f671c 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt
+-@@ -1,4 +1,4 @@
+--package com.example.figerprintconsole.app.ui.screen.enroll
+-+package com.example.figerprintconsole.app.ui.screen.enroll.components
+- 
+- import androidx.compose.foundation.layout.Column
+- import androidx.compose.foundation.layout.Spacer
+-@@ -6,18 +6,14 @@ import androidx.compose.foundation.layout.fillMaxSize
+- import androidx.compose.foundation.layout.fillMaxWidth
+- import androidx.compose.foundation.layout.height
+- import androidx.compose.foundation.layout.padding
+--import androidx.compose.foundation.layout.size
+- import androidx.compose.material3.MaterialTheme
+- import androidx.compose.material3.Surface
+- import androidx.compose.runtime.Composable
+- import androidx.compose.ui.Alignment
+- import androidx.compose.ui.Modifier
+- import androidx.compose.ui.unit.dp
+--import com.example.figerprintconsole.app.ui.enroll.components.EnrollmentActions
+--import com.example.figerprintconsole.app.ui.enroll.components.EnrollmentHeader
+--import com.example.figerprintconsole.app.ui.enroll.components.EnrollmentProgressSection
+-+import com.example.figerprintconsole.app.domain.model.NewEnrollUser
+- import com.example.figerprintconsole.app.ui.enroll.components.ErrorMessage
+--import com.example.figerprintconsole.app.ui.enroll.components.FingerprintVisualization
+- import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+- 
+- @Composable
+-@@ -48,13 +44,47 @@ fun FingerprintEnrollmentScreen(
+- 
+-             Spacer(modifier = Modifier.height(32.dp))
+- 
+--            // Action buttons
+--            EnrollmentActions(
+--                state = state,
+--                onStartEnrollment = onStartEnrollment,
+--                onRetry = onRetry,
+--                onComplete = onComplete
+--            )
+-+            // Enrollment actions -> handles start and stop
+-+            // EnrollmentActionOne -> handles
+-+
+-+            when {
+-+                (!state.isEnrolling) -> {
+-+                    // This is most likely to call onStartEnrollment
+-+                    EnrollmentActions(
+-+                        state = state,
+-+                        onStartEnrollment = onStartEnrollment,
+-+                        onRetry = onRetry,
+-+                        onComplete = onComplete
+-+                    )
+-+                }
+-+
+-+                (state.currentStep == 1) -> {
+-+                    EnrollmentActionOne(
+-+                        state = state,
+-+                        onRetry = onRetry,
+-+                        onComplete = onComplete,
+-+                        newUser = NewEnrollUser(),
+-+                        onInputChanged = {}
+-+                    )
+-+                }
+-+
+-+                (state.currentStep == 2 || state.currentStep == 3) -> {
+-+                    EnrollmentActionTwo(
+-+                        state = state,
+-+                        onRetry = onRetry,
+-+                        onComplete = onComplete
+-+                    )
+-+                }
+-+
+-+                (state.currentStep == 4) -> {
+-+                    EnrollmentActions(
+-+                        state = state,
+-+                        onStartEnrollment = onStartEnrollment,
+-+                        onRetry = onRetry,
+-+                        onComplete = onComplete
+-+                    )
+-+                }
+-+            }
+- 
+-             // Error message if any
+-             state.errorMessage?.let {
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/event/EnrollScreenEvent.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/event/EnrollScreenEvent.kt
+-index 8bc1143..d2fde5e 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/event/EnrollScreenEvent.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/event/EnrollScreenEvent.kt
+-@@ -1,4 +1,7 @@
+- package com.example.figerprintconsole.app.ui.screen.enroll.event
+- 
+--class EnrollScreenEvent {
+-+import com.example.figerprintconsole.app.domain.model.NewEnrollUser
+-+
+-+sealed class EnrollScreenEvent {
+-+
+- }
+-\ No newline at end of file
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentScreenState.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentScreenState.kt
+-index 31f64f4..9177713 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentScreenState.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentScreenState.kt
+-@@ -1,4 +1,12 @@
+- package com.example.figerprintconsole.app.ui.screen.enroll.state
+- 
+--class EnrollmentScreenState {
+-+import com.example.figerprintconsole.app.domain.model.NewEnrollUser
+-+
+-+sealed class EnrollmentScreenState {
+-+    object Initial
+-+    data class UserInput(val userData: NewEnrollUser): EnrollmentScreenState()
+-+    object FingerprintScan: EnrollmentScreenState()
+-+    object FingerprintScanAgain: EnrollmentScreenState()
+-+    object Completed: EnrollmentScreenState()
+-+    data class Error(val message: String) : EnrollmentScreenState()
+- }
+-\ No newline at end of file
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentState.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentState.kt
+-index 51c8893..86141a3 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentState.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/state/EnrollmentState.kt
+-@@ -1,4 +1,4 @@
+--package com.example.figerprintconsole.app.ui.enroll.state
+-+package com.example.figerprintconsole.app.ui.screen.enroll.state
+- 
+- data class EnrollmentState (
+-     val currentStep: Int = 1,
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentActions.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentActions.kt
+-index 0237993..d241c6e 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentActions.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentActions.kt
+-@@ -2,8 +2,8 @@ package com.example.figerprintconsole.app.ui.enroll.tests
+- 
+- import androidx.compose.runtime.Composable
+- import androidx.compose.ui.tooling.preview.Preview
+--import com.example.figerprintconsole.app.ui.enroll.components.EnrollmentActions
+--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
+-+import com.example.figerprintconsole.app.ui.screen.enroll.components.EnrollmentActions
+-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+- 
+- @Preview(showBackground = true)
+- @Composable
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentHeader.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentHeader.kt
+-index 683dd85..23f231a 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentHeader.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentHeader.kt
+-@@ -2,8 +2,8 @@ package com.example.figerprintconsole.app.ui.enroll.tests
+- 
+- import androidx.compose.runtime.Composable
+- import androidx.compose.ui.tooling.preview.Preview
+--import com.example.figerprintconsole.app.ui.enroll.components.EnrollmentHeader
+--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
+-+import com.example.figerprintconsole.app.ui.screen.enroll.components.EnrollmentHeader
+-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+- 
+- @Preview(showBackground = true)
+- @Composable
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentProgressSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentProgressSection.kt
+-index 70a3bbe..b181da0 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentProgressSection.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestEnrollmentProgressSection.kt
+-@@ -2,8 +2,8 @@ package com.example.figerprintconsole.app.ui.enroll.tests
+- 
+- import androidx.compose.runtime.Composable
+- import androidx.compose.ui.tooling.preview.Preview
+--import com.example.figerprintconsole.app.ui.enroll.components.EnrollmentProgressSection
+--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
+-+import com.example.figerprintconsole.app.ui.screen.enroll.components.EnrollmentProgressSection
+-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+- 
+- @Preview(showBackground = true)
+- @Composable
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestFingerprintEnrollment.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestFingerprintEnrollment.kt
+-index 7664f8b..5d5aace 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestFingerprintEnrollment.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/tests/TestFingerprintEnrollment.kt
+-@@ -8,8 +8,8 @@ import androidx.compose.runtime.mutableStateOf
+- import androidx.compose.runtime.remember
+- import androidx.compose.runtime.setValue
+- import androidx.compose.ui.tooling.preview.Preview
+--import com.example.figerprintconsole.app.ui.screen.enroll.FingerprintEnrollmentScreen
+--import com.example.figerprintconsole.app.ui.enroll.state.EnrollmentState
+-+import com.example.figerprintconsole.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
+-+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+- import kotlinx.coroutines.delay
+- 
+- @Preview(showBackground = true, showSystemUi = true)
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/utils/UtilsEnrollScreen.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/utils/UtilsEnrollScreen.kt
+-index fe0927c..a7026b0 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/utils/UtilsEnrollScreen.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/enroll/utils/UtilsEnrollScreen.kt
+-@@ -1,15 +1,15 @@
+--package com.example.figerprintconsole.app.ui.enroll.utils
+-+package com.example.figerprintconsole.app.ui.screen.enroll.utils
+- 
+- // Helper function for step instructions
+- object UtilsEnrollScreen {
+-     fun getStepInstruction(step: Int, isEnrolling: Boolean): String {
+-         return when {
+--            isEnrolling -> "Keep your finger on the sensor..."
+--            step == 1 -> "Place your finger on the fingerprint sensor"
+--            step == 2 -> "Lift and place your finger again"
+--            step == 3 -> "Adjust finger position slightly"
+--            step == 4 -> "One final scan for verification"
+--            else -> "Follow the on-screen instructions"
+-+            !isEnrolling -> "Press Start to Enroll New User"
+-+            step == 1 -> "Enter User Information"
+-+            step == 2 -> "Place your finger on the fingerprint sensor"
+-+            step == 3 -> "Lift and place your finger again"
+-+            step == 4 -> "Enrolled Success"
+-+            else -> "Error While Enrolling New User"
+-         }
+-     }
+- }
+-\ No newline at end of file
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/FingerprintDashboard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/FingerprintDashboard.kt
+-index aab2aa3..6a0271b 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/FingerprintDashboard.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/FingerprintDashboard.kt
+-@@ -15,13 +15,13 @@ import com.example.figerprintconsole.app.ui.home.components.DashboardTopBar
+- import com.example.figerprintconsole.app.ui.home.components.DevicesStatusSection
+- import com.example.figerprintconsole.app.ui.home.components.NotificationsPanel
+- import com.example.figerprintconsole.app.ui.home.components.RecentActivitiesSection
+--import com.example.figerprintconsole.app.ui.home.state.ActivityAction
+--import com.example.figerprintconsole.app.ui.home.state.DashboardStats
+--import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
+--import com.example.figerprintconsole.app.ui.home.state.DeviceStatusType
+--import com.example.figerprintconsole.app.ui.home.state.DeviceType
+--import com.example.figerprintconsole.app.ui.home.state.QuickAction
+--import com.example.figerprintconsole.app.ui.home.state.RecentActivity
+-+import com.example.figerprintconsole.app.domain.model.ActivityAction
+-+import com.example.figerprintconsole.app.domain.model.DashboardStats
+-+import com.example.figerprintconsole.app.domain.model.DeviceStatus
+-+import com.example.figerprintconsole.app.domain.model.DeviceStatusType
+-+import com.example.figerprintconsole.app.domain.model.DeviceType
+-+import com.example.figerprintconsole.app.domain.model.QuickAction
+-+import com.example.figerprintconsole.app.domain.model.RecentActivity
+- import com.example.figerprintconsole.app.ui.screen.home.components.DashboardHeader
+- 
+- @OptIn(ExperimentalMaterial3Api::class)
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/ActivityItem.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/ActivityItem.kt
+-index 82fa0c5..ef01892 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/ActivityItem.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/ActivityItem.kt
+-@@ -32,8 +32,8 @@ import androidx.compose.ui.graphics.Color
+- import androidx.compose.ui.text.font.FontWeight
+- import androidx.compose.ui.text.style.TextOverflow
+- import androidx.compose.ui.unit.dp
+--import com.example.figerprintconsole.app.ui.home.state.ActivityAction
+--import com.example.figerprintconsole.app.ui.home.state.RecentActivity
+-+import com.example.figerprintconsole.app.domain.model.ActivityAction
+-+import com.example.figerprintconsole.app.domain.model.RecentActivity
+- import com.example.figerprintconsole.app.ui.home.utils.HomeUtils
+- 
+- @Composable
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DashboardBottomNav.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DashboardBottomNav.kt
+-index 0deabe4..fa81179 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DashboardBottomNav.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DashboardBottomNav.kt
+-@@ -13,15 +13,13 @@ import androidx.compose.material3.NavigationBarItem
+- import androidx.compose.material3.NavigationBarItemDefaults
+- import androidx.compose.material3.Text
+- import androidx.compose.runtime.Composable
+--import androidx.compose.runtime.getValue
+--import androidx.compose.runtime.mutableIntStateOf
+--import androidx.compose.runtime.remember
+--import androidx.compose.runtime.setValue
+- import androidx.compose.ui.graphics.Color
+--import com.example.figerprintconsole.app.ui.home.state.BottomNavItem
+-+import com.example.figerprintconsole.app.domain.model.BottomNavItem
+-+import com.example.figerprintconsole.app.ui.navigation.Route
+- 
+- @Composable
+- fun DashboardBottomNav(
+-+    currentRoute: String?,
+-     onDashboardNavigationClick: () -> Unit,
+-     onUsersNavigationClick: () -> Unit,
+-     onDeviceNavigationClick: () -> Unit,
+-@@ -29,23 +27,21 @@ fun DashboardBottomNav(
+-     onSettingsNavigationClick: () -> Unit
+- 
+- ) {
+--    var selectedItem by remember { mutableIntStateOf(0) }
+- 
+-     NavigationBar(
+-         containerColor = MaterialTheme.colorScheme.surfaceVariant
+-     ) {
+-         listOf(
+--            BottomNavItem("Dashboard", Icons.Default.Dashboard),
+--            BottomNavItem("Users", Icons.Default.People),
+--            BottomNavItem("Devices", Icons.Default.Devices),
+--            BottomNavItem("Logs", Icons.Default.History),
+--            BottomNavItem("Settings", Icons.Default.Settings)
+-+            BottomNavItem(Route.HOME_SCREEN, "Dashboard", Icons.Default.Dashboard),
+-+            BottomNavItem(Route.USER_SCREEN, "Users", Icons.Default.People),
+-+            BottomNavItem(Route.DEVICES_SCREEN, "Devices", Icons.Default.Devices),
+-+            BottomNavItem(Route.LOGS_SCREEN, "Logs", Icons.Default.History),
+-+            BottomNavItem(Route.SETTING_SCREEN, "Settings", Icons.Default.Settings)
+-         ).forEachIndexed { index, item ->
+-+
+-             NavigationBarItem(
+--                selected = selectedItem == index,
+-+                selected = currentRoute == item.route,
+-                 onClick = {
+--                    selectedItem = index
+--
+-                     when (index) {
+-                         0 -> onDashboardNavigationClick()
+-                         1 -> onUsersNavigationClick()
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusCard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusCard.kt
+-index 1208439..5bee56a 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusCard.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusCard.kt
+-@@ -1,6 +1,5 @@
+- package com.example.figerprintconsole.app.ui.home.components
+- 
+--import android.R
+- import androidx.compose.foundation.background
+- import androidx.compose.foundation.border
+- import androidx.compose.foundation.clickable
+-@@ -27,7 +26,7 @@ import androidx.compose.ui.graphics.Color
+- import androidx.compose.ui.text.font.FontWeight
+- import androidx.compose.ui.text.style.TextOverflow
+- import androidx.compose.ui.unit.dp
+--import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
+-+import com.example.figerprintconsole.app.domain.model.DeviceStatus
+- import com.example.figerprintconsole.app.ui.home.utils.HomeUtils
+- 
+- @Composable
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusSection.kt
+-index 3b9a7fb..7e51cc7 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusSection.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/DeviceStatusSection.kt
+-@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
+- import androidx.compose.foundation.layout.Column
+- import androidx.compose.foundation.layout.Row
+- import androidx.compose.foundation.layout.Spacer
+--import androidx.compose.foundation.layout.fillMaxSize
+- import androidx.compose.foundation.layout.fillMaxWidth
+- import androidx.compose.foundation.layout.height
+- import androidx.compose.foundation.layout.padding
+-@@ -14,9 +13,7 @@ import androidx.compose.foundation.lazy.LazyRow
+- import androidx.compose.foundation.lazy.items
+- import androidx.compose.material.icons.Icons
+- import androidx.compose.material.icons.filled.Devices
+--import androidx.compose.material.icons.filled.History
+- import androidx.compose.material3.Card
+--import androidx.compose.material3.Divider
+- import androidx.compose.material3.Icon
+- import androidx.compose.material3.MaterialTheme
+- import androidx.compose.material3.Text
+-@@ -24,10 +21,9 @@ import androidx.compose.runtime.Composable
+- import androidx.compose.ui.Alignment
+- import androidx.compose.ui.Modifier
+- import androidx.compose.ui.graphics.Color
+--import androidx.compose.ui.graphics.vector.Path
+- import androidx.compose.ui.text.font.FontWeight
+- import androidx.compose.ui.unit.dp
+--import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
+-+import com.example.figerprintconsole.app.domain.model.DeviceStatus
+- 
+- @Composable
+- fun DevicesStatusSection(
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionCard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionCard.kt
+-index 4f445cc..8bcda44 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionCard.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionCard.kt
+-@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
+- import androidx.compose.foundation.layout.Box
+- import androidx.compose.foundation.layout.Column
+- import androidx.compose.foundation.layout.Spacer
+--import androidx.compose.foundation.layout.aspectRatio
+--import androidx.compose.foundation.layout.fillMaxSize
+- import androidx.compose.foundation.layout.fillMaxWidth
+- import androidx.compose.foundation.layout.height
+- import androidx.compose.foundation.layout.padding
+-@@ -26,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
+- import androidx.compose.ui.text.style.TextAlign
+- import androidx.compose.ui.text.style.TextOverflow
+- import androidx.compose.ui.unit.dp
+--import com.example.figerprintconsole.app.ui.home.state.QuickAction
+-+import com.example.figerprintconsole.app.domain.model.QuickAction
+- 
+- @Composable
+- fun QuickActionCard(
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionsSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionsSection.kt
+-index 5c17369..0161e02 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionsSection.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/QuickActionsSection.kt
+-@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
+- import androidx.compose.foundation.layout.height
+- import androidx.compose.foundation.layout.padding
+- import androidx.compose.foundation.lazy.LazyRow
+--import androidx.compose.foundation.lazy.grid.GridCells
+--import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+--import androidx.compose.foundation.lazy.grid.items
+- import androidx.compose.foundation.lazy.items
+- import androidx.compose.material3.Card
+- import androidx.compose.material3.MaterialTheme
+-@@ -20,7 +17,7 @@ import androidx.compose.ui.Alignment
+- import androidx.compose.ui.Modifier
+- import androidx.compose.ui.text.font.FontWeight
+- import androidx.compose.ui.unit.dp
+--import com.example.figerprintconsole.app.ui.home.state.QuickAction
+-+import com.example.figerprintconsole.app.domain.model.QuickAction
+- 
+- @Composable
+- fun QuickActionsSection(
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/RecentActivitiesSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/RecentActivitiesSection.kt
+-index 784f15f..0e85921 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/RecentActivitiesSection.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/RecentActivitiesSection.kt
+-@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
+- import androidx.compose.material.icons.filled.ChevronRight
+- import androidx.compose.material.icons.filled.History
+- import androidx.compose.material3.Card
+--import androidx.compose.material3.Divider
+- import androidx.compose.material3.HorizontalDivider
+- import androidx.compose.material3.Icon
+- import androidx.compose.material3.MaterialTheme
+-@@ -29,7 +28,7 @@ import androidx.compose.ui.Modifier
+- import androidx.compose.ui.graphics.Color
+- import androidx.compose.ui.text.font.FontWeight
+- import androidx.compose.ui.unit.dp
+--import com.example.figerprintconsole.app.ui.home.state.RecentActivity
+-+import com.example.figerprintconsole.app.domain.model.RecentActivity
+- 
+- @Composable
+- fun RecentActivitiesSection(
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatCard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatCard.kt
+-index 6fa3e44..19ca80c 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatCard.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatCard.kt
+-@@ -23,7 +23,7 @@ import androidx.compose.ui.draw.clip
+- import androidx.compose.ui.graphics.Color
+- import androidx.compose.ui.text.font.FontWeight
+- import androidx.compose.ui.unit.dp
+--import com.example.figerprintconsole.app.ui.home.state.StatItem
+-+import com.example.figerprintconsole.app.domain.model.StatItem
+- 
+- @Composable
+- fun StatCard(stat: StatItem) {
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatsGrid.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatsGrid.kt
+-index 22da910..fbfabe6 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatsGrid.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/components/StatsGrid.kt
+-@@ -1,12 +1,8 @@
+- package com.example.figerprintconsole.app.ui.home.components
+- 
+- import androidx.compose.foundation.layout.Arrangement
+--import androidx.compose.foundation.layout.Row
+- import androidx.compose.foundation.layout.fillMaxWidth
+- import androidx.compose.foundation.lazy.LazyRow
+--import androidx.compose.foundation.lazy.grid.GridCells
+--import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+--import androidx.compose.foundation.lazy.grid.items
+- import androidx.compose.foundation.lazy.items
+- import androidx.compose.material.icons.Icons
+- import androidx.compose.material.icons.filled.Devices
+-@@ -14,13 +10,12 @@ import androidx.compose.material.icons.filled.Fingerprint
+- import androidx.compose.material.icons.filled.People
+- import androidx.compose.material.icons.filled.TrendingUp
+- import androidx.compose.material3.MaterialTheme
+--import androidx.compose.material3.Text
+- import androidx.compose.runtime.Composable
+- import androidx.compose.runtime.remember
+- import androidx.compose.ui.Modifier
+- import androidx.compose.ui.unit.dp
+--import com.example.figerprintconsole.app.ui.home.state.DashboardStats
+--import com.example.figerprintconsole.app.ui.home.state.StatItem
+-+import com.example.figerprintconsole.app.domain.model.DashboardStats
+-+import com.example.figerprintconsole.app.domain.model.StatItem
+- 
+- @Composable
+- fun StatsGrid(
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TesetActivityItem.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TesetActivityItem.kt
+-index 01f85a9..ba54ceb 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TesetActivityItem.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TesetActivityItem.kt
+-@@ -2,9 +2,9 @@ package com.example.figerprintconsole.app.ui.home.tests
+- 
+- import androidx.compose.runtime.Composable
+- import androidx.compose.ui.tooling.preview.Preview
+--import com.example.figerprintconsole.app.ui.home.state.RecentActivity
+-+import com.example.figerprintconsole.app.domain.model.RecentActivity
+- import com.example.figerprintconsole.app.ui.home.components.ActivityItem
+--import com.example.figerprintconsole.app.ui.home.state.ActivityAction
+-+import com.example.figerprintconsole.app.domain.model.ActivityAction
+- import java.time.LocalDateTime
+- 
+- @Preview(showBackground = true)
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDashboardBottomNav.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDashboardBottomNav.kt
+-index b467835..2b70497 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDashboardBottomNav.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDashboardBottomNav.kt
+-@@ -8,6 +8,7 @@ import com.example.figerprintconsole.app.ui.home.components.DashboardBottomNav
+- @Composable
+- fun TestDashboardBottomNav() {
+-     DashboardBottomNav(
+-+        null,
+-         {},
+-         {},
+-         {},
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDeviceStatusCard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDeviceStatusCard.kt
+-index c9cc173..63092fd 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDeviceStatusCard.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestDeviceStatusCard.kt
+-@@ -2,10 +2,10 @@ package com.example.figerprintconsole.app.ui.home.tests
+- 
+- import androidx.compose.runtime.Composable
+- import androidx.compose.ui.tooling.preview.Preview
+--import com.example.figerprintconsole.app.ui.home.state.DeviceStatus
+-+import com.example.figerprintconsole.app.domain.model.DeviceStatus
+- import com.example.figerprintconsole.app.ui.home.components.DeviceStatusCard
+--import com.example.figerprintconsole.app.ui.home.state.DeviceStatusType
+--import com.example.figerprintconsole.app.ui.home.state.DeviceType
+-+import com.example.figerprintconsole.app.domain.model.DeviceStatusType
+-+import com.example.figerprintconsole.app.domain.model.DeviceType
+- import java.time.LocalDateTime
+- 
+- @Preview(showBackground = true)
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionCard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionCard.kt
+-index 5781220..dd0ab84 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionCard.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionCard.kt
+-@@ -5,7 +5,7 @@ import androidx.compose.material.icons.filled.DeviceHub
+- import androidx.compose.runtime.Composable
+- import androidx.compose.ui.graphics.Color
+- import androidx.compose.ui.tooling.preview.Preview
+--import com.example.figerprintconsole.app.ui.home.state.QuickAction
+-+import com.example.figerprintconsole.app.domain.model.QuickAction
+- import com.example.figerprintconsole.app.ui.home.components.QuickActionCard
+- 
+- @Preview(showBackground = true)
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionsSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionsSection.kt
+-index f68b66a..73d8ae9 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionsSection.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestQuickActionsSection.kt
+-@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
+- import androidx.compose.ui.graphics.Color
+- import androidx.compose.ui.tooling.preview.Preview
+- import com.example.figerprintconsole.app.ui.home.components.QuickActionsSection
+--import com.example.figerprintconsole.app.ui.home.state.QuickAction
+-+import com.example.figerprintconsole.app.domain.model.QuickAction
+- 
+- @Preview(showBackground = true)
+- @Composable
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestRecentActivitiesSection.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestRecentActivitiesSection.kt
+-index 6a357b2..096f21a 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestRecentActivitiesSection.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestRecentActivitiesSection.kt
+-@@ -3,8 +3,8 @@ package com.example.figerprintconsole.app.ui.screen.home.tests
+- import androidx.compose.runtime.Composable
+- import androidx.compose.ui.tooling.preview.Preview
+- import com.example.figerprintconsole.app.ui.home.components.RecentActivitiesSection
+--import com.example.figerprintconsole.app.ui.home.state.ActivityAction
+--import com.example.figerprintconsole.app.ui.home.state.RecentActivity
+-+import com.example.figerprintconsole.app.domain.model.ActivityAction
+-+import com.example.figerprintconsole.app.domain.model.RecentActivity
+- import java.time.LocalDateTime
+- 
+- @Preview(showBackground = true)
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatCard.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatCard.kt
+-index cbca5ba..9a19026 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatCard.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatCard.kt
+-@@ -5,7 +5,7 @@ import androidx.compose.material.icons.filled.People
+- import androidx.compose.material3.MaterialTheme
+- import androidx.compose.runtime.Composable
+- import androidx.compose.ui.tooling.preview.Preview
+--import com.example.figerprintconsole.app.ui.home.state.StatItem
+-+import com.example.figerprintconsole.app.domain.model.StatItem
+- import com.example.figerprintconsole.app.ui.home.components.StatCard
+- 
+- @Preview(showBackground = true)
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatsGrid.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatsGrid.kt
+-index 605d412..843fd05 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatsGrid.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/tests/TestStatsGrid.kt
+-@@ -3,7 +3,7 @@ package com.example.figerprintconsole.app.ui.home.tests
+- import androidx.compose.runtime.Composable
+- import androidx.compose.ui.tooling.preview.Preview
+- import com.example.figerprintconsole.app.ui.home.components.StatsGrid
+--import com.example.figerprintconsole.app.ui.home.state.DashboardStats
+-+import com.example.figerprintconsole.app.domain.model.DashboardStats
+- 
+- @Preview(showBackground = true)
+- @Composable
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/utils/HomeUtils.kt b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/utils/HomeUtils.kt
+-index 68de709..0084a4c 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/utils/HomeUtils.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/ui/screen/home/utils/HomeUtils.kt
+-@@ -7,8 +7,8 @@ import androidx.compose.material.icons.filled.PointOfSale
+- import androidx.compose.material.icons.filled.Smartphone
+- import androidx.compose.ui.graphics.Color
+- import androidx.compose.ui.graphics.vector.ImageVector
+--import com.example.figerprintconsole.app.ui.home.state.DeviceStatusType
+--import com.example.figerprintconsole.app.ui.home.state.DeviceType
+-+import com.example.figerprintconsole.app.domain.model.DeviceStatusType
+-+import com.example.figerprintconsole.app.domain.model.DeviceType
+- import java.time.LocalDateTime
+- import java.time.format.DateTimeFormatter
+- 
+-diff --git a/app/src/main/java/com/example/figerprintconsole/app/utils/AppConstant.kt b/app/src/main/java/com/example/figerprintconsole/app/utils/AppConstant.kt
+-index fe56c3d..a9c32ec 100644
+---- a/app/src/main/java/com/example/figerprintconsole/app/utils/AppConstant.kt
+-+++ b/app/src/main/java/com/example/figerprintconsole/app/utils/AppConstant.kt
+-@@ -1,8 +1,26 @@
+- package com.example.figerprintconsole.app.utils
+- 
+-+import android.util.Log
+-+
+- object AppConstant {
+-     const val BASE_URL = "http://137.97.126.110:4005/"
+-     const val GET_ALL_USERS_API = "api/users"
+-     const val USER_GET_URL = "api/users/fp" // add the ID of user
+-     const val GET_USER_BY_ID_API = "api/users/fp"
+-+
+-+    const val DEBUG = true
+-+
+-+    fun debugMessage(msg: String, tag: String = "UNKNOWN", debugType: DebugType = DebugType.INFO) {
+-+        if(DEBUG) {
+-+            if(debugType == DebugType.INFO) Log.i(tag, msg)
+-+            if(debugType == DebugType.ERROR) Log.e(tag, msg)
+-+            if(debugType == DebugType.DESCRIPTION) Log.d(tag, msg)
+-+        }
+-+    }
+-+}
+-+
+-+enum class DebugType {
+-+    ERROR,
+-+    INFO,
+-+    DESCRIPTION
+- }
+-\ No newline at end of file

@@ -3,8 +3,9 @@ package com.example.figerprintconsole.app.ui.screen.enroll.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -16,18 +17,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.figerprintconsole.app.domain.model.NewEnrollUser
+import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentScreenState
 import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
 
 @Composable
 fun EnrollmentActionOne(
+    uiState: EnrollmentScreenState,
     state: EnrollmentState,
     onRetry: () -> Unit,
     onComplete: () -> Unit,
     newUser: NewEnrollUser,
     onInputChanged: (NewEnrollUser) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.verticalScroll(rememberScrollState()),
+    ) {
 
+        // These data need to be validated && Must be stored in viewModel temporarly..!!
+        // Otherwise there will be some side-effects!
         OutlinedTextField(
             value = newUser.name,
             onValueChange = { onInputChanged(newUser.copy(name = it)) },
@@ -71,8 +79,6 @@ fun EnrollmentActionOne(
             modifier = Modifier.fillMaxWidth(),
             readOnly = true
         )
-
-        Spacer(modifier = Modifier.weight(1f))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
