@@ -1,16 +1,23 @@
 package com.example.figerprintconsole.app.ui.screen.enroll
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.figerprintconsole.app.data.repository.EnrollmentRepositoryImpl
+import com.example.figerprintconsole.app.domain.model.NewEnrollUser
 import com.example.figerprintconsole.app.ui.screen.enroll.event.EnrollScreenEvent
 import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentScreenState
 import com.example.figerprintconsole.app.ui.screen.enroll.state.EnrollmentState
+import com.example.figerprintconsole.app.utils.AppConstant
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class EnrollmentViewModel @Inject constructor(
+    val enrollmentRepositoryImpl: EnrollmentRepositoryImpl
 ): ViewModel() {
 
     private val _currentUiState = MutableStateFlow<EnrollmentScreenState>(EnrollmentScreenState.IDLE)
@@ -18,6 +25,9 @@ class EnrollmentViewModel @Inject constructor(
 
     private val _currentStateData = MutableStateFlow(EnrollmentState())
     val currentStateData: StateFlow<EnrollmentState> = _currentStateData
+
+    private val _currentInputFieldState = MutableStateFlow(NewEnrollUser()) // Why I can't hold data when the screen navigation changes?? Figure me out!
+    val currentInputFieldState: StateFlow<NewEnrollUser> = _currentInputFieldState
 
     fun onEvent(event: EnrollScreenEvent) {
         when(event) {
@@ -30,6 +40,19 @@ class EnrollmentViewModel @Inject constructor(
             is EnrollScreenEvent.Completed -> { levelUpToComplete() }
             is EnrollScreenEvent.CANCEL -> { }
             is EnrollScreenEvent.Error -> { }
+
+            is EnrollScreenEvent.TextFieldInput -> { trackInputField(event.newEnrollUser) }
+            is EnrollScreenEvent.ResetTextFieldInput -> { resetTextInputField() } // Do use me when necessary!
+        }
+    }
+
+    fun connectToSocket() {
+        AppConstant.debugMessage("WS: Connecting to Socket observer!", "WS")
+        viewModelScope.launch {
+            enrollmentRepositoryImpl.observeEnrollment().collect {
+                event ->
+                AppConstant.debugMessage("WS: $event", "WS")
+            }
         }
     }
 
@@ -47,6 +70,9 @@ class EnrollmentViewModel @Inject constructor(
     }
 
     fun levelUpToUserInput() {
+
+        connectToSocket()
+
         // Change the UiState
         _currentUiState.value = EnrollmentScreenState.UserInput
 
@@ -61,6 +87,12 @@ class EnrollmentViewModel @Inject constructor(
         )
     }
     fun levelUpToEnrollmentStepOne() {
+
+        // Send Signal to Repository
+        viewModelScope.launch {
+            enrollmentRepositoryImpl.startEnrollment(currentInputFieldState.value)
+        }
+
         // Change the UiState
         _currentUiState.value = EnrollmentScreenState.EnrollingStepOne
 
@@ -119,4 +151,11 @@ class EnrollmentViewModel @Inject constructor(
 
     fun showError() {}
 
+    fun trackInputField(newEnrollUser: NewEnrollUser) {
+        _currentInputFieldState.value = newEnrollUser
+    }
+
+    fun resetTextInputField() {
+        _currentInputFieldState.value = NewEnrollUser()
+    }
 }

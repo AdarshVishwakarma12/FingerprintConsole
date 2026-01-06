@@ -16,17 +16,19 @@ fun StartEnrollmentProcess(
     // These two values changes together -> cause 2 recomposition -> Fix in later version!
     val currentUiState by viewModel.currentUiState.collectAsState()
     val currentStateData by viewModel.currentStateData.collectAsState()
+    val currentTextFieldData by viewModel.currentInputFieldState.collectAsState()
 
     FingerprintEnrollmentScreen(
         uiState = currentUiState,
         stateData = currentStateData,
+        currentTextFieldData = currentTextFieldData,
         onStartEnrollment = { viewModel.onEvent(EnrollScreenEvent.UserInput) },
         onRetry = { viewModel.onEvent(EnrollScreenEvent.IDLE) },
         onComplete = {
             // Level 2 & 3 are only updated within viewmodel, currently the business logic is inside UI!!
             // Fix as soon / or after connecting the Websocket!!
-            viewModel.onEvent(EnrollScreenEvent.LevelUp)
-                     },
-        onCompleteEnrollment = onCompleteEnrollment
+            viewModel.onEvent(EnrollScreenEvent.LevelUp) },
+        onCompleteEnrollment = onCompleteEnrollment,
+        onInputChanged = { it -> viewModel.onEvent(EnrollScreenEvent.TextFieldInput(it)) }
     )
 }

@@ -23,10 +23,12 @@ import com.example.figerprintconsole.app.utils.DebugType
 fun FingerprintEnrollmentScreen(
     uiState: EnrollmentScreenState,
     stateData: EnrollmentState,
+    currentTextFieldData: NewEnrollUser,
     onStartEnrollment: () -> Unit,
     onRetry: () -> Unit,
     onComplete: () -> Unit,
     onCompleteEnrollment: () -> Unit,
+    onInputChanged: (NewEnrollUser) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -73,8 +75,8 @@ fun FingerprintEnrollmentScreen(
                         state = stateData,
                         onRetry = onRetry,
                         onComplete = onComplete,
-                        newUser = NewEnrollUser(),
-                        onInputChanged = {}
+                        newUser = currentTextFieldData,
+                        onInputChanged = onInputChanged
                     )
                 }
 

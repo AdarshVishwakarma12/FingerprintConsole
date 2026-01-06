@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.figerprintconsole.app.ui.home.FingerprintDashboard
+import com.example.figerprintconsole.app.ui.screen.home.FingerprintDashboard
 import com.example.figerprintconsole.app.ui.screen.devices.DeviceScreen
 import com.example.figerprintconsole.app.ui.screen.enroll.StartEnrollmentProcess
 import com.example.figerprintconsole.app.ui.screen.users.UsersListScreen

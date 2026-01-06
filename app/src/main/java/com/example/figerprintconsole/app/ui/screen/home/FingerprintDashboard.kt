@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.home
+package com.example.figerprintconsole.app.ui.screen.home
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*

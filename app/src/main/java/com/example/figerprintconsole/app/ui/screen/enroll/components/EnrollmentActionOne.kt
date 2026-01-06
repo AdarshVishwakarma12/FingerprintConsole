@@ -39,35 +39,40 @@ fun EnrollmentActionOne(
         OutlinedTextField(
             value = newUser.name,
             onValueChange = { onInputChanged(newUser.copy(name = it)) },
-            label = { Text("Name") },
+            placeholder = { Text("Name") },
+            maxLines = 1,
             modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
             value = newUser.email,
             onValueChange = { onInputChanged(newUser.copy(email = it)) },
-            label = { Text("Email") },
+            placeholder = { Text("Email") },
+            maxLines = 1,
             modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
             value = newUser.employeeId,
             onValueChange = { onInputChanged(newUser.copy(employeeId = it)) },
-            label = { Text("Employee ID") },
+            placeholder = { Text("Employee ID") },
+            maxLines = 1,
             modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
             value = newUser.phone,
             onValueChange = { onInputChanged(newUser.copy(phone = it)) },
-            label = { Text("Phone") },
+            placeholder = { Text("Phone") },
+            maxLines = 1,
             modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
             value = newUser.department,
             onValueChange = { onInputChanged(newUser.copy(department = it)) },
-            label = { Text("Department") },
+            placeholder = { Text("Department") },
+            maxLines = 1,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -75,7 +80,8 @@ fun EnrollmentActionOne(
         OutlinedTextField(
             value = newUser.timeZone,
             onValueChange = { onInputChanged(newUser.copy(timeZone = it)) },
-            label = { Text("Time Zone") },
+            placeholder = { Text("Time Zone") },
+            maxLines = 1,
             modifier = Modifier.fillMaxWidth(),
             readOnly = true
         )
