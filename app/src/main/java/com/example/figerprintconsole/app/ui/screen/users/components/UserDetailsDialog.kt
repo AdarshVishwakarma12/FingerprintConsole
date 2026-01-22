@@ -39,7 +39,7 @@ fun UserDetailsDialog(
         },
         title = {
             Text(
-                text = user.name,
+                text = user.fullName,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -47,7 +47,7 @@ fun UserDetailsDialog(
         text = {
             Column {
                 Text(
-                    text = user.email,
+                    text = user.email ?: "",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -63,20 +63,20 @@ fun UserDetailsDialog(
                 UserDetailsRow(
                     icon = Icons.Default.Numbers,
                     label = "Fingerprints",
-                    value = user.fingerprintCount.toString()
+                    value = user.department.toString()
                 )
 
                 UserDetailsRow(
                     icon = Icons.Default.Person,
                     label = "Employee Id",
-                    value = user.employeeId.toString()
+                    value = user.employeeCode.toString()
                 )
 
-                user.lastAccess?.let {
+                user.enrolledAt.let {
                     UserDetailsRow(
                         icon = Icons.Default.AccessTime,
                         label = "Last Access",
-                        value = UserUtils.formatDate(it)
+                        value = it
                     )
                 }
             }

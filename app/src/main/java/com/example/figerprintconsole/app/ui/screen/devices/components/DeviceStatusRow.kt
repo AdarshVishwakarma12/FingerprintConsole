@@ -14,19 +14,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.figerprintconsole.app.domain.model.Device
 import com.example.figerprintconsole.app.domain.model.DeviceStatus
 import com.example.figerprintconsole.app.ui.home.utils.HomeUtils
 
 
 @Composable
 fun DeviceStatusRow(
-    device: DeviceStatus,
+    device: Device,
     onClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp)
+            .padding(vertical = 12.dp, horizontal = 12.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -37,13 +38,13 @@ fun DeviceStatusRow(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = device.name,
+                    text = device.name ?: "Unknown",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium
                 )
 
                 Text(
-                    text = device.name,
+                    text = device.location ?: "Unknown",
                     style = MaterialTheme.typography.bodySmall,
                     color = HomeUtils.getDeviceColor(device.status)
                 )

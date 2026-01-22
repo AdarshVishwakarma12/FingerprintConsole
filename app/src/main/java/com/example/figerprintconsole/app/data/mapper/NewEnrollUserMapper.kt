@@ -10,6 +10,6 @@ fun NewEnrollUser.toJson(): JSONObject {
         put("email", email)
         put("phone", phone)
         put("department", department)
-        put("customTimezone", timeZone)
+        put("customTimezone", "+05:30") // a fixed value!
     }
 }

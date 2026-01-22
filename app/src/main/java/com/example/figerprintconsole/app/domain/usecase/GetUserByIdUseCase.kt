@@ -7,7 +7,7 @@ import javax.inject.Inject
 class GetUserByIdUseCase @Inject constructor(
     val repository: UserRepositoryImpl
 ) {
-    suspend operator fun invoke(user: User): Result<User> {
-        return repository.getUserById(user.fingerprintId)
-    }
+//    suspend operator fun invoke(user: User): Result<User> {
+//        return repository.observeAll()
+//    }
 }

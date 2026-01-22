@@ -3,10 +3,12 @@ package com.example.figerprintconsole.app.ui.navigation
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.figerprintconsole.app.ui.screen.home.FingerprintDashboard
 import com.example.figerprintconsole.app.ui.screen.devices.DeviceScreen
 import com.example.figerprintconsole.app.ui.screen.enroll.StartEnrollmentProcess
@@ -17,6 +19,8 @@ fun MyAppNavHost(
     navController: NavHostController,
     innerPadding: PaddingValues
 ) {
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
 
     NavHost(
         navController = navController,
@@ -40,7 +44,8 @@ fun MyAppNavHost(
 
         composable(route = Route.ENROLL_SCREEN) {
             StartEnrollmentProcess(
-                onCompleteEnrollment = { navController.navigate(Route.USER_SCREEN) }
+                onCompleteEnrollment = { navController.navigate(Route.USER_SCREEN) },
+                navBackStackEntry = navBackStackEntry
             )
         }
 

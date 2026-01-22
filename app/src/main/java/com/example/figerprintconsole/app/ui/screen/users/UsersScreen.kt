@@ -102,35 +102,22 @@ fun UsersListScreen(
         // User details dialog
         selectedUser?.let { user ->
 
-            // Get Detail of User && call UserDetailsDialog
-            LaunchedEffect(Unit) {
-                // Prevent load if already loaded..
-                try {
-                    if((userDetailState as UserDetailUiState.Success).user.fingerprintId != user.fingerprintId) {
-                        userScreenViewModel.onEvent(UsersScreenEvent.GetUserById(user))
-                    }
-                } catch ( _: Exception ) {
-                    userScreenViewModel.onEvent(UsersScreenEvent.GetUserById(user))
-                }
-
-            }
-
-            // Wait till we get the result..
-            if (userDetailState is UserDetailUiState.Success && (userDetailState as UserDetailUiState.Success).user.fingerprintId == user.fingerprintId) {
-                val userInfo = (userDetailState as UserDetailUiState.Success).user
-
-                UserDetailsDialog(
-                    user = userInfo,
-                    onDismiss = { selectedUser = null },
-                    onEnroll = {
-                        onEnrollUser(userInfo)
-                        selectedUser = null
-                    },
-                    onDelete = {
-                        selectedUser = null
-                    }
-                )
-            }
+//            // Wait till we get the result..
+//            if (userDetailState is UserDetailUiState.Success && (userDetailState as UserDetailUiState.Success).user.fingerprintId == user.fingerprintId) {
+//                val userInfo = (userDetailState as UserDetailUiState.Success).user
+//
+//                UserDetailsDialog(
+//                    user = userInfo,
+//                    onDismiss = { selectedUser = null },
+//                    onEnroll = {
+//                        onEnrollUser(userInfo)
+//                        selectedUser = null
+//                    },
+//                    onDelete = {
+//                        selectedUser = null
+//                    }
+//                )
+//            }
         }
     }
 }

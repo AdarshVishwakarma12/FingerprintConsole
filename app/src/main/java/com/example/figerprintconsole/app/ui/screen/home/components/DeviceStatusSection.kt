@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.home.components
+package com.example.figerprintconsole.app.ui.screen.home.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,11 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.figerprintconsole.app.domain.model.DeviceStatus
+import com.example.figerprintconsole.app.domain.model.Device
+import com.example.figerprintconsole.app.ui.home.components.DeviceStatusCard
+import com.example.figerprintconsole.app.ui.home.components.StatusIndicator
 
 @Composable
 fun DevicesStatusSection(
-    devices: List<DeviceStatus>,
+    devices: List<Device>,
     onDeviceClick: (String) -> Unit
 ) {
     Card(
@@ -100,7 +102,7 @@ fun DevicesStatusSection(
                     items(devices) { device ->
                         DeviceStatusCard(
                             device = device,
-                            onClick = { onDeviceClick(device.id) }
+                            onClick = { onDeviceClick(device.deviceCode) }
                         )
                     }
                 }

@@ -24,6 +24,7 @@ kotlin-library = "2.0.21"
 hilt = "2.51"
 hilt-navigation = "1.2.0"
 junitKtx = "1.3.0"
+room = "2.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -50,6 +51,9 @@ retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", ver
 okhttp-core = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room"}
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
 [plugins]
 # android.application helps in buiding the application + understand the "android{}" block

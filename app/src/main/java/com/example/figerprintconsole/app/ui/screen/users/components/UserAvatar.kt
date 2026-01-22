@@ -34,7 +34,7 @@ fun UserAvatar(
         if (user.profileImage != null) {
             AsyncImage(
                 model = user.profileImage,
-                contentDescription = "${user.name}'s avatar",
+                contentDescription = "${user.fullName}'s avatar",
                 modifier = Modifier
                     .size(size)
                     .clip(CircleShape),
@@ -47,11 +47,11 @@ fun UserAvatar(
                     .size(size)
                     .clip(CircleShape)
                     .background(
-                        color = UserUtils.getAvatarColor(user.name)
+                        color = UserUtils.getAvatarColor(user.fullName)
                     )
             ) {
                 Text(
-                    text = user.name.take(2).uppercase(),
+                    text = user.fullName.take(2).uppercase(),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = (size.value * 0.3).sp,

@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.composable)
     id("com.google.dagger.hilt.android")
-    id("org.jetbrains.kotlin.kapt")
+    id("org.jetbrains.kotlin.kapt") // Kotlin annotation processing tool
 }
 
 android {
@@ -76,4 +76,8 @@ dependencies {
     kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
     testImplementation(kotlin("test"))
+
+    implementation(libs.androidx.room.runtime)
+    kapt(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
 }

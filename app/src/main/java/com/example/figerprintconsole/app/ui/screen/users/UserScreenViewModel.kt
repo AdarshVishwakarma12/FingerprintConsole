@@ -2,6 +2,7 @@ package com.example.figerprintconsole.app.ui.screen.users
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.figerprintconsole.app.data.repository.FakeDataRepository
 import com.example.figerprintconsole.app.domain.model.User
 import com.example.figerprintconsole.app.domain.usecase.GetAllUsersUseCase
 import com.example.figerprintconsole.app.domain.usecase.GetUserByIdUseCase
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class UserScreenViewModel @Inject constructor(
     val getAllUserUsersUseCase: GetAllUsersUseCase,
-    val getUserByIdUseCase: GetUserByIdUseCase
+    val getUserByIdUseCase: GetUserByIdUseCase,
+    val fakeDataRepository: FakeDataRepository
 ): ViewModel() {
 
     private var isInitialLoaded: Boolean = false
@@ -27,6 +29,12 @@ class UserScreenViewModel @Inject constructor(
 
     private val _uiStateUserById = MutableStateFlow<UserDetailUiState>(UserDetailUiState.Loading)
     val uiStateUserById: StateFlow<UserDetailUiState> = _uiStateUserById
+
+    init {
+        viewModelScope.launch {
+            fakeDataRepository.seedMassiveData()
+        }
+    }
 
     fun onEvent(event: UsersScreenEvent) {
         when(event) {
@@ -44,11 +52,11 @@ class UserScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val response = getAllUserUsersUseCase()
 
-            response.onSuccess { users ->
-                _uiStateAllUsers.value = UsersUiState.Success(users)
-            }.onFailure { throwable ->
-                _uiStateAllUsers.value = UsersUiState.Failure(throwable.message ?: "Unknown Error")
+            response.collect { it ->
+                _uiStateAllUsers.value = UsersUiState.Success(it)
             }
+
+
         }
     }
 
@@ -57,15 +65,15 @@ class UserScreenViewModel @Inject constructor(
         // Set State as Loading
         _uiStateUserById.value = UserDetailUiState.Loading
 
-        viewModelScope.launch {
-            val response = getUserByIdUseCase(user)
-
-            response.onSuccess { user ->
-                _uiStateUserById.value = UserDetailUiState.Success(user)
-            }.onFailure { it ->
-                _uiStateUserById.value = UserDetailUiState.Failure(it.message ?: "Unknown Error")
-            }
-        }
+//        viewModelScope.launch {
+//            val response = getUserByIdUseCase(user)
+//
+//            response.onSuccess { user ->
+//                _uiStateUserById.value = UserDetailUiState.Success(user)
+//            }.onFailure { it ->
+//                _uiStateUserById.value = UserDetailUiState.Failure(it.message ?: "Unknown Error")
+//            }
+//        }
 
     }
 }

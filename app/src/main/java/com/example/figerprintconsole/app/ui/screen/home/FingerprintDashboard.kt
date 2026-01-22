@@ -11,18 +11,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import java.time.LocalDateTime
 import androidx.compose.material3.MaterialTheme
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.figerprintconsole.app.ui.home.components.DashboardTopBar
-import com.example.figerprintconsole.app.ui.home.components.DevicesStatusSection
+import com.example.figerprintconsole.app.ui.screen.home.components.DevicesStatusSection
 import com.example.figerprintconsole.app.ui.home.components.NotificationsPanel
 import com.example.figerprintconsole.app.ui.home.components.RecentActivitiesSection
 import com.example.figerprintconsole.app.domain.model.ActivityAction
 import com.example.figerprintconsole.app.domain.model.DashboardStats
+import com.example.figerprintconsole.app.domain.model.Device
 import com.example.figerprintconsole.app.domain.model.DeviceStatus
 import com.example.figerprintconsole.app.domain.model.DeviceStatusType
 import com.example.figerprintconsole.app.domain.model.DeviceType
 import com.example.figerprintconsole.app.domain.model.QuickAction
 import com.example.figerprintconsole.app.domain.model.RecentActivity
 import com.example.figerprintconsole.app.ui.screen.home.components.DashboardHeader
+import com.example.figerprintconsole.app.ui.screen.home.state.UiHomeDashboardState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,9 +40,15 @@ fun FingerprintDashboard(
     currentUserName: String,
 
     onRefresh: () -> Unit,
+    fingerprintDashboardViewmodel: FingerprintDashboardViewmodel = hiltViewModel(),
     modifier: Modifier = Modifier,
     isLoading: Boolean = false
 ) {
+
+    val uiState by fingerprintDashboardViewmodel.uiStateHomeDashboard.collectAsState()
+
+    val devicesList = uiState.deviceList
+
     var showNotifications by remember { mutableStateOf(false) }
     var showUserMenu by remember { mutableStateOf(false) }
 
@@ -82,7 +91,7 @@ fun FingerprintDashboard(
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     DevicesStatusSection(
-                        devices = devices,
+                        devices = devicesList ,
                         onDeviceClick = onDeviceClick
                     )
 
@@ -102,14 +111,6 @@ fun FingerprintDashboard(
                 modifier = Modifier.fillMaxWidth(0.8f)
             )
         }
-//
-//        // User Menu
-//        if (showUserMenu) {
-//            UserMenuDialog(
-//                onDismiss = { showUserMenu = false },
-//                onLogout = { /* Handle logout */ },
-//                onSettings = { /* Navigate to settings */ }
-//            )
     }
 }
 

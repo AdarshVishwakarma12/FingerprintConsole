@@ -1,6 +1,7 @@
 package com.example.figerprintconsole.app.data.websocket
 
 import com.example.figerprintconsole.app.data.mapper.toWebsocketEvent
+import com.example.figerprintconsole.app.domain.model.EnrollmentSocketCommand
 import com.example.figerprintconsole.app.domain.model.EnrollmentSocketDataSource
 import com.example.figerprintconsole.app.domain.model.EnrollmentSocketEvent
 import kotlinx.coroutines.channels.awaitClose
@@ -31,13 +32,22 @@ class EnrollmentSocketDataSourceImpl @Inject constructor(
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) { trySend(EnrollmentSocketEvent.Disconnected) }
         }
 
-        socket = client.newWebSocket(request, listener)
-        awaitClose { socket?.close(1000, "Closed") }
+        try {
+            val socket = client.newWebSocket(request, listener)
+            awaitClose { socket.close(1000, "Closed") }
+        } catch (e: Exception) {
+            trySend(
+                EnrollmentSocketEvent.VerificationFailed(
+                    e.message ?: "Connection failed"
+                )
+            )
+            close(e)
+        }
     }
 
     override fun disconnect() { client.dispatcher.executorService.shutdown() } // Shut Down at Client Level!
 
-    override fun send(type: EnrollmentSocketEvent, message: String) {
+    override fun send(type: EnrollmentSocketCommand, message: String) {
         val ws = socket
         if (ws == null) {
             // socket not connected yet

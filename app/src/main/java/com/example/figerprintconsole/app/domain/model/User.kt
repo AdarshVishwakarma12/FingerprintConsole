@@ -1,15 +1,14 @@
 package com.example.figerprintconsole.app.domain.model
 
-import java.time.LocalDateTime
-
 data class User(
-    val id: String,
-    val fingerprintId: Int,
-    val employeeId: String,
-    val name: String,
-    val email: String,
-    val profileImage: String? = null,
-    val enrollmentStatus: EnrollmentStatus,
-    val lastAccess: LocalDateTime? = null,
-    val fingerprintCount: Int = 0
+    val employeeCode: String,
+    val fullName: String,
+    val email: String?,
+    val phone: String?,
+    val department: String?,
+    val notes: String?,
+    val isActive: Boolean,
+    val enrolledAt: String,
+    val enrollmentStatus: EnrollmentStatus = EnrollmentStatus.ENROLLED,
+    val profileImage: String? = null
 )

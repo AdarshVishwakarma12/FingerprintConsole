@@ -61,7 +61,7 @@ fun UserListItem(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = user.name.capitalize(),
+                        text = user.fullName.capitalize(),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
@@ -72,9 +72,9 @@ fun UserListItem(
                 }
 
                 Text(
-                    text = user.email.ifEmpty { "Email not available" },
+                    text = user.email ?:  "Email not available" ,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (user.email.isBlank()) Color.Gray else Color.Black,
+                    color = if (user.email == null) Color.Gray else Color.Black,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -84,9 +84,9 @@ fun UserListItem(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Last access
-                    user.lastAccess?.let {
+                    user.enrolledAt.let {
                         Text(
-                            text = "Last access: ${UserUtils.formatDate(it)}",
+                            text = "Last access: $it",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
@@ -95,9 +95,9 @@ fun UserListItem(
                     Spacer(modifier = Modifier.weight(1f))
 
                     // Fingerprint count
-                    if (user.fingerprintCount > 0) {
+                    if (user.phone != null) {
                         Text(
-                            text = "${user.fingerprintCount} prints",
+                            text = "${user.phone} prints",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )

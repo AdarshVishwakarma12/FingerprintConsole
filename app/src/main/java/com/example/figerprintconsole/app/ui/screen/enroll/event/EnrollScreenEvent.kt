@@ -5,6 +5,7 @@ import com.example.figerprintconsole.app.domain.model.NewEnrollUser
 sealed class EnrollScreenEvent {
     object LevelUp: EnrollScreenEvent()
     object IDLE: EnrollScreenEvent()
+    object ConnectToSocket: EnrollScreenEvent()
     object UserInput: EnrollScreenEvent()
     object EnrollingStepOne: EnrollScreenEvent()
     object EnrollingStepTwo: EnrollScreenEvent()

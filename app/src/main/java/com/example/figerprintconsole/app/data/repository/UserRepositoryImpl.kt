@@ -1,75 +1,46 @@
 package com.example.figerprintconsole.app.data.repository
 
+import com.example.figerprintconsole.app.data.local.dao.UserDao
 import com.example.figerprintconsole.app.data.mapper.toDomain
 import com.example.figerprintconsole.app.data.remote.NetworkException
 import com.example.figerprintconsole.app.data.remote.api.ApiServices
+import com.example.figerprintconsole.app.di.AppDatabase
 import com.example.figerprintconsole.app.domain.model.User
 import com.example.figerprintconsole.app.domain.repository.UserRepository
-import retrofit2.HttpException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import retrofit2.Response
-import java.io.IOException
+import java.util.UUID
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
-    private val apiServices: ApiServices
+    private val apiServices: ApiServices,
+    private val userDao: UserDao,
+    private val appDatabase: AppDatabase
 ): UserRepository {
 
-    override suspend fun getAllUsers(): Result<List<User>> {
-        return try {
-            val response = apiServices.getAllUsers()
-
-            if (!response.isSuccessful) {
-                return Result.failure(mapHttpException(response))
-            }
-
-            val body = response.body() ?: return Result.failure(NetworkException.EmptyBody)
-
-            val users = body.data
-
-            val domainUsers = users.map { it.toDomain() }
-
-            Result.success(domainUsers)
-
-        } catch (_: IOException) {
-            // Network / no internet
-            Result.failure(NetworkException.NoInternet)
-
-        } catch (e: HttpException) {
-            // Retrofit HTTP exception
-            Result.failure(mapHttpException(e.response()))
-
-        } catch (e: Exception) {
-            Result.failure(NetworkException.Unknown(e))
+    override fun observeAll(): Flow<List<User>> = flow {
+        // Read from the database
+        userDao.getAll().collect { users ->
+            emit(
+                users.map { user -> user.toDomain() }
+            )
         }
+    }.catch { e ->
+        // Emit the AppError!
     }
 
-    override suspend fun getUserById(userId: Int): Result<User> {
-        try {
-            val response = apiServices.getUserById(userId = userId)
-
-            if (!response.isSuccessful) {
-                return Result.failure(mapHttpException(response))
-            }
-
-            val body = response.body() ?: return Result.failure(NetworkException.EmptyBody)
-
-            val user = body.data
-
-            val domainUser = user.toDomain()
-
-            return Result.success(domainUser)
-
-        } catch (_: IOException) {
-            return Result.failure(NetworkException.NoInternet)
-        } catch (e: HttpException) {
-            return Result.failure(mapHttpException(e.response()))
-        } catch (e: Exception) {
-            return Result.failure(NetworkException.Unknown(e))
-        }
+    override suspend fun delete(id: UUID): RepositoryResult {
+        // Call the ApiService
+        return RepositoryResult.Failed(Exception("Method not Implemented"))
     }
 
-    override suspend fun deleteUserById(userId: Int): Result<Boolean> {
-        return Result.failure(Exception("Api not calling"))
+    override suspend fun sync(): RepositoryResult {
+        // Call the ApiService
+        return RepositoryResult.Failed(Exception("Method not Implemented"))
     }
 }
 

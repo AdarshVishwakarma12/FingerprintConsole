@@ -4,14 +4,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
 import com.example.figerprintconsole.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
 import com.example.figerprintconsole.app.ui.screen.enroll.event.EnrollScreenEvent
 
 @Composable
 fun StartEnrollmentProcess(
     onCompleteEnrollment: () -> Unit,
-    viewModel: EnrollmentViewModel = hiltViewModel()
+    navBackStackEntry: NavBackStackEntry?
 ) {
+    val viewModel: EnrollmentViewModel = if(navBackStackEntry==null) { hiltViewModel() } else { hiltViewModel(navBackStackEntry) }
 
     // These two values changes together -> cause 2 recomposition -> Fix in later version!
     val currentUiState by viewModel.currentUiState.collectAsState()
@@ -22,7 +24,7 @@ fun StartEnrollmentProcess(
         uiState = currentUiState,
         stateData = currentStateData,
         currentTextFieldData = currentTextFieldData,
-        onStartEnrollment = { viewModel.onEvent(EnrollScreenEvent.UserInput) },
+        onStartEnrollment = { viewModel.onEvent(EnrollScreenEvent.ConnectToSocket) },
         onRetry = { viewModel.onEvent(EnrollScreenEvent.IDLE) },
         onComplete = {
             // Level 2 & 3 are only updated within viewmodel, currently the business logic is inside UI!!

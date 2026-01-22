@@ -26,12 +26,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.figerprintconsole.app.domain.model.Device
 import com.example.figerprintconsole.app.domain.model.DeviceStatus
 import com.example.figerprintconsole.app.ui.home.utils.HomeUtils
 
 @Composable
 fun DeviceStatusCard(
-    device: DeviceStatus,
+    device: Device,
     onClick: () -> Unit
 ) {
     Card(
@@ -63,7 +64,7 @@ fun DeviceStatusCard(
                 }
 
                 Text(
-                    text = "${device.connectedUsers} users",
+                    text = "${device.batteryLevel ?: "--"} %",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -72,7 +73,7 @@ fun DeviceStatusCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = device.name,
+                text = device.name ?: "Unknown",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
@@ -116,7 +117,7 @@ fun DeviceStatusCard(
             }
 
             Text(
-                text = "Last active: ${HomeUtils.formatTime(device.lastActive)}",
+                text = "Last active: ${device.lastSeenAt}",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
