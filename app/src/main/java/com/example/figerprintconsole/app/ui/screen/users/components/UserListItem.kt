@@ -19,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.figerprintconsole.app.domain.model.User
-import com.example.figerprintconsole.app.ui.screen.users.utils.UserUtils
 
 @Composable
 fun UserListItem(
@@ -34,7 +33,7 @@ fun UserListItem(
             .clickable { onClick() },
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -46,9 +45,9 @@ fun UserListItem(
         ) {
             // Profile image/avatar
             UserAvatar(
-                user = user,
-                size = 56.dp,
-                modifier = Modifier.padding(end = 16.dp)
+                userName = user.fullName,
+                enrollmentStatus = user.enrollmentStatus,
+                size = 56.dp
             )
 
             // User info
@@ -84,13 +83,11 @@ fun UserListItem(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Last access
-                    user.enrolledAt.let {
-                        Text(
-                            text = "Last access: $it",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
-                    }
+                    Text(
+                        text = "Last access: ${user.enrolledAt}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
 
                     Spacer(modifier = Modifier.weight(1f))
 
@@ -105,12 +102,5 @@ fun UserListItem(
                 }
             }
         }
-//        // Action buttons
-//        UserActions(
-//            enrollmentStatus = user.enrollmentStatus,
-//            onEnroll = onEnroll,
-//            onDelete = onDelete,
-//            modifier = Modifier.padding(8.dp)
-//        )
     }
 }

@@ -17,11 +17,11 @@ class AuthenticationLogRepositoryImpl @Inject constructor(
 
     }
 
-    override suspend fun delete(id: String): RepositoryResult {
+    override suspend fun delete(id: String): RepositoryResult<Unit> {
         return RepositoryResult.Failed(Exception("Not Implemented"))
     }
 
-    override suspend fun sync(): RepositoryResult {
+    override suspend fun sync(): RepositoryResult<Unit> {
         return RepositoryResult.Failed(Exception("Not Implemented"))
     }
 }

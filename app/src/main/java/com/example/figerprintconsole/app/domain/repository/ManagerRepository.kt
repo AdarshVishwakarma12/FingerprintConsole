@@ -7,6 +7,6 @@ import java.util.UUID
 
 interface ManagerRepository {
     fun observeAll(): Flow<List<Manager>>
-    suspend fun delete(id: UUID): RepositoryResult
-    suspend fun sync(): RepositoryResult
+    suspend fun delete(id: UUID): RepositoryResult<Unit>
+    suspend fun sync(): RepositoryResult<Unit>
 }

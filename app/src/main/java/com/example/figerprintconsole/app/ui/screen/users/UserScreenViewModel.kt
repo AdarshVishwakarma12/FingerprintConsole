@@ -2,78 +2,116 @@ package com.example.figerprintconsole.app.ui.screen.users
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.figerprintconsole.app.data.repository.FakeDataRepository
+import com.example.figerprintconsole.app.data.repository.RepositoryResult
 import com.example.figerprintconsole.app.domain.model.User
-import com.example.figerprintconsole.app.domain.usecase.GetAllUsersUseCase
+import com.example.figerprintconsole.app.domain.repository.UserRepository
 import com.example.figerprintconsole.app.domain.usecase.GetUserByIdUseCase
-import com.example.figerprintconsole.app.ui.screen.users.event.UsersScreenEvent
-import com.example.figerprintconsole.app.ui.screen.users.state.UserDetailUiState
+import com.example.figerprintconsole.app.ui.screen.users.event.UsersUiEvent
+import com.example.figerprintconsole.app.ui.screen.users.state.DetailUserUiState
+import com.example.figerprintconsole.app.ui.screen.users.state.SearchQueryUiState
+import com.example.figerprintconsole.app.ui.screen.users.state.UsersListState
 import com.example.figerprintconsole.app.ui.screen.users.state.UsersUiState
+import com.example.figerprintconsole.app.utils.AppConstant
+import com.example.figerprintconsole.app.utils.showSnackBar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okhttp3.Dispatcher
 import javax.inject.Inject
 
 @HiltViewModel
 class UserScreenViewModel @Inject constructor(
-    val getAllUserUsersUseCase: GetAllUsersUseCase,
-    val getUserByIdUseCase: GetUserByIdUseCase,
-    val fakeDataRepository: FakeDataRepository
+    val userRepository: UserRepository,
+    val getUserByIdUseCase: GetUserByIdUseCase
 ): ViewModel() {
 
-    private var isInitialLoaded: Boolean = false
+    private val _uiState = MutableStateFlow<UsersUiState>(UsersUiState())
+    val uiState: StateFlow<UsersUiState> = _uiState
 
-    private val _uiStateAllUsers = MutableStateFlow<UsersUiState>(UsersUiState.Loading)
-    val uiStateAllUsers: StateFlow<UsersUiState> = _uiStateAllUsers
-
-    private val _uiStateUserById = MutableStateFlow<UserDetailUiState>(UserDetailUiState.Loading)
-    val uiStateUserById: StateFlow<UserDetailUiState> = _uiStateUserById
+//    init {
+//        viewModelScope.launch {
+//            fakeDataRepository.seedMassiveData()
+//        }
+//    }
 
     init {
-        viewModelScope.launch {
-            fakeDataRepository.seedMassiveData()
-        }
+        getAllUsers()
     }
 
-    fun onEvent(event: UsersScreenEvent) {
+    fun onEvent(event: UsersUiEvent) {
         when(event) {
-            is UsersScreenEvent.GetAllUsers -> { getAllUsers() }
-            is UsersScreenEvent.GetUserById -> { getUserById(event.user) }
+            is UsersUiEvent.OpenSearch -> { _uiState.update { it.copy(searchQueryUiState = SearchQueryUiState.Active("")) } }
+            is UsersUiEvent.CloseSearch -> { _uiState.update { it.copy(searchQueryUiState = SearchQueryUiState.InActive) } }
+            is UsersUiEvent.SearchQueryChanged -> { _uiState.update { it.copy(searchQueryUiState = SearchQueryUiState.Active(event.query)) } }
+            is UsersUiEvent.OpenUserDetail -> { fetchUserDetail(event.user) }
+            is UsersUiEvent.CloseUserDetail -> { _uiState.update { it.copy(detailUserUiState = DetailUserUiState.Hidden) } }
+            is UsersUiEvent.ShowSnackBar -> {  }
         }
     }
 
     fun getAllUsers() {
-
-        // Set State as Loading
-        _uiStateAllUsers.value = UsersUiState.Loading
-
-        // Get Response from the UseCase
-        viewModelScope.launch {
-            val response = getAllUserUsersUseCase()
-
-            response.collect { it ->
-                _uiStateAllUsers.value = UsersUiState.Success(it)
+        userRepository.observeAll()
+            .onStart {
+                _uiState.update {
+                    it.copy(
+                        listState = UsersListState.Loading
+                    )
+                }
             }
-
-
-        }
+            .catch { error ->
+                _uiState.update {
+                    it.copy(
+                        listState = UsersListState.Error(error = error.toString())
+                    )
+                }
+            }
+            .onEach { users ->
+                _uiState.update {
+                    it.copy(
+                        listState = UsersListState.Success(users = users)
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
-    fun getUserById(user: User) {
+    fun fetchUserDetail(user: User) {
+        _uiState.update {
+            it.copy(
+                detailUserUiState = DetailUserUiState.Loading
+            )
+        }
 
-        // Set State as Loading
-        _uiStateUserById.value = UserDetailUiState.Loading
+        viewModelScope.launch {
+            val detailUser = getUserByIdUseCase(user)
 
-//        viewModelScope.launch {
-//            val response = getUserByIdUseCase(user)
-//
-//            response.onSuccess { user ->
-//                _uiStateUserById.value = UserDetailUiState.Success(user)
-//            }.onFailure { it ->
-//                _uiStateUserById.value = UserDetailUiState.Failure(it.message ?: "Unknown Error")
-//            }
-//        }
+            AppConstant.debugMessage("I am at the userScreenViewModel!!, called and get the data: $detailUser")
 
+            when(detailUser) {
+                is RepositoryResult.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            detailUserUiState = DetailUserUiState.Success(detailUser.data)
+                        )
+                    }
+                }
+                is RepositoryResult.Failed -> {
+                    _uiState.update {
+                        it.copy(
+                            detailUserUiState = DetailUserUiState.Error("Error Loading!")
+                        )
+                    }
+
+                    AppConstant.debugMessage("!!!SHOWING SNACK BAR NOW!!! ViewModel")
+                    showSnackBar(detailUser.throwable.message ?: "Something Went Wrong")
+                }
+            }
+        }
     }
 }

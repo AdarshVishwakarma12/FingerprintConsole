@@ -8,5 +8,5 @@ import java.util.UUID
 interface OrganizationRepository {
     fun observeAll(): Flow<List<Organization>> // Single Tenate
     suspend fun delete(id: UUID): UUID
-    suspend fun sync(): RepositoryResult
+    suspend fun sync(): RepositoryResult<Unit>
 }

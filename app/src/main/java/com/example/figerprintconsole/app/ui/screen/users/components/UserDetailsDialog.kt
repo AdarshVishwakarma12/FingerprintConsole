@@ -9,25 +9,21 @@ import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.figerprintconsole.app.domain.model.EnrollmentStatus
-import com.example.figerprintconsole.app.domain.model.User
-import com.example.figerprintconsole.app.ui.screen.users.utils.UserUtils
+import com.example.figerprintconsole.app.domain.model.UserDetail
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserDetailsDialog(
-    user: User,
+    userDetail: UserDetail,
     onDismiss: () -> Unit,
     onEnroll: () -> Unit,
     onDelete: () -> Unit
@@ -35,11 +31,15 @@ fun UserDetailsDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = {
-            UserAvatar(user = user, size = 48.dp)
+            UserAvatar(
+                userName = userDetail.fullName,
+                enrollmentStatus = userDetail.enrollmentStatus ?: EnrollmentStatus.NOT_ENROLLED,
+                size = 48.dp
+            )
         },
         title = {
             Text(
-                text = user.fullName,
+                text = userDetail.fullName,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -47,7 +47,7 @@ fun UserDetailsDialog(
         text = {
             Column {
                 Text(
-                    text = user.email ?: "",
+                    text = userDetail.email ?: "",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -57,28 +57,26 @@ fun UserDetailsDialog(
                 UserDetailsRow(
                     icon = Icons.Default.Fingerprint,
                     label = "Enrollment Status",
-                    value = user.enrollmentStatus.toString().replace('_', ' ')
+                    value = userDetail.enrollmentStatus.toString().replace('_', ' ')
                 )
 
                 UserDetailsRow(
                     icon = Icons.Default.Numbers,
                     label = "Fingerprints",
-                    value = user.department.toString()
+                    value = userDetail.department.toString()
                 )
 
                 UserDetailsRow(
                     icon = Icons.Default.Person,
                     label = "Employee Id",
-                    value = user.employeeCode.toString()
+                    value = userDetail.userCode
                 )
 
-                user.enrolledAt.let {
-                    UserDetailsRow(
-                        icon = Icons.Default.AccessTime,
-                        label = "Last Access",
-                        value = it
-                    )
-                }
+                UserDetailsRow(
+                    icon = Icons.Default.AccessTime,
+                    label = "Last Access",
+                    value = userDetail.enrolledAt
+                )
             }
         },
         confirmButton = {
@@ -87,7 +85,7 @@ fun UserDetailsDialog(
             }
         },
         dismissButton = {
-            if (user.enrollmentStatus != EnrollmentStatus.ENROLLED) {
+            if (userDetail.enrollmentStatus != EnrollmentStatus.ENROLLED) {
                 TextButton(onClick = onEnroll) {
                     Text("Enroll Fingerprint")
                 }

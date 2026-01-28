@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.screen.home.components
+package com.example.figerprintconsole.app.ui.screen.common
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard

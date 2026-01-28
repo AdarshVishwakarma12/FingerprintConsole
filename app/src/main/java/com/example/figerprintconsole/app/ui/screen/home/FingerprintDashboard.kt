@@ -63,15 +63,6 @@ fun FingerprintDashboard(
         Column(
 
         ) {
-            DashboardTopBar(
-                userName = currentUserName,
-                showNotifications = showNotifications,
-                onNotificationsClick = { showNotifications = !showNotifications },
-                onProfileClick = { showUserMenu = !showUserMenu },
-                onSearch = {}
-            )
-
-
 
             Column(
                 modifier = Modifier

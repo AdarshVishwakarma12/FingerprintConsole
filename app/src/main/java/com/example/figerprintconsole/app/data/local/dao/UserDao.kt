@@ -15,10 +15,10 @@ import kotlinx.coroutines.flow.Flow
 interface UserDao {
 
     @Transaction
-    @Query("SELECT * FROM users")
-    fun getAllWithDetail(): Flow<List<UserEntityProjection>>
+    @Query("SELECT * FROM users WHERE user_code=:employeeCode")
+    suspend fun getUserWithDetailById(employeeCode: String): UserEntityProjection
 
-    @Query("SELECT * FROM users")
+    @Query("SELECT * FROM users ORDER BY full_name")
     fun getAll(): Flow<List<UserEntity>>
 
     @Query("SELECT * FROM users WHERE server_user_id = :id LIMIT 1")

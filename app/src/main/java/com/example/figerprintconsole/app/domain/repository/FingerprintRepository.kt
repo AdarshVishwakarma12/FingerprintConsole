@@ -6,6 +6,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface FingerprintRepository {
     fun observeAll(): Flow<List<Fingerprint>>
-    suspend fun delete(id: String): RepositoryResult
-    suspend fun sync(): RepositoryResult
+    suspend fun delete(id: String): RepositoryResult<Unit>
+    suspend fun sync(): RepositoryResult<Unit>
 }

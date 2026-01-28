@@ -20,8 +20,8 @@ fun UsersList(
 ) {
     LazyColumn(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(6.dp)
+         verticalArrangement = Arrangement.spacedBy(8.dp),
+         contentPadding = PaddingValues(6.dp)
     ) {
         items(users, key = { it.employeeCode }) { user ->
             UserListItem(

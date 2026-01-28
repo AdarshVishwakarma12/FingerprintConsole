@@ -15,11 +15,11 @@ class ManagerRepositoryImpl @Inject constructor(
         emit(emptyList<Manager>())
     }
 
-    override suspend fun delete(id: UUID): RepositoryResult {
+    override suspend fun delete(id: UUID): RepositoryResult<Unit> {
         return RepositoryResult.Failed(Exception("Not Implemented"))
     }
 
-    override suspend fun sync(): RepositoryResult {
+    override suspend fun sync(): RepositoryResult<Unit> {
         return RepositoryResult.Failed(Exception("Not Implemented"))
     }
 }

@@ -15,6 +15,9 @@ interface DeviceDao {
     @Query("SELECT * FROM devices")
     fun getAll(): Flow<List<DeviceEntity>>
 
+    @Query("SELECT * FROM devices WHERE enrolled_by_server_manager_id=:managerId")
+    suspend fun getDevicesByManagerId(managerId: String): List<DeviceEntity>
+
     @Query("SELECT * FROM devices WHERE server_device_id = :id LIMIT 1")
     suspend fun getById(id: String): DeviceEntity?
 

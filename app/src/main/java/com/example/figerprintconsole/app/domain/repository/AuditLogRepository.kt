@@ -6,6 +6,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface AuditLogRepository {
     fun observeAll(): Flow<List<AuditLog>>
-    suspend fun delete(id: String): RepositoryResult
-    suspend fun sync(): RepositoryResult
+    suspend fun delete(id: String): RepositoryResult<Unit>
+    suspend fun sync(): RepositoryResult<Unit>
 }

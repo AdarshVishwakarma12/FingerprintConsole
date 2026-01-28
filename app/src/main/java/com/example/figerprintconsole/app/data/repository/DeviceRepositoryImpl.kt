@@ -24,11 +24,23 @@ class DeviceRepositoryImpl @Inject constructor(
     }.catch { e ->
     }
 
-    override suspend fun delete(): RepositoryResult {
+    override suspend fun observeDeviceByCurrentManager(): RepositoryResult<List<Device>> {
+        try {
+            // Define a permanent manager Id
+            // as the auth page hasn't build and we don't have current manager info!!
+            val managerId = "mgr-reg-1" // this should be stored under the sharedPref!
+            val response = deviceDao.getDevicesByManagerId(managerId)
+            return RepositoryResult.Success(response.map { it.toDomain() })
+        } catch (e: Exception) {
+            return RepositoryResult.Failed(e)
+        }
+    }
+
+    override suspend fun delete(): RepositoryResult<Unit> {
         return RepositoryResult.Failed(Exception("Not Implemented"))
     }
 
-    override suspend fun sync(): RepositoryResult {
+    override suspend fun sync(): RepositoryResult<Unit> {
         return RepositoryResult.Failed(Exception("Not Implemented"))
     }
 }

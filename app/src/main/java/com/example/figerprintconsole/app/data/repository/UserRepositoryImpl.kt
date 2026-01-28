@@ -6,12 +6,11 @@ import com.example.figerprintconsole.app.data.remote.NetworkException
 import com.example.figerprintconsole.app.data.remote.api.ApiServices
 import com.example.figerprintconsole.app.di.AppDatabase
 import com.example.figerprintconsole.app.domain.model.User
+import com.example.figerprintconsole.app.domain.model.UserDetail
 import com.example.figerprintconsole.app.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import retrofit2.Response
 import java.util.UUID
 import javax.inject.Inject
@@ -33,12 +32,22 @@ class UserRepositoryImpl @Inject constructor(
         // Emit the AppError!
     }
 
-    override suspend fun delete(id: UUID): RepositoryResult {
+    override suspend fun findDetailUserById(employeeCode: String): RepositoryResult<UserDetail> {
+        try {
+            val userDetail = userDao.getUserWithDetailById(employeeCode)
+
+            return RepositoryResult.Success(userDetail.toDomain())
+        } catch (e: Exception) {
+            return RepositoryResult.Failed(Exception(""))
+        }
+    }
+
+    override suspend fun delete(id: UUID): RepositoryResult<Unit> {
         // Call the ApiService
         return RepositoryResult.Failed(Exception("Method not Implemented"))
     }
 
-    override suspend fun sync(): RepositoryResult {
+    override suspend fun sync(): RepositoryResult<Unit> {
         // Call the ApiService
         return RepositoryResult.Failed(Exception("Method not Implemented"))
     }
