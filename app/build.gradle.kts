@@ -60,7 +60,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
 
     implementation("io.coil-kt:coil-compose:2.6.0")
-    implementation("androidx.compose.foundation:foundation")
+    implementation("androidx.compose.foundation:foundation:1.5.0")
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)

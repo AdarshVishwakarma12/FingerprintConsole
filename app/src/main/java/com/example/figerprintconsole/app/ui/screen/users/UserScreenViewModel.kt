@@ -22,16 +22,16 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.Dispatcher
 import javax.inject.Inject
 
 @HiltViewModel
 class UserScreenViewModel @Inject constructor(
     val userRepository: UserRepository,
-    val getUserByIdUseCase: GetUserByIdUseCase
+    val getUserByIdUseCase: GetUserByIdUseCase,
+//    val fakeDataRepository: FakeDataRepository
 ): ViewModel() {
 
-    private val _uiState = MutableStateFlow<UsersUiState>(UsersUiState())
+    private val _uiState = MutableStateFlow(UsersUiState())
     val uiState: StateFlow<UsersUiState> = _uiState
 
 //    init {

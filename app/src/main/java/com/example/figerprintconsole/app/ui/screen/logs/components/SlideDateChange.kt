@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.screen.Logs.components
+package com.example.figerprintconsole.app.ui.screen.logs.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
@@ -29,7 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.figerprintconsole.app.ui.screen.Logs.state.SlideDirection
+import com.example.figerprintconsole.app.ui.screen.logs.state.SlideDirection
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 

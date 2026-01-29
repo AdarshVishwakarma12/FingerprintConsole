@@ -2,12 +2,10 @@ package com.example.figerprintconsole.app.ui
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.figerprintconsole.app.data.repository.FakeDataRepository
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

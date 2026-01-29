@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.figerprintconsole.app.domain.model.User
+import com.example.figerprintconsole.app.domain.model.UserDetail
 import com.example.figerprintconsole.app.ui.screen.users.components.EmptyUsersState
 import com.example.figerprintconsole.app.ui.screen.users.components.UserDetailsDialog
 import com.example.figerprintconsole.app.ui.screen.users.components.UsersList
@@ -24,6 +25,7 @@ import com.example.figerprintconsole.app.utils.AppConstant
 @Composable
 fun UsersListScreen(
     onEnrollUser: (User?) -> Unit,
+    navigateToAttendanceScreen: (UserDetail) -> Unit,
     modifier: Modifier = Modifier,
     userScreenViewModel: UserScreenViewModel = hiltViewModel()
 ) {
@@ -90,7 +92,8 @@ fun UsersListScreen(
                     onDismiss = {
                         userScreenViewModel.onEvent(UsersUiEvent.CloseUserDetail)
                     },
-                    onEnroll = { onEnrollUser(null) }
+                    onEnroll = { onEnrollUser(null) },
+                    navigateToAttendance = navigateToAttendanceScreen
                 )
             }
 

@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.screen.Logs.components
+package com.example.figerprintconsole.app.ui.screen.logs.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.example.figerprintconsole.app.domain.model.Device
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import com.example.figerprintconsole.app.ui.screen.Logs.state.DeviceTag
+import com.example.figerprintconsole.app.ui.screen.logs.state.DeviceTag
 
 @Composable
 fun Tags(

@@ -2,6 +2,8 @@ package com.example.figerprintconsole.app.utils
 
 import androidx.room.TypeConverter
 import com.example.figerprintconsole.app.data.local.entity.ActionType
+import com.example.figerprintconsole.app.data.local.entity.AttendanceStatus
+import com.example.figerprintconsole.app.data.local.entity.AttendanceType
 import com.example.figerprintconsole.app.data.local.entity.AuthResult
 import com.example.figerprintconsole.app.data.local.entity.AuthenticationPurpose
 import com.example.figerprintconsole.app.data.local.entity.DeviceStatusEntityEnum
@@ -63,4 +65,11 @@ class EnumConverters {
     @TypeConverter
     fun toFromEntity(value: String): FromEntity =
         FromEntity.valueOf(value)
+
+    @TypeConverter
+    fun fromAttendanceStatus(value: AttendanceStatus): String =
+        value.name
+
+    fun fromAttendanceType(value: String): AttendanceType =
+        AttendanceType.valueOf(value)
 }

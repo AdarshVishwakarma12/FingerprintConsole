@@ -1,5 +1,6 @@
 package com.example.figerprintconsole.app.data.repository
 
+import com.example.figerprintconsole.app.data.local.dao.AttendanceRecordDao
 import com.example.figerprintconsole.app.data.local.dao.AuditLogDao
 import com.example.figerprintconsole.app.data.local.dao.AuthenticationLogDao
 import com.example.figerprintconsole.app.data.local.dao.DeviceDao
@@ -8,6 +9,9 @@ import com.example.figerprintconsole.app.data.local.dao.ManagerDao
 import com.example.figerprintconsole.app.data.local.dao.OrganizationDao
 import com.example.figerprintconsole.app.data.local.dao.UserDao
 import com.example.figerprintconsole.app.data.local.entity.ActionType
+import com.example.figerprintconsole.app.data.local.entity.AttendanceRecordEntity
+import com.example.figerprintconsole.app.data.local.entity.AttendanceStatus
+import com.example.figerprintconsole.app.data.local.entity.AttendanceType
 import com.example.figerprintconsole.app.data.local.entity.AuditLogEntity
 import com.example.figerprintconsole.app.data.local.entity.AuthResult
 import com.example.figerprintconsole.app.data.local.entity.AuthenticationLogEntity
@@ -22,6 +26,7 @@ import com.example.figerprintconsole.app.data.local.entity.OrganizationEntity
 import com.example.figerprintconsole.app.data.local.entity.UserEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.Calendar
 import java.util.UUID
 import kotlin.collections.forEach
 import kotlin.random.Random
@@ -34,7 +39,8 @@ class FakeDataRepository(
     private val userDao: UserDao,
     private val fingerprintDao: FingerprintDao,
     private val authenticationLogDao: AuthenticationLogDao,
-    private val auditLogDao: AuditLogDao
+    private val auditLogDao: AuditLogDao,
+    private val attendanceRecordDao: AttendanceRecordDao
 ) {
 
     // Realistic data generators
@@ -125,6 +131,10 @@ class FakeDataRepository(
         val auditLogs = createAuditLogs(orgId, managers, users, devices, auditLogsCount)
         auditLogs.forEach { auditLogDao.upsert(it) }
         println("${auditLogs.size} Audit logs created")
+
+        val attendanceRecord = createAttendanceRecords(orgId, managers, users, devices)
+        attendanceRecord.forEach { attendanceRecordDao.upsert(it) }
+        println("${attendanceRecord.size} Attendance Record created")
 
         println("\n🎉 Data Generation Complete!")
         println("📊 Summary:")
@@ -479,6 +489,112 @@ class FakeDataRepository(
         }
 
         return auditLogs
+    }
+
+    // Add this function to your FakeDataRepository.kt
+
+    /**
+     * Simple function to create attendance records
+     * Creates attendance for the last 30 days for all users
+     */
+    private fun createAttendanceRecords(
+        orgId: String,
+        managers: List<ManagerEntity>,
+        users: List<UserEntity>,
+        devices: List<DeviceEntity>
+    ): List<AttendanceRecordEntity> {
+        val attendanceRecords = mutableListOf<AttendanceRecordEntity>()
+        val now = System.currentTimeMillis()
+
+        // Generate attendance for the last 30 days
+        for (dayOffset in 0 until 30) {
+            val currentDate = getStartOfDay(now - (dayOffset * 24 * 60 * 60 * 1000L))
+            val calendar = Calendar.getInstance().apply {
+                timeInMillis = currentDate
+            }
+            val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+            val month = calendar.get(Calendar.MONTH)
+
+            // Skip weekends
+            val isWeekend = dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY
+            if (isWeekend) continue
+
+            users.forEach { user ->
+                // Decide if user is present today (90% chance)
+                val isPresent = Random.Default.nextDouble() < 0.9
+
+                if (isPresent) {
+                    // Regular 9 AM to 5 PM work day
+                    val checkInTime = currentDate + (9 * 60 * 60 * 1000) +
+                            Random.Default.nextInt(-15, 16) * 60 * 1000 // -15 to +15 minutes variation
+
+                    val checkOutTime = currentDate + (17 * 60 * 60 * 1000) +
+                            Random.Default.nextInt(-30, 61) * 60 * 1000 // -30 to +60 minutes variation
+
+                    val workingMinutes = ((checkOutTime - checkInTime) / (1000 * 60)).toInt()
+                    val breakMinutes = 60 // Standard 1 hour break
+                    val netWorkingMinutes = (workingMinutes - breakMinutes).coerceAtLeast(0)
+
+                    // Calculate overtime (anything over 8 hours)
+                    val standardWorkMinutes = 480 // 8 hours
+                    val overtimeMinutes = (netWorkingMinutes - standardWorkMinutes).coerceAtLeast(0)
+
+                    // Determine status (mostly present, some late)
+                    val status = if (Random.Default.nextDouble() < 0.8) {
+                        AttendanceStatus.PRESENT
+                    } else {
+                        AttendanceStatus.LATE
+                    }
+
+                    attendanceRecords.add(
+                        AttendanceRecordEntity(
+                            serverAttendanceId = "att-${UUID.randomUUID()}",
+                            userServerId = user.serverUserId,
+                            date = currentDate,
+                            checkInTime = checkInTime,
+                            checkOutTime = checkOutTime,
+                            totalWorkingMinutes = netWorkingMinutes,
+                            breakMinutes = breakMinutes,
+                            overtimeMinutes = overtimeMinutes,
+                            status = status,
+                            attendanceType = AttendanceType.REGULAR,
+                            remarks = if (status == AttendanceStatus.LATE) "Traffic delay" else null,
+                            organizationServerId = orgId,
+                            month = month,
+                            deviceServerId = devices.random().serverDeviceId
+                        )
+                    )
+                } else {
+                    // User is absent (10% chance)
+                    attendanceRecords.add(
+                        AttendanceRecordEntity(
+                            serverAttendanceId = "att-${UUID.randomUUID()}",
+                            userServerId = user.serverUserId,
+                            date = currentDate,
+                            status = AttendanceStatus.ABSENT,
+                            remarks = "Sick leave",
+                            organizationServerId = orgId,
+                            month = month,
+                            deviceServerId = devices.random().serverDeviceId
+                        )
+                    )
+                }
+            }
+        }
+
+        return attendanceRecords
+    }
+
+    // Helper function to get start of day
+    private fun getStartOfDay(timestamp: Long): Long {
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = timestamp
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        return calendar.timeInMillis
     }
 
     // Function to generate even larger dataset (500+ records)

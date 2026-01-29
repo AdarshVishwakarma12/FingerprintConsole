@@ -1,5 +1,6 @@
 package com.example.figerprintconsole.app.di
 
+import com.example.figerprintconsole.app.data.local.dao.AttendanceRecordDao
 import com.example.figerprintconsole.app.data.local.dao.AuditLogDao
 import com.example.figerprintconsole.app.data.local.dao.AuthenticationLogDao
 import com.example.figerprintconsole.app.data.local.dao.DeviceDao
@@ -8,11 +9,13 @@ import com.example.figerprintconsole.app.data.local.dao.ManagerDao
 import com.example.figerprintconsole.app.data.local.dao.OrganizationDao
 import com.example.figerprintconsole.app.data.local.dao.UserDao
 import com.example.figerprintconsole.app.data.remote.api.ApiServices
+import com.example.figerprintconsole.app.data.repository.AttendanceRepositoryImpl
 import com.example.figerprintconsole.app.data.repository.DeviceRepositoryImpl
 import com.example.figerprintconsole.app.data.repository.EnrollmentRepositoryImpl
 import com.example.figerprintconsole.app.data.repository.FakeDataRepository
 import com.example.figerprintconsole.app.data.repository.UserRepositoryImpl
 import com.example.figerprintconsole.app.data.websocket.EnrollmentSocketDataSourceImpl
+import com.example.figerprintconsole.app.domain.repository.AttendanceRepository
 import com.example.figerprintconsole.app.domain.repository.DeviceRepository
 import com.example.figerprintconsole.app.domain.repository.UserRepository
 import dagger.Module
@@ -55,7 +58,8 @@ object RepositoryModule {
         userDao: UserDao,
         fingerprintDao: FingerprintDao,
         authenticationLogDao: AuthenticationLogDao,
-        auditLogDao: AuditLogDao
+        auditLogDao: AuditLogDao,
+        attendanceRecordDao: AttendanceRecordDao
     ): FakeDataRepository {
         return FakeDataRepository(
             organizationDao,
@@ -64,7 +68,8 @@ object RepositoryModule {
             userDao,
             fingerprintDao,
             authenticationLogDao,
-            auditLogDao
+            auditLogDao,
+            attendanceRecordDao
         )
     }
 
@@ -86,6 +91,20 @@ object RepositoryModule {
         return UserRepositoryImpl(
             apiServices = apiServices,
             userDao = userDao,
+            appDatabase = appDatabase
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideAttendanceRepository(
+        apiService: ApiServices,
+        attendanceRecordDao: AttendanceRecordDao,
+        appDatabase: AppDatabase
+    ): AttendanceRepository {
+        return AttendanceRepositoryImpl(
+            apiServices = apiService,
+            attendanceRecordDao = attendanceRecordDao,
             appDatabase = appDatabase
         )
     }

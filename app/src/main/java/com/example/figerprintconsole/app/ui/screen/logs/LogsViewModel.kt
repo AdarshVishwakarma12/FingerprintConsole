@@ -1,23 +1,30 @@
-package com.example.figerprintconsole.app.ui.screen.Logs
+package com.example.figerprintconsole.app.ui.screen.logs
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.figerprintconsole.app.data.repository.RepositoryResult
+import com.example.figerprintconsole.app.domain.repository.AttendanceRepository
 import com.example.figerprintconsole.app.domain.repository.DeviceRepository
-import com.example.figerprintconsole.app.ui.screen.Logs.event.LogsScreenUiEvent
-import com.example.figerprintconsole.app.ui.screen.Logs.state.LogsScreenUiState
-import com.example.figerprintconsole.app.ui.screen.Logs.state.SlideDirection
+import com.example.figerprintconsole.app.ui.screen.logs.event.LogsScreenUiEvent
+import com.example.figerprintconsole.app.ui.screen.logs.state.LogsScreenUiState
+import com.example.figerprintconsole.app.ui.screen.logs.state.SlideDirection
+import com.example.figerprintconsole.app.ui.screen.logs.state.UserListUiStateLogsScreen
+import com.example.figerprintconsole.app.utils.AppConstant
+import com.example.figerprintconsole.app.utils.DebugType
 import com.example.figerprintconsole.app.utils.showSnackBar
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
 class LogsViewModel @Inject constructor(
     val deviceRepository: DeviceRepository,
+    val attendanceRecordRepository: AttendanceRepository
 ): ViewModel() {
 
     private val _uiState: MutableStateFlow<LogsScreenUiState> = MutableStateFlow(LogsScreenUiState())
@@ -25,6 +32,7 @@ class LogsViewModel @Inject constructor(
 
     init {
         updateDeviceList()
+        getAllAttendanceForToday(_uiState.value.currentDate)
     }
 
     fun onEvent(event: LogsScreenUiEvent) {
@@ -45,6 +53,7 @@ class LogsViewModel @Inject constructor(
                         slidingDirection = SlideDirection.PREVIOUS
                     )
                 }
+                getAllAttendanceForToday(date = newDate)
             }
             is LogsScreenUiEvent.ChangeDatePositive -> {
                 val currentDate = _uiState.value.currentDate
@@ -55,6 +64,7 @@ class LogsViewModel @Inject constructor(
                         slidingDirection = SlideDirection.NEXT
                     )
                 }
+                getAllAttendanceForToday(date = newDate)
             }
         }
     }
@@ -71,6 +81,42 @@ class LogsViewModel @Inject constructor(
                 }
             }
 
+        }
+    }
+
+    fun getAllAttendanceForToday(date: LocalDate) {
+
+        // Show Loading Status
+        _uiState.update {
+            it.copy(
+                currentUserList = UserListUiStateLogsScreen.Loading
+            )
+        }
+
+        viewModelScope.launch {
+            try {
+                val attendanceData = attendanceRecordRepository.getAttendanceByDate(date)
+                when(attendanceData) {
+                    is RepositoryResult.Success -> {
+
+                        delay(1500) // 1.5 Second delay!
+
+                        _uiState.update {
+                            it.copy(
+                                currentUserList = UserListUiStateLogsScreen.UserList(data = attendanceData.data)
+                            )
+                        }
+
+                        AppConstant.debugMessage("debugMessage: " + attendanceData.data, debugType = DebugType.DESCRIPTION)
+                    }
+                    is RepositoryResult.Failed -> {
+                        showSnackBar(attendanceData.throwable.message ?: "Error Occurred While Fetching Data")
+                        AppConstant.debugMessage("debugMessage: " + attendanceData.throwable.message, debugType = DebugType.ERROR)
+                    }
+                }
+            } catch (e: Exception) {
+                showSnackBar(e.message ?: "Oops! Something Went Wrong!")
+            }
         }
     }
 }

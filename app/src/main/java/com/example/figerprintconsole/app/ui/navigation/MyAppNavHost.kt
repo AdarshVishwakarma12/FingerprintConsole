@@ -9,7 +9,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.figerprintconsole.app.ui.screen.Logs.LogsScreen
+import com.example.figerprintconsole.app.ui.screen.logs.LogsScreen
 import com.example.figerprintconsole.app.ui.screen.home.FingerprintDashboard
 import com.example.figerprintconsole.app.ui.screen.devices.DeviceScreen
 import com.example.figerprintconsole.app.ui.screen.enroll.StartEnrollmentProcess
@@ -52,7 +52,8 @@ fun MyAppNavHost(
 
         composable(route = Route.USER_SCREEN) {
             UsersListScreen(
-                onEnrollUser = { navController.navigate(Route.ENROLL_SCREEN) }
+                onEnrollUser = { navController.navigate(Route.ENROLL_SCREEN) },
+                navigateToAttendanceScreen = { navController.navigate(Route.ATTENDANCE_SCREEN) }
             )
         }
 
@@ -62,6 +63,9 @@ fun MyAppNavHost(
 
         composable(route = Route.LOGS_SCREEN) {
             LogsScreen()
+        }
+        composable(route = Route.ATTENDANCE_SCREEN) {
+
         }
 
         composable(route = Route.SETTING_SCREEN) {

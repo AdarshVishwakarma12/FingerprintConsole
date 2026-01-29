@@ -8,4 +8,5 @@ object Route {
     const val DEVICES_SCREEN = "DevicesScreen"
     const val LOGS_SCREEN = "LogsScreen"
     const val SETTING_SCREEN = "SettingScreen"
+    const val ATTENDANCE_SCREEN = "AttendanceScreen"
 }

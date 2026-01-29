@@ -37,4 +37,8 @@ object DaoModule {
     @Provides
     fun provideAuditLogDao(db: AppDatabase): AuditLogDao =
         db.auditLogDao()
+
+    @Provides
+    fun provideAttendanceRecordDao(db: AppDatabase): AttendanceRecordDao =
+        db.attendanceRecordDao()
 }

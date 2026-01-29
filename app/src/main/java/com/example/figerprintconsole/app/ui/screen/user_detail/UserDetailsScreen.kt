@@ -33,7 +33,8 @@ fun UserDetailsDialog(
     userDetail: UserDetail,
     onDismiss: () -> Unit,
     onEnroll: () -> Unit,
-    onDeleteUser: (UserDetail?) -> Unit = { }
+    onDeleteUser: (UserDetail?) -> Unit = { },
+    navigateToAttendance: (UserDetail) -> Unit = { }
 ) {
     AlertDialog(
         modifier = Modifier.fillMaxWidth(),
@@ -115,14 +116,10 @@ fun UserDetailsDialog(
             }
         },
         dismissButton = {
-            if (userDetail.enrollmentStatus != EnrollmentStatus.ENROLLED) {
-                TextButton(onClick = onEnroll) {
-                    Text("Enroll Fingerprint")
-                }
+            TextButton(onClick = onEnroll) {
+                Text("Attendance Data")
             }
-            TextButton(onClick = { onDeleteUser }) {
-                Text("Delete", color = MaterialTheme.colorScheme.error)
-            }
+
         }
     )
 }

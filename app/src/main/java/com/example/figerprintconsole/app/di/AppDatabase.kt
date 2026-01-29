@@ -15,9 +15,10 @@ import com.example.figerprintconsole.app.utils.EnumConverters
         UserEntity::class,
         FingerprintEntity::class,
         AuthenticationLogEntity::class,
-        AuditLogEntity::class
+        AuditLogEntity::class,
+        AttendanceRecordEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(EnumConverters::class)
@@ -29,4 +30,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun fingerprintDao(): FingerprintDao
     abstract fun authenticationLogDao(): AuthenticationLogDao
     abstract fun auditLogDao(): AuditLogDao
+    abstract fun attendanceRecordDao(): AttendanceRecordDao
 }
