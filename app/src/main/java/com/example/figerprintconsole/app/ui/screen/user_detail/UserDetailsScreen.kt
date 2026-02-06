@@ -1,4 +1,4 @@
-package com.example.figerprintconsole.app.ui.screen.users.components
+package com.example.figerprintconsole.app.ui.screen.user_detail
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -26,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import com.example.figerprintconsole.app.domain.model.Device
 import com.example.figerprintconsole.app.domain.model.EnrollmentStatus
 import com.example.figerprintconsole.app.domain.model.UserDetail
+import com.example.figerprintconsole.app.ui.screen.users.components.UserAvatar
+import com.example.figerprintconsole.app.ui.screen.users.components.UserDetailsRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +70,11 @@ fun UserDetailsDialog(
                 ) {
                     UserDetailsRow(Icons.Default.Email, "Email", userDetail.email ?: "-")
                     UserDetailsRow(Icons.Default.Person, "Employee ID", userDetail.userCode)
-                    UserDetailsRow(Icons.Default.Fingerprint, "Enrollment Status", userDetail.enrollmentStatus.toString().replace('_', ' '))
+                    UserDetailsRow(
+                        Icons.Default.Fingerprint,
+                        "Enrollment Status",
+                        userDetail.enrollmentStatus.toString().replace('_', ' ')
+                    )
                     UserDetailsRow(Icons.Default.AccessTime, "Last Access", userDetail.enrolledAt)
                     UserDetailsRow(Icons.Default.Work, "Department", userDetail.department ?: "-")
                     UserDetailsRow(Icons.Default.LocationOn, "Notes", userDetail.notes ?: "-")
@@ -116,7 +122,7 @@ fun UserDetailsDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onEnroll) {
+            TextButton(onClick = { navigateToAttendance(userDetail) }) {
                 Text("Attendance Data")
             }
 

@@ -9,4 +9,6 @@ object Route {
     const val LOGS_SCREEN = "LogsScreen"
     const val SETTING_SCREEN = "SettingScreen"
     const val ATTENDANCE_SCREEN = "AttendanceScreen"
+
+    const val ATTENDANCE_SCREEN_WITH_ARGS = "$ATTENDANCE_SCREEN/{userServerId}"
 }

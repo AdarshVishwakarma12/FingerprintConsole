@@ -38,7 +38,17 @@ class UserRepositoryImpl @Inject constructor(
 
             return RepositoryResult.Success(userDetail.toDomain())
         } catch (e: Exception) {
-            return RepositoryResult.Failed(Exception(""))
+            return RepositoryResult.Failed(e)
+        }
+    }
+
+    override suspend fun findDetailUserByServerId(userServerId: String): RepositoryResult<UserDetail> {
+        try {
+            val userDetail = userDao.getUserWithDetailByServerId(serverId = userServerId)
+
+            return RepositoryResult.Success(userDetail.toDomain())
+        } catch (e: Exception) {
+            return RepositoryResult.Failed(e)
         }
     }
 

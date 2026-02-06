@@ -12,7 +12,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.figerprintconsole.app.domain.model.User
 import com.example.figerprintconsole.app.domain.model.UserDetail
 import com.example.figerprintconsole.app.ui.screen.users.components.EmptyUsersState
-import com.example.figerprintconsole.app.ui.screen.users.components.UserDetailsDialog
+import com.example.figerprintconsole.app.ui.screen.user_detail.UserDetailsDialog
 import com.example.figerprintconsole.app.ui.screen.users.components.UsersList
 import com.example.figerprintconsole.app.ui.screen.users.event.UsersUiEvent
 import com.example.figerprintconsole.app.ui.screen.users.state.DetailUserUiState
@@ -93,7 +93,7 @@ fun UsersListScreen(
                         userScreenViewModel.onEvent(UsersUiEvent.CloseUserDetail)
                     },
                     onEnroll = { onEnrollUser(null) },
-                    navigateToAttendance = navigateToAttendanceScreen
+                    navigateToAttendance = navigateToAttendanceScreen,
                 )
             }
 

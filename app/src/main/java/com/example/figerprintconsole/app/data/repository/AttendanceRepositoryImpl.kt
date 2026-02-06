@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.flow
 import java.lang.Exception
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 class AttendanceRepositoryImpl @Inject constructor(
@@ -36,7 +35,7 @@ class AttendanceRepositoryImpl @Inject constructor(
         try {
             val startOfDay = LocalDate
                 .of(date.year, date.month, date.dayOfMonth)
-                .atStartOfDay(ZoneId.of("Asia/Kolkata"))
+                .atStartOfDay(ZoneId.of(AppConstant.ZONE_ID))
                 .toInstant()
                 .toEpochMilli()
             val endOfDay = startOfDay
@@ -44,7 +43,7 @@ class AttendanceRepositoryImpl @Inject constructor(
 
             val response = attendanceRecordDao.extractAttendanceByDate(startOfDay, endOfDay)
 
-            AppConstant.debugMessage("StartDay" + startOfDay + " EndDay: " + endOfDay, debugType = DebugType.INFO)
+            AppConstant.debugMessage("StartDay$startOfDay EndDay: $endOfDay", debugType = DebugType.INFO)
 
             return RepositoryResult.Success(response.map { it.toDomain() })
         } catch (e: Exception) {
@@ -78,5 +77,9 @@ class AttendanceRepositoryImpl @Inject constructor(
 
     override suspend fun sync(): RepositoryResult<Nothing> {
         return RepositoryResult.Failed(Throwable("Not Implemented"))
+
+        // use instant Instead of Calendar!
+        // For storing date in database!
+        // val instant = Instant.ofEpochMilli(currentDate)
     }
 }

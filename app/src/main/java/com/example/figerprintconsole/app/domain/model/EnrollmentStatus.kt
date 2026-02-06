@@ -4,5 +4,5 @@ enum class EnrollmentStatus {
     ENROLLED,
     PENDING,
     NOT_ENROLLED,
-    EXPIRED
+    EXPIRED,
 }

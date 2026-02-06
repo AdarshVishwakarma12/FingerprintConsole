@@ -11,6 +11,7 @@ object AppConstant {
 
     const val DEBUG = true
 
+    const val ZONE_ID = "Asia/Kolkata"
     fun debugMessage(msg: String, tag: String = "UNKNOWN", debugType: DebugType = DebugType.INFO) {
         if(DEBUG) {
             if(debugType == DebugType.INFO) Log.i(tag, msg)

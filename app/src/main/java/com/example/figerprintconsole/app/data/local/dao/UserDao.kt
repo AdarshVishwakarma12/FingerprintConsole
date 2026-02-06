@@ -18,6 +18,10 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE user_code=:employeeCode")
     suspend fun getUserWithDetailById(employeeCode: String): UserEntityProjection
 
+    @Transaction
+    @Query("SELECT * FROM users WHERE server_user_id=:serverId")
+    suspend fun getUserWithDetailByServerId(serverId: String): UserEntityProjection
+
     @Query("SELECT * FROM users ORDER BY full_name")
     fun getAll(): Flow<List<UserEntity>>
 

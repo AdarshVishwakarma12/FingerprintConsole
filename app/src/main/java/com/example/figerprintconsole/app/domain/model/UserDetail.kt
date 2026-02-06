@@ -1,6 +1,7 @@
 package com.example.figerprintconsole.app.domain.model
 
 data class UserDetail (
+    val userServerId: String,
     val userCode: String,
     val fullName: String,
     val email: String?,

@@ -4,6 +4,9 @@ import com.example.figerprintconsole.app.data.local.entity.UserEntity
 import com.example.figerprintconsole.app.data.local.projection.UserEntityProjection
 import com.example.figerprintconsole.app.domain.model.User
 import com.example.figerprintconsole.app.domain.model.UserDetail
+import com.example.figerprintconsole.app.utils.AppConstant
+import java.time.Instant
+import java.time.ZoneId
 
 fun UserEntity.toDomain(): User {
     return User(
@@ -20,6 +23,7 @@ fun UserEntity.toDomain(): User {
 
 fun UserEntityProjection.toDomain(): UserDetail {
     return UserDetail(
+        userServerId = userEntity.serverUserId,
         userCode = userEntity.userCode,
         fullName = userEntity.fullName,
         email = userEntity.email,
@@ -36,6 +40,18 @@ fun UserEntityProjection.toDomain(): UserDetail {
     )
 }
 
-fun Long.fromLongToDateString(): String {
-    return this.toString()
+fun Long.fromLongToDateString(convertToDate: Boolean = true): String {
+    return try {
+        val instant =  Instant.ofEpochMilli(this)
+            .atZone(ZoneId.of(AppConstant.ZONE_ID))
+
+        if(convertToDate) {
+            instant.toLocalDate().toString()
+        } else {
+            instant.toLocalTime().toString()
+        }
+
+    } catch (e : Exception) {
+        "ERR"
+    }
 }
