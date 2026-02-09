@@ -1,15 +1,9 @@
 package com.example.figerprintconsole.app.ui.screen.detail_attendance.components
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -17,55 +11,83 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.figerprintconsole.app.domain.model.AttendanceRecord
+import com.example.figerprintconsole.app.data.local.entity.AttendanceStatus
+import com.example.figerprintconsole.app.ui.screen.users.utils.UserUtils.contentColorFor
+import com.example.figerprintconsole.app.utils.AppConstant
+import com.example.figerprintconsole.app.utils.ColorConstant
 import java.time.LocalDate
 
 @Composable
 fun AttendanceDayCard(
     date: LocalDate,
-    records: List<AttendanceRecord>,
+    dayOfWeek: Int,
+    attendanceRecordStatus: AttendanceStatus,
     isToday: Boolean,
-    onClick: () -> Unit
+    isSelected: Boolean,
+    onClick: (LocalDate) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val hasAttendance = records.isNotEmpty()
+
+    val resolvedStatus = when {
+        AppConstant.WEEKENDS_LIST.contains(dayOfWeek) -> AttendanceStatus.WEEKEND
+        else -> attendanceRecordStatus
+    }
+
+    val backgroundColor = when (resolvedStatus) {
+        AttendanceStatus.PRESENT ->
+            if (isSelected) ColorConstant.Green35 else ColorConstant.Green30
+
+        AttendanceStatus.ABSENT ->
+            if (isSelected) ColorConstant.Red35 else ColorConstant.Red30
+
+        else ->
+            if (isSelected) ColorConstant.Gray35 else ColorConstant.Gray30
+    }
+
+    val borderColor = when {
+        isSelected &&  resolvedStatus == AttendanceStatus.PRESENT -> ColorConstant.Green500
+        isSelected &&  resolvedStatus == AttendanceStatus.ABSENT -> ColorConstant.Red500
+        isToday -> ColorConstant.Blue60
+        resolvedStatus == AttendanceStatus.PRESENT -> ColorConstant.Green60
+        resolvedStatus == AttendanceStatus.ABSENT -> ColorConstant.Red60
+        else -> ColorConstant.Gray60
+    }
+
+    val borderWidth = when {
+        isSelected -> 1.dp
+        isToday -> 2.dp
+        else -> 0.dp
+    }
+
+    val shape = RoundedCornerShape(8.dp)
+
+    val textColor = contentColorFor(backgroundColor)
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .aspectRatio(1f)
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = when {
-                isToday -> MaterialTheme.colorScheme.primaryContainer
-                hasAttendance -> MaterialTheme.colorScheme.surface
-                else -> MaterialTheme.colorScheme.surfaceVariant
-            }
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .border(borderWidth, borderColor, shape)
+            .clickable { onClick(date) },
+        shape = shape,
+        colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
+
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(2.dp),
             contentAlignment = Alignment.Center
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = date.dayOfMonth.toString(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold
-                )
 
-                if (hasAttendance) {
-                    Spacer(Modifier.height(4.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
-                    )
-                }
-            }
+            Text(
+                text = date.dayOfMonth.toString(),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (isToday) FontWeight.ExtraBold else FontWeight.Bold,
+                color = Color.Black
+            )
         }
     }
 }

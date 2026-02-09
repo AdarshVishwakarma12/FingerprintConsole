@@ -21,13 +21,12 @@ import java.time.YearMonth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonthPickerBottomSheet(
-    currentMonthInLocalDate: LocalDate,
-    onMonthSelected: (LocalDate) -> Unit,
+    currentMonth: YearMonth,
+    onMonthSelected: (YearMonth) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     disableFutureMonths: Boolean= true
 ) {
-    val currentMonth = YearMonth.from(currentMonthInLocalDate)
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val today = YearMonth.now()
 
@@ -60,7 +59,7 @@ fun MonthPickerBottomSheet(
                 today = today,
                 disableFutureMonths = disableFutureMonths,
                 onMonthClick = { month ->
-                    onMonthSelected(LocalDate.of(selectedYear, month, 1))
+                    onMonthSelected(YearMonth.of(selectedYear, month))
                     onDismiss()
                 }
             )

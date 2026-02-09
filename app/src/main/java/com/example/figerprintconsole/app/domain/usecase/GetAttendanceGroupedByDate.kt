@@ -5,22 +5,21 @@ import com.example.figerprintconsole.app.domain.model.AttendanceRecord
 import com.example.figerprintconsole.app.domain.repository.AttendanceRepository
 import com.example.figerprintconsole.app.utils.AppConstant
 import java.time.LocalDate
+import java.time.YearMonth
 import javax.inject.Inject
 
-// No Current use / as LazyColumn won't allow Maps DS!
-// This class is the conversation of list of data into map!
-// It's easier to deal with in ui!
 class GetAttendanceGroupedByDate @Inject constructor(
     private val attendanceRepositoryImpl: AttendanceRepository
 ) {
-    suspend operator fun invoke(userServerId: String, date: LocalDate): RepositoryResult<Map<String, List<AttendanceRecord>>> {
+    suspend operator fun invoke(userServerId: String, currentYearMonth: YearMonth): RepositoryResult<Map<String, List<AttendanceRecord>>> {
 
-        val daysInMonth = date.lengthOfMonth()
+        val daysInMonth = currentYearMonth.lengthOfMonth()
         val dates = (1..daysInMonth).map { day ->
-            LocalDate.of(date.year, date.month, day)
+            LocalDate.of(currentYearMonth.year, currentYearMonth.month, day)
         }
 
-        val result = attendanceRepositoryImpl.getAttendanceByMonthAndUser(month = date.month.value, userId = userServerId)
+        AppConstant.debugMessage("Show Option::::UserID $userServerId")
+        val result = attendanceRepositoryImpl.getAttendanceByMonthAndUser(userId = userServerId, yearMonth = currentYearMonth)
 
         return when(result) {
             is RepositoryResult.Success -> {

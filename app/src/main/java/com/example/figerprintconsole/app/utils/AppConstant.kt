@@ -11,6 +11,11 @@ object AppConstant {
 
     const val DEBUG = true
 
+    // For LocalDate::
+    // 6 => Saturday
+    // 7 => Sunday
+    val WEEKENDS_LIST = listOf(6, 7)
+
     const val ZONE_ID = "Asia/Kolkata"
     fun debugMessage(msg: String, tag: String = "UNKNOWN", debugType: DebugType = DebugType.INFO) {
         if(DEBUG) {

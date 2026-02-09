@@ -15,12 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.figerprintconsole.app.ui.screen.detail_attendance.components.AttendanceCalendarGrid
+import com.example.figerprintconsole.app.ui.screen.detail_attendance.components.DeviceLogsSection
 import com.example.figerprintconsole.app.ui.screen.detail_attendance.components.MonthHeader
 import com.example.figerprintconsole.app.ui.screen.detail_attendance.components.UserHeader
 import com.example.figerprintconsole.app.ui.screen.detail_attendance.components.WeekDayHeader
 import com.example.figerprintconsole.app.ui.screen.detail_attendance.event.AttendanceScreenUiEvent
-import com.example.figerprintconsole.app.ui.screen.detail_attendance.state.AttendanceDataObject
-import com.example.figerprintconsole.app.ui.screen.detail_attendance.state.AttendanceSelectionUiState
+import com.example.figerprintconsole.app.ui.screen.detail_attendance.state.AttendanceBottomSheetState
+import com.example.figerprintconsole.app.ui.screen.detail_attendance.state.AttendanceRecordsUiState
+import com.example.figerprintconsole.app.ui.screen.detail_attendance.state.MonthCalendarUiState
 import com.example.figerprintconsole.app.ui.screen.month_picker.components.MonthPickerBottomSheet
 
 @Composable
@@ -36,12 +38,12 @@ fun DetailAttendanceScreen(
             .padding(16.dp)
     ) {
 
-        UserHeader(uiState.userDetail)
+        UserHeader(uiState.userState)
 
         Spacer(Modifier.height(12.dp))
 
         MonthHeader(
-            date = uiState.currentLocalDate,
+            date = uiState.selectedYearMonth,
             onChangeMonthClick = { detailAttendanceViewModel.onEvent(AttendanceScreenUiEvent.OpenAttendanceSelectionBottomSheet) }
         )
 
@@ -49,36 +51,55 @@ fun DetailAttendanceScreen(
 
         WeekDayHeader()
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(32.dp))
 
-        when (val attendance = uiState.attendanceData) {
-            is AttendanceDataObject.Loading -> {
-                CircularProgressIndicator()
-            }
+        // We need to show the Calendar to the user either way -> attendanceRecord can be on any state!
+        // AttendanceRecord: Loading::SHIMMER; ERROR: SnackBar&&GrayCalendar; Success: Data!Duh;
+        when(val monthCalendarState = uiState.monthCalendarState) {
+            is MonthCalendarUiState.Loading -> { }
+            is MonthCalendarUiState.Success -> {
+                when (val attendanceRecord = uiState.attendanceRecordsState) {
+                    is AttendanceRecordsUiState.Loading -> {
+                        CircularProgressIndicator()
+                    }
 
-            is AttendanceDataObject.Error -> {
-                Text(
-                    text = attendance.message ?: "Something went wrong",
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
+                    is AttendanceRecordsUiState.Error -> {
+                        Text(
+                            text = attendanceRecord.message ?: "Something went wrong",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
 
-            is AttendanceDataObject.Success -> {
-                AttendanceCalendarGrid(
-                    dates = uiState.currentMonthList,
-                    attendanceMap = attendance.data
-                )
+                    is AttendanceRecordsUiState.Success -> {
+                        AttendanceCalendarGrid(
+                            dates = monthCalendarState.datesInMonth,
+                            currentSelectedDate = uiState.selectedDate,
+                            emptyCount = monthCalendarState.emptyDays,
+                            attendanceMap = attendanceRecord.recordsGroupedByDate,
+                            onClickDay = { day -> detailAttendanceViewModel.onEvent(AttendanceScreenUiEvent.SelectDateOnCalendar(day)) }
+                        )
+
+                        Spacer(Modifier.height(12.dp))
+
+                        DeviceLogsSection(
+                            logs = attendanceRecord.recordsGroupedByDate[uiState.selectedDate.toString()]
+                        )
+
+                    }
+                }
             }
+            is MonthCalendarUiState.Error -> { }
         }
     }
 
-    when(uiState.attendanceSelectionState) {
-        is AttendanceSelectionUiState.ClosedBottomSheet -> { }
-        is AttendanceSelectionUiState.OpenedBottomSheet -> {
+    // Bottom Sheet Data Selection
+    when(uiState.bottomSheetState) {
+        is AttendanceBottomSheetState.Closed -> { }
+        is AttendanceBottomSheetState.Opened -> {
             MonthPickerBottomSheet(
-                currentMonthInLocalDate = uiState.currentLocalDate,
-                onMonthSelected = { localDate ->
-                    detailAttendanceViewModel.onEvent(AttendanceScreenUiEvent.UpdateAttendanceDate(localDate))
+                currentMonth = uiState.selectedYearMonth,
+                onMonthSelected = { newYearMonth ->
+                    detailAttendanceViewModel.onEvent(AttendanceScreenUiEvent.UpdateAttendanceDate(newYearMonth))
                 },
                 onDismiss = { detailAttendanceViewModel.onEvent(AttendanceScreenUiEvent.CloseAttendanceSelectionBottomSheet) }
             )

@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import java.lang.Exception
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 import javax.inject.Inject
 
@@ -52,7 +53,7 @@ class AttendanceRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAttendanceByDateAndDevice(
-        date: Long,
+        date: Long,     // FUTURE::Change this to LocalDate && do convert into long data type over here! Reduce Confusion right now!
         deviceId: String
     ): RepositoryResult<List<AttendanceRecord>> {
         try {
@@ -64,11 +65,25 @@ class AttendanceRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAttendanceByMonthAndUser(
-        month: Int,
+        yearMonth: YearMonth, // MonthYear
         userId: String
     ): RepositoryResult<List<AttendanceRecord>> {
         try {
-            val response = attendanceRecordDao.extractAttendanceByMonthAndUser(month, userId)
+            // Calc Start of Month [ it will be consistent over change in TimeZone! ]
+            val startOfMonth = LocalDate
+                .of(yearMonth.year, yearMonth.month, 1)
+                .atStartOfDay(ZoneId.of(AppConstant.ZONE_ID))
+                .toInstant()
+                .toEpochMilli()
+
+            val endOfMonth = LocalDate
+                .of(yearMonth.year, yearMonth.month, yearMonth.lengthOfMonth())
+                .atStartOfDay(ZoneId.of(AppConstant.ZONE_ID))
+                .toInstant()
+                .toEpochMilli()
+
+            AppConstant.debugMessage("startOfMonth: $startOfMonth && endOfMonth: $endOfMonth")
+            val response = attendanceRecordDao.extractAttendanceByMonthAndUser(userId, startOfMonth, endOfMonth)
             return RepositoryResult.Success(response.map { it.toDomain() })
         } catch (e: Exception) {
             return RepositoryResult.Failed(e)

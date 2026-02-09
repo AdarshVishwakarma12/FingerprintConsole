@@ -6,12 +6,12 @@ import com.example.figerprintconsole.app.ui.screen.month_picker.components.Month
 import java.time.LocalDate
 import java.time.YearMonth
 
-@Preview
-@Composable
-fun TestMonthPickerBottomSheet() {
-    MonthPickerBottomSheet(
-        currentMonthInLocalDate = LocalDate.now(),
-        onMonthSelected = { },
-        onDismiss =  { }
-    )
-}
+//@Preview
+//@Composable
+//fun TestMonthPickerBottomSheet() {
+//    MonthPickerBottomSheet(
+//        currentMonthInLocalDate = LocalDate.now(),
+//        onMonthSelected = { },
+//        onDismiss =  { }
+//    )
+//}

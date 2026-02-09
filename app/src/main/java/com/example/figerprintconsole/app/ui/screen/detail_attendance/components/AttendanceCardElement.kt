@@ -27,7 +27,7 @@ fun AttendanceCardElement(
     modifier: Modifier = Modifier
 ) {
 
-    val status = attendanceRecord.firstOrNull()?.status ?: AttendanceStatus.ABSENT
+    val status = attendanceRecord.firstOrNull()?.status ?: AttendanceStatus.PRESENT
 
     // Define colors based on attendance status
     val statusColor = when(status) {

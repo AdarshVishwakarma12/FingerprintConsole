@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.figerprintconsole.app.data.local.entity.AttendanceStatus
 import com.example.figerprintconsole.app.domain.model.AttendanceRecord
 import java.time.LocalDate
 
@@ -15,7 +16,10 @@ import java.time.LocalDate
 @Composable
 fun AttendanceCalendarGrid(
     dates: List<LocalDate>,
-    attendanceMap: Map<String, List<AttendanceRecord>>
+    currentSelectedDate: LocalDate?,
+    emptyCount: Int,
+    attendanceMap: Map<String, List<AttendanceRecord>>,
+    onClickDay: (LocalDate) -> Unit
 ) {
     val today = LocalDate.now()
 
@@ -25,6 +29,11 @@ fun AttendanceCalendarGrid(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
+
+        items(emptyCount) { id ->
+            EmptyAttendanceDayCard()
+        }
+
         items(
             items = dates,
             key = { it.toString() }
@@ -34,11 +43,11 @@ fun AttendanceCalendarGrid(
 
             AttendanceDayCard(
                 date = date,
-                records = records,
+                dayOfWeek = date.dayOfWeek.value,
+                attendanceRecordStatus = records.firstOrNull()?.status ?: AttendanceStatus.ABSENT,
                 isToday = isToday,
-                onClick = {
-                    // navigate to day detail / bottom sheet / dialog
-                }
+                isSelected = date == currentSelectedDate,
+                onClick = onClickDay
             )
         }
     }

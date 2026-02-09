@@ -19,9 +19,14 @@ interface AttendanceRecordDao {
     @Query("SELECT * FROM attendance_records WHERE date=:date AND device_server_id=:deviceServerId")
     suspend fun extractAttendanceByDateAndDevice(date: Long, deviceServerId: String): List<AttendanceRecordEntityProjector>
 
-    @Query("SELECT * FROM attendance_records WHERE month=:month AND user_server_id=:userServerId")
-    suspend fun extractAttendanceByMonthAndUser(month: Int, userServerId: String): List<AttendanceRecordEntityProjector>
+    @Query("SELECT * FROM attendance_records WHERE (user_server_id=:userServerId) AND (date BETWEEN :startOfMonth AND :endOfMonth)")
+    suspend fun extractAttendanceByMonthAndUser(userServerId: String, startOfMonth: Long, endOfMonth: Long): List<AttendanceRecordEntityProjector>
 
     @Upsert
     suspend fun upsert(entity: AttendanceRecordEntity)
 }
+// val startOfDay = LocalDate
+//                .of(date.year, date.month, date.dayOfMonth)
+//                .atStartOfDay(ZoneId.of(AppConstant.ZONE_ID))
+//                .toInstant()
+//                .toEpochMilli()

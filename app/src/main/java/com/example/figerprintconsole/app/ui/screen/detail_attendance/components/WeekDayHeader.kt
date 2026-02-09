@@ -11,7 +11,8 @@ import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun WeekDayHeader() {
-    val days = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+    // Starting Month with Monday! => No dynamic changes till now!
+    val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
     Row(
         modifier = Modifier.fillMaxWidth(),
