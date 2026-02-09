@@ -7,13 +7,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.figerprintconsole"
+    namespace = "com.bandymoot.fingerprint"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.example.figerprintconsole"
+        applicationId = "com.bandymoot.fingerprint"
         minSdk = 29
         targetSdk = 36
         versionCode = 1
