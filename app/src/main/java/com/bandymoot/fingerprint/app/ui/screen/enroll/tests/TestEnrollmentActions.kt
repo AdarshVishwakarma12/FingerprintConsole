@@ -10,6 +10,5 @@ import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
 @Composable
 fun TestEnrollmentActions() {
     val state = EnrollmentState()
-    val uiState = EnrollmentScreenState.IDLE
-    EnrollmentActions(uiState, state, {}, {}, {}, {})
+    EnrollmentActions(state, {}, {}, {}, {})
 }

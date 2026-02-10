@@ -3,39 +3,36 @@ package com.bandymoot.fingerprint.app.ui.screen.enroll
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bandymoot.fingerprint.app.data.repository.EnrollmentRepositoryImpl
+import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.data.socket.SocketManager
 import com.bandymoot.fingerprint.app.domain.model.EnrollmentSocketEvent
 import com.bandymoot.fingerprint.app.domain.model.NewEnrollUser
+import com.bandymoot.fingerprint.app.domain.usecase.EnrollUserUseCase
 import com.bandymoot.fingerprint.app.ui.screen.enroll.event.EnrollScreenEvent
 import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentScreenState
 import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
 import com.bandymoot.fingerprint.app.utils.AppConstant
+import com.bandymoot.fingerprint.app.utils.showSnackBar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class EnrollmentViewModel @Inject constructor(
-    val enrollmentRepositoryImpl: EnrollmentRepositoryImpl
+    private val enrollmentRepositoryImpl: EnrollmentRepositoryImpl,
+    private val enrollUserUseCase: EnrollUserUseCase
 ): ViewModel() {
 
     // Ensure ONE SOCKET!
     private var socketJob: Job? = null
 
-    // Current UI State
-    private val _currentUiState = MutableStateFlow<EnrollmentScreenState>(EnrollmentScreenState.IDLE)
-    val currentUiState: StateFlow<EnrollmentScreenState> = _currentUiState
-
-    // Current State Data
-    private val _currentStateData = MutableStateFlow(EnrollmentState())
-    val currentStateData: StateFlow<EnrollmentState> = _currentStateData
-
-    // Current Input Field State
-    private val _currentInputFieldState = MutableStateFlow(NewEnrollUser()) // Why I can't hold data when the screen navigation changes?? Figure me out!
-    val currentInputFieldState: StateFlow<NewEnrollUser> = _currentInputFieldState
+    private val _uiState = MutableStateFlow(EnrollmentState())
+    val uiState: StateFlow<EnrollmentState> = _uiState
 
     // The state will help use in tracking events - and handle viewModel!
     private val _activeWebsocketState = MutableStateFlow<EnrollmentSocketEvent>(EnrollmentSocketEvent.IDLE)
@@ -44,135 +41,79 @@ class EnrollmentViewModel @Inject constructor(
 
     fun onEvent(event: EnrollScreenEvent) {
         when(event) {
-            is EnrollScreenEvent.LevelUp -> { levelUpToNextStateEvent() }
-            is EnrollScreenEvent.ConnectToSocket -> { connectToSocket() }
-            is EnrollScreenEvent.IDLE -> { }
-
+            is EnrollScreenEvent.StartEnrollment -> {
+                _uiState.update {
+                    it.copy(isLoading = true)
+                }
+                checkSocketConnection()
+            }
+            is EnrollScreenEvent.ValidateUserInfoAndStartBiometric -> {
+                viewModelScope.launch {
+                    val response = enrollUserUseCase(_uiState.value.userEnrollInfo)
+                    when(response) {
+                        is RepositoryResult.Success -> {
+                            _uiState.update {
+                                it.copy(
+                                    currentStep = 2,
+                                    enrollmentProgress = .25f,
+                                    enrollmentScreenState = EnrollmentScreenState.EnrollingStepOne
+                                )
+                            }
+                        }
+                        is RepositoryResult.Failed -> {
+                            _uiState.update { it.copy(errorMessage = "Failed to start enrollment") }
+                            showSnackBar("Failed to start enrollment")
+                        }
+                    }
+                }
+            }
+            is EnrollScreenEvent.CheckSocketConnection -> { checkSocketConnection() }
             is EnrollScreenEvent.CANCEL -> { }
-            is EnrollScreenEvent.Error -> { }
-
-            is EnrollScreenEvent.TextFieldInput -> { trackInputField(event.newEnrollUser) }
-            is EnrollScreenEvent.ResetTextFieldInput -> { resetTextInputField() } // Do use me when necessary!
-
+            is EnrollScreenEvent.TextFieldInput -> { _uiState.update { it.copy(userEnrollInfo = event.newEnrollUser) } }
+            is EnrollScreenEvent.ResetTextFieldInput -> { _uiState.update { it.copy(userEnrollInfo = NewEnrollUser()) } }
+            is EnrollScreenEvent.Verify -> { } // check the biometric
+            is EnrollScreenEvent.Completed -> { } // navigate back
             else -> { }
         }
     }
 
-    fun connectToSocket() {
+    // There should be only one websocket opened!
+    fun checkSocketConnection() {
         AppConstant.debugMessage("WS: Connecting to Socket observer!", "WS")
-        if (socketJob != null) return
 
-        socketJob = viewModelScope.launch {
-            enrollmentRepositoryImpl.observeEnrollment()
-                .catch { e ->
-                    AppConstant.debugMessage("WS ERROR: ${e.message}", "WS")
-                }
-                .collect { event ->
-                    AppConstant.debugMessage("WS: ARRIVED ONE MESSAGE!", "WS")
-                    AppConstant.debugMessage("WS: $event", "WS")
-                    _activeWebsocketState.value = event
+        if(!SocketManager.hasActiveConnection()) {
+
+            AppConstant.debugMessage("WS ERROR", "WS")
+
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    errorMessage = "Failed to Connect Socket"
+                )
+            }
+        } else {
+            AppConstant.debugMessage("WS: ARRIVED ONE MESSAGE!", "WS")
+
+            _uiState.update {
+                it.copy(
+                    currentStep = 1,
+                    enrollmentProgress = .10f,
+                    isLoading = false,
+                    isEnrolling = true,
+                    enrollmentScreenState = EnrollmentScreenState.UserInput
+                )
             }
         }
     }
 
-    fun levelUpToNextStateEvent() {
-        // Check Current UiState
-        when (_currentUiState.value) {
-            EnrollmentScreenState.IDLE -> { }
-            EnrollmentScreenState.UserInput -> {
-                viewModelScope.launch {
-                    AppConstant.debugMessage("WS: Start Enrolling", "WS")
-                    enrollmentRepositoryImpl.startEnrollment(newEnrollUser = _currentInputFieldState.value )
-                }
-            }
-            EnrollmentScreenState.EnrollingStepOne -> { levelUpToEnrollmentStepTwo() }
-            EnrollmentScreenState.EnrollingStepTwo -> {  }
-            EnrollmentScreenState.Verifying -> {  }
-            EnrollmentScreenState.Completed -> { }
-            is EnrollmentScreenState.Error -> { }
-        }
-    }
-
-    fun levelUpToUserInput() {
-
-        // Change the UiState
-        _currentUiState.value = EnrollmentScreenState.UserInput
-
-        // Change the state Data
-        _currentStateData.value = _currentStateData.value.copy(
-            currentStep = 1,
-            isEnrolling = true,
-            enrollmentProgress = .25f,
-            enrollmentMessage = "",
-            isCompleted = false,
-            errorMessage = null,
-        )
-    }
-    fun levelUpToEnrollmentStepOne() {
-
-        // Change the UiState
-        _currentUiState.value = EnrollmentScreenState.EnrollingStepOne
-
-        // Change the state Data
-        _currentStateData.value = _currentStateData.value.copy(
-            currentStep = 2, // This should be coming from repo! / server and not vm!
-            isEnrolling = true,
-            enrollmentProgress = .50f,
-            enrollmentMessage = "",
-            isCompleted = false,
-            errorMessage = null,
-        )
-    }
-    fun levelUpToEnrollmentStepTwo() {
-        // Change the UiState
-        _currentUiState.value = EnrollmentScreenState.EnrollingStepTwo
-
-        // Change the state Data
-        _currentStateData.value = _currentStateData.value.copy(
-            currentStep = 3,
-            isEnrolling = true,
-            enrollmentProgress = .75f,
-            enrollmentMessage = "",
-            isCompleted = false,
-            errorMessage = null,
-        )
-    }
-    fun levelUpToVerifying() {
-        // Change the UiState
-        _currentUiState.value = EnrollmentScreenState.Verifying
-
-        // Change the state Data
-        _currentStateData.value = _currentStateData.value.copy(
-            currentStep = 4,
-            isEnrolling = true,
-            enrollmentProgress = .90f,
-            enrollmentMessage = "",
-            isCompleted = false,
-            errorMessage = null,
-        )
-    }
-    fun levelUpToComplete() {
-        // Change the UiState
-        _currentUiState.value = EnrollmentScreenState.Completed
-
-        // Change the state Data
-        _currentStateData.value = _currentStateData.value.copy(
-            currentStep = 4,
-            isEnrolling = false,
-            enrollmentProgress = 1f,
-            enrollmentMessage = "",
-            isCompleted = true,
-            errorMessage = null,
-        )
-    }
     fun showError() {
-        _currentUiState.value = EnrollmentScreenState.Error(message = "Failed To Connect")
-        _currentStateData.value = EnrollmentState(errorMessage = "Failed To Connect")
+        showSnackBar("Failed to Connect")
+        _uiState.update {
+            it.copy(
+                errorMessage = "Failed to Enroll User"
+            )
+        }
     }
-
-    fun trackInputField(newEnrollUser: NewEnrollUser) { _currentInputFieldState.value = newEnrollUser }
-
-    fun resetTextInputField() { _currentInputFieldState.value = NewEnrollUser() }
 
     private fun observeWebSocketState() {
         viewModelScope.launch {
@@ -180,11 +121,18 @@ class EnrollmentViewModel @Inject constructor(
                 when (event) {
                     is EnrollmentSocketEvent.IDLE -> { }
 
-                    is EnrollmentSocketEvent.Connected -> { levelUpToUserInput() }
-                    is EnrollmentSocketEvent.EnrollPending -> { levelUpToEnrollmentStepOne() }
-                    is EnrollmentSocketEvent.EnrollSuccess -> { levelUpToVerifying() }
-                    is EnrollmentSocketEvent.AttendanceEvent -> { levelUpToComplete() }
-
+                    is EnrollmentSocketEvent.Connected -> { }
+                    is EnrollmentSocketEvent.EnrollPending -> { }
+                    is EnrollmentSocketEvent.EnrollSuccess -> {
+                        _uiState.update {
+                            it.copy(
+                                currentStep = 4,
+                                enrollmentProgress = .90f,
+                                enrollmentScreenState = EnrollmentScreenState.Enrolled
+                            )
+                        }
+                    }
+                    is EnrollmentSocketEvent.AttendanceEvent -> { }
                     is EnrollmentSocketEvent.Disconnected -> { showError() }
                     is EnrollmentSocketEvent.VerificationFailed -> { showError() }
                     is EnrollmentSocketEvent.Error -> { showError() }

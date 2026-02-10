@@ -4,8 +4,10 @@ import android.util.Log
 
 object AppConstant {
     const val BASE_URL = "http://192.168.0.176:4000/"
-    const val WEB_SOCKET_URL = "ws://137.97.126.110:4005"
+    const val WEB_SOCKET_URL = "ws://192.168.0.176:4000"
+    const val SOCKET_URL = "http://192.168.0.176:4000"
     const val LOGIN_USER_API = "api/auth/login/manager"
+    const val START_USER_ENROLLMENT = "/api/user/enrolled-user"
     const val GET_ALL_USERS_API = "api/users"
     const val USER_GET_URL = "api/users/fp" // add the ID of user
     const val GET_USER_BY_ID_API = "api/users/fp"

@@ -9,14 +9,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentScreenState
 import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
 import kotlinx.coroutines.delay
 
 @Composable
 fun EnrollmentActionTwo(
-    uiState: EnrollmentScreenState,
-    state: EnrollmentState,
+    uiState: EnrollmentState,
     onRetry: () -> Unit,
     onComplete: () -> Unit
 ) {
@@ -27,13 +25,13 @@ fun EnrollmentActionTwo(
     // We may experience some crash if we rotate the screen for now / or Change tHEME!!
     // I need structure like hell!!!(something i've never done before)
     // This business logic inside UI is dangerous!, Kindly move to viewModel!!!
-    LaunchedEffect(state) {
-        if(state.currentStep == 2) {
+    LaunchedEffect(uiState) {
+        if(uiState.currentStep == 2) {
             delay(4000)
             onComplete()
         }
         // At step 3 check from the websocket, if we get enrolled response!!
-        if(state.currentStep == 3) {
+        if(uiState.currentStep == 3) {
             delay(5000)
             onComplete()
         }

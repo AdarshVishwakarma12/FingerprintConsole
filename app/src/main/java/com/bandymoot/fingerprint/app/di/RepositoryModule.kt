@@ -20,6 +20,7 @@ import com.bandymoot.fingerprint.app.data.websocket.EnrollmentSocketDataSourceIm
 import com.bandymoot.fingerprint.app.domain.repository.AttendanceRepository
 import com.bandymoot.fingerprint.app.domain.repository.AuthRepository
 import com.bandymoot.fingerprint.app.domain.repository.DeviceRepository
+import com.bandymoot.fingerprint.app.domain.repository.EnrollmentRepository
 import com.bandymoot.fingerprint.app.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
@@ -48,9 +49,15 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideEnrollmentRepositoryImpl(
-        enrollmentSocketDataSourceImpl: EnrollmentSocketDataSourceImpl
-    ): EnrollmentRepositoryImpl {
-        return EnrollmentRepositoryImpl(enrollmentSocketDataSourceImpl = enrollmentSocketDataSourceImpl)
+        enrollmentSocketDataSourceImpl: EnrollmentSocketDataSourceImpl,
+        apiServices: ApiServices,
+        tokenProvider: TokenProvider
+    ): EnrollmentRepository {
+        return EnrollmentRepositoryImpl(
+            enrollmentSocketDataSourceImpl = enrollmentSocketDataSourceImpl,
+            apiServices = apiServices,
+            tokenProvider = tokenProvider
+        )
     }
 
     @Provides

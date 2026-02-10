@@ -2,6 +2,8 @@ package com.bandymoot.fingerprint.app.di
 
 import com.bandymoot.fingerprint.app.data.repository.UserRepositoryImpl
 import com.bandymoot.fingerprint.app.domain.repository.AttendanceRepository
+import com.bandymoot.fingerprint.app.domain.repository.EnrollmentRepository
+import com.bandymoot.fingerprint.app.domain.usecase.EnrollUserUseCase
 import com.bandymoot.fingerprint.app.domain.usecase.GetAllUsersUseCase
 import com.bandymoot.fingerprint.app.domain.usecase.GetAttendanceGroupedByDate
 import com.bandymoot.fingerprint.app.domain.usecase.GetUserByIdUseCase
@@ -33,5 +35,12 @@ object UseCaseModule {
         repositoryImpl: AttendanceRepository
     ): GetAttendanceGroupedByDate {
         return GetAttendanceGroupedByDate(repositoryImpl)
+    }
+
+    @Provides
+    fun provideEnrollUserUseCase(
+        enrollmentRepository: EnrollmentRepository
+    ): EnrollUserUseCase {
+        return EnrollUserUseCase(enrollmentRepository)
     }
 }

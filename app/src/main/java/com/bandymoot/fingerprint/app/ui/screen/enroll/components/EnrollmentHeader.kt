@@ -11,18 +11,13 @@ import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
 
 @Composable
 fun EnrollmentHeader(
-    uiState: EnrollmentScreenState,
-    state: EnrollmentState
+    uiState: EnrollmentState,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        val text = if(state.isCompleted) {
-            "Enrollment Complete!" //+ uiState.toString() // + state.enrollmentMessage + "Step: ${state.currentStep}"
-        } else {
-            "Fingerprint Enrollment" //+ uiState.toString()// + state.enrollmentMessage + "Step: ${state.currentStep}"
-        }
+        val text = "Fingerprint Enrollment"
 
         // Show Header
         Text(

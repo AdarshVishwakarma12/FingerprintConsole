@@ -4,9 +4,7 @@ sealed class EnrollmentSocketEvent {
     object IDLE : EnrollmentSocketEvent()
     object Connected : EnrollmentSocketEvent()
     object Disconnected : EnrollmentSocketEvent()
-
     data class EnrollPending(val fingerprintId: Int) : EnrollmentSocketEvent()
-
     data class EnrollSuccess(val user: User) : EnrollmentSocketEvent()
     // Received: {"type":"ENROLL_SUCCESS","user":{"fingerprintId":8,"employeeId":"1005","name":"Afnan1","email":"test@mail2.com","phone":"9999999999","department":"IT","customTimezone":"+05:30","lastDeviceIn":null,"currentStatus":"OUT","_id":"6954fcdb2964c2c6a214f26a","createdAt":"2025-12-31T10:37:15.621Z","updatedAt":"2025-12-31T10:37:15.621Z","__v":0}}
 

@@ -2,12 +2,16 @@ package com.bandymoot.fingerprint.app.data.remote.api
 
 import com.bandymoot.fingerprint.app.data.dto.LoginRequest
 import com.bandymoot.fingerprint.app.data.dto.LoginResponseDto
+import com.bandymoot.fingerprint.app.data.dto.UserEnrollRequestDto
+import com.bandymoot.fingerprint.app.data.dto.UserEnrollResponseDto
 import com.bandymoot.fingerprint.app.data.dto.UserResponseDto
 import com.bandymoot.fingerprint.app.data.dto.UsersResponseDto
 import com.bandymoot.fingerprint.app.utils.AppConstant
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 
@@ -17,6 +21,12 @@ interface ApiServices {
     suspend fun loginUser(
         @Body request: LoginRequest
     ): Response<LoginResponseDto>
+
+    @POST(AppConstant.START_USER_ENROLLMENT)
+    suspend fun startEnrollment(
+        @Header("Authorization") token: String,
+        @Body requestBody: UserEnrollRequestDto
+    ): Response<UserEnrollResponseDto>
 
     @GET(AppConstant.GET_ALL_USERS_API)
     suspend fun getAllUsers(): Response<UsersResponseDto>

@@ -1,4 +1,4 @@
-package com.bandymoot.fingerprint.app.ui.enroll.tests
+package com.bandymoot.fingerprint.app.ui.screen.enroll.tests
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview

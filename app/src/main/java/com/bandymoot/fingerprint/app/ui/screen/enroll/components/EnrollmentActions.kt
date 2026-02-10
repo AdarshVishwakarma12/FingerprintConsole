@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -28,8 +30,7 @@ import com.bandymoot.fingerprint.app.utils.AppConstant
 
 @Composable
 fun EnrollmentActions(
-    uiState: EnrollmentScreenState,
-    state: EnrollmentState,
+    uiState: EnrollmentState,
     onStartEnrollment: () -> Unit,
     onRetry: () -> Unit,
     onComplete: () -> Unit,
@@ -47,7 +48,7 @@ fun EnrollmentActions(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            when(uiState) {
+            when(uiState.enrollmentScreenState) {
                 // Add the current UI State -> Success / Failed
                 is EnrollmentScreenState.Completed -> {
                     Icon(
@@ -85,45 +86,55 @@ fun EnrollmentActions(
 
         // Buttons Row
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            if (uiState == EnrollmentScreenState.IDLE) {
-                Button(
-                    onClick = onStartEnrollment,
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.large,
-                    enabled = true
-                ) {
-                    Text(
-                        text = "Start Enrollment",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+            when {
+                uiState.errorMessage != null -> {
+                    OutlinedButton(
+                        onClick = onRetry,
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.large
+                    ) {
+                        Text("Retry")
+                    }
                 }
-            }
 
-            if (uiState == EnrollmentScreenState.Completed) {
-                Button(
-                    onClick = onCompleteEnrollment,
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.large
-                ) {
-                    Text(
-                        text = "Continue",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                uiState.enrollmentScreenState == EnrollmentScreenState.IDLE -> {
+                    Button(
+                        onClick = onStartEnrollment,
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.large,
+                        enabled = !uiState.isLoading
+                    ) {
+                        if (uiState.isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text(
+                                text = "Start Enrollment",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
                 }
-            }
 
-            if (state.errorMessage != null) {
-                OutlinedButton(
-                    onClick = onRetry,
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.large
-                ) {
-                    Text("Retry")
+                uiState.enrollmentScreenState == EnrollmentScreenState.Completed -> {
+                    Button(
+                        onClick = onCompleteEnrollment,
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.large
+                    ) {
+                        Text(
+                            text = "Continue",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
         }

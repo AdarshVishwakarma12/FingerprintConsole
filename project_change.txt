@@ -1,0 +1,1696 @@
+diff --git a/.kotlin/sessions/kotlin-compiler-15265891152696710839.salive b/.kotlin/sessions/kotlin-compiler-15265891152696710839.salive
+deleted file mode 100644
+index e69de29..0000000
+diff --git a/app/build.gradle.kts b/app/build.gradle.kts
+index 2eef35b..de67056 100644
+--- a/app/build.gradle.kts
++++ b/app/build.gradle.kts
+@@ -80,4 +80,7 @@ dependencies {
+     implementation(libs.androidx.room.runtime)
+     kapt(libs.androidx.room.compiler)
+     implementation(libs.androidx.room.ktx)
++
++    implementation(libs.socketio.client)
++    implementation(libs.json)
+ }
+\ No newline at end of file
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+index d26a094..8d5c285 100644
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -6,6 +6,7 @@
+ 
+     <application
+         android:name="com.bandymoot.fingerprint.app.MyApp"
++        android:windowSoftInputMode="adjustResize"
+         android:usesCleartextTraffic="true"
+         android:allowBackup="true"
+         android:dataExtractionRules="@xml/data_extraction_rules"
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/MyApplication.kt b/app/src/main/java/com/bandymoot/fingerprint/app/MyApplication.kt
+index 57c113c..6c4b197 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/MyApplication.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/MyApplication.kt
+@@ -1,7 +1,16 @@
+ package com.bandymoot.fingerprint.app
+ 
+ import android.app.Application
++import com.bandymoot.fingerprint.app.data.local.TokenProvider
++import com.bandymoot.fingerprint.app.data.socket.SocketManager
+ import dagger.hilt.android.HiltAndroidApp
++import javax.inject.Inject
+ 
+ @HiltAndroidApp
+-class MyApp : Application()
+\ No newline at end of file
++class MyApp : Application() {
++    @Inject lateinit var tokenProvider: TokenProvider
++    override fun onCreate() {
++        super.onCreate()
++        SocketManager.observeToken(tokenProvider.tokenFLow)
++    }
++}
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/data/dto/UserEnrollRequestDto.kt b/app/src/main/java/com/bandymoot/fingerprint/app/data/dto/UserEnrollRequestDto.kt
+index 1bea304..9b4d50f 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/data/dto/UserEnrollRequestDto.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/data/dto/UserEnrollRequestDto.kt
+@@ -1,4 +1,23 @@
+ package com.bandymoot.fingerprint.app.data.dto
+ 
+-class UserEnrollRequestDto {
+-}
+\ No newline at end of file
++import com.google.gson.annotations.SerializedName
++
++data class UserEnrollRequestDto(
++    @SerializedName("user_name")
++    val userName: String,
++
++    @SerializedName("user_email")
++    val userEmail: String,
++
++    @SerializedName("user_phone")
++    val userPhone: String,
++
++    @SerializedName("user_department")
++    val userDepartment: String,
++
++    @SerializedName("user_roll")
++    val userRoll: String,
++
++    @SerializedName("device_id")
++    val deviceId: String
++)
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/data/dto/UserEnrollResponseDto.kt b/app/src/main/java/com/bandymoot/fingerprint/app/data/dto/UserEnrollResponseDto.kt
+index d524599..e260dbf 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/data/dto/UserEnrollResponseDto.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/data/dto/UserEnrollResponseDto.kt
+@@ -1,4 +1,14 @@
+ package com.bandymoot.fingerprint.app.data.dto
+ 
+-class UserEnrollResponseDto {
+-}
+\ No newline at end of file
++import com.google.gson.annotations.SerializedName
++
++data class UserEnrollResponseDto(
++    @SerializedName("success")
++    val success: Boolean,
++
++    @SerializedName("message")
++    val message: String,
++
++    @SerializedName("userId")
++    val userId: String
++)
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/data/mapper/NewEnrollUserMapper.kt b/app/src/main/java/com/bandymoot/fingerprint/app/data/mapper/NewEnrollUserMapper.kt
+index c69352d..063d3e9 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/data/mapper/NewEnrollUserMapper.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/data/mapper/NewEnrollUserMapper.kt
+@@ -1,6 +1,8 @@
+ package com.bandymoot.fingerprint.app.data.mapper
+ 
++import com.bandymoot.fingerprint.app.data.dto.UserEnrollRequestDto
+ import com.bandymoot.fingerprint.app.domain.model.NewEnrollUser
++import com.bandymoot.fingerprint.app.domain.model.User
+ import org.json.JSONObject
+ 
+ fun NewEnrollUser.toJson(): JSONObject {
+@@ -12,4 +14,15 @@ fun NewEnrollUser.toJson(): JSONObject {
+         put("department", department)
+         put("customTimezone", "+05:30") // a fixed value!
+     }
++}
++
++fun NewEnrollUser.toRequestDto(): UserEnrollRequestDto {
++    return UserEnrollRequestDto(
++        userName = this.name,
++        userEmail = this.email,
++        userPhone = this.phone,
++        userDepartment = this.department,
++        userRoll = this.employeeId,
++        deviceId = this.deviceId
++    )
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/data/remote/api/ApiServices.kt b/app/src/main/java/com/bandymoot/fingerprint/app/data/remote/api/ApiServices.kt
+index b14458e..0390394 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/data/remote/api/ApiServices.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/data/remote/api/ApiServices.kt
+@@ -2,12 +2,16 @@ package com.bandymoot.fingerprint.app.data.remote.api
+ 
+ import com.bandymoot.fingerprint.app.data.dto.LoginRequest
+ import com.bandymoot.fingerprint.app.data.dto.LoginResponseDto
++import com.bandymoot.fingerprint.app.data.dto.UserEnrollRequestDto
++import com.bandymoot.fingerprint.app.data.dto.UserEnrollResponseDto
+ import com.bandymoot.fingerprint.app.data.dto.UserResponseDto
+ import com.bandymoot.fingerprint.app.data.dto.UsersResponseDto
+ import com.bandymoot.fingerprint.app.utils.AppConstant
++import okhttp3.RequestBody
+ import retrofit2.Response
+ import retrofit2.http.Body
+ import retrofit2.http.GET
++import retrofit2.http.Header
+ import retrofit2.http.POST
+ import retrofit2.http.Path
+ 
+@@ -18,6 +22,12 @@ interface ApiServices {
+         @Body request: LoginRequest
+     ): Response<LoginResponseDto>
+ 
++    @POST(AppConstant.START_USER_ENROLLMENT)
++    suspend fun startEnrollment(
++        @Header("Authorization") token: String,
++        @Body requestBody: UserEnrollRequestDto
++    ): Response<UserEnrollResponseDto>
++
+     @GET(AppConstant.GET_ALL_USERS_API)
+     suspend fun getAllUsers(): Response<UsersResponseDto>
+ 
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/data/repository/AuthRepositoryImpl.kt b/app/src/main/java/com/bandymoot/fingerprint/app/data/repository/AuthRepositoryImpl.kt
+index 950efe4..760491e 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/data/repository/AuthRepositoryImpl.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/data/repository/AuthRepositoryImpl.kt
+@@ -15,10 +15,10 @@ class AuthRepositoryImpl @Inject constructor(
+     private val tokenProvider: TokenProvider
+ ): AuthRepository {
+ 
+-    override suspend fun loginUser(userName: String, password: String): LoginResult {
++    override suspend fun loginUser(userEmail: String, password: String): LoginResult {
+ 
+         try {
+-            val request = LoginRequest(userName, password)
++            val request = LoginRequest(userEmail, password)
+             val response = apiServices.loginUser(request)
+ 
+             if (!response.isSuccessful) {
+@@ -33,6 +33,8 @@ class AuthRepositoryImpl @Inject constructor(
+                 )
+ 
+             tokenProvider.saveAccessToken(body.data)
++            tokenProvider.saveUserEmail(email = userEmail)
++            tokenProvider.saveLoginTimestamp()
+ 
+             return LoginResult.Success(isAuthenticated = true)
+ 
+@@ -42,6 +44,6 @@ class AuthRepositoryImpl @Inject constructor(
+     }
+ 
+     override suspend fun logout() {
+-        TODO("Not yet implemented")
++        tokenProvider.removeAllToken()
+     }
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/data/repository/EnrollmentRepositoryImpl.kt b/app/src/main/java/com/bandymoot/fingerprint/app/data/repository/EnrollmentRepositoryImpl.kt
+index 322c507..8258eb3 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/data/repository/EnrollmentRepositoryImpl.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/data/repository/EnrollmentRepositoryImpl.kt
+@@ -1,6 +1,9 @@
+ package com.bandymoot.fingerprint.app.data.repository
+ 
++import com.bandymoot.fingerprint.app.data.local.TokenProvider
+ import com.bandymoot.fingerprint.app.data.mapper.toJson
++import com.bandymoot.fingerprint.app.data.mapper.toRequestDto
++import com.bandymoot.fingerprint.app.data.remote.api.ApiServices
+ import com.bandymoot.fingerprint.app.data.websocket.EnrollmentSocketDataSourceImpl
+ import com.bandymoot.fingerprint.app.domain.model.EnrollmentSocketCommand
+ import com.bandymoot.fingerprint.app.domain.model.EnrollmentSocketEvent
+@@ -8,20 +11,26 @@ import com.bandymoot.fingerprint.app.domain.model.NewEnrollUser
+ import com.bandymoot.fingerprint.app.domain.repository.EnrollmentRepository
+ import kotlinx.coroutines.flow.Flow
+ import org.json.JSONObject
++import java.lang.Exception
+ import javax.inject.Inject
+ 
+ class EnrollmentRepositoryImpl @Inject constructor(
+-     val enrollmentSocketDataSourceImpl: EnrollmentSocketDataSourceImpl
++    private val enrollmentSocketDataSourceImpl: EnrollmentSocketDataSourceImpl,
++    private val apiServices: ApiServices,
++    private val tokenProvider: TokenProvider
+ ): EnrollmentRepository {
+     override fun observeEnrollment(): Flow<EnrollmentSocketEvent> {
+         return enrollmentSocketDataSourceImpl.connect()
+     }
+ 
+-    override suspend fun startEnrollment(newEnrollUser: NewEnrollUser) {
+-        enrollmentSocketDataSourceImpl.send(
+-            type = EnrollmentSocketCommand.StartEnrolling,
+-            message = buildEnrollNewUserJson(newEnrollUser)
+-        )
++    override suspend fun startEnrollment(newEnrollUser: NewEnrollUser): RepositoryResult<Boolean> {
++        try {
++            val response = apiServices.startEnrollment(token = tokenProvider.getAccessToken() ?: "Invalid token", requestBody = newEnrollUser.toRequestDto())
++            if(!response.isSuccessful) return RepositoryResult.Failed(Exception("Unsuccess Response"))
++            return RepositoryResult.Success(true)
++        } catch (e: Exception) {
++            return RepositoryResult.Failed(e)
++        }
+     }
+ 
+     // Cancel enroll is not working! from backend..!
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/data/socket/SocketManager.kt b/app/src/main/java/com/bandymoot/fingerprint/app/data/socket/SocketManager.kt
+index f9c74c4..2ea5810 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/data/socket/SocketManager.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/data/socket/SocketManager.kt
+@@ -1,4 +1,82 @@
+ package com.bandymoot.fingerprint.app.data.socket
+ 
+-class SocketManager {
++import com.bandymoot.fingerprint.app.domain.model.SocketEvent
++import com.bandymoot.fingerprint.app.utils.AppConstant
++import io.socket.client.IO
++import io.socket.client.Socket
++import kotlinx.coroutines.CoroutineScope
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.Job
++import kotlinx.coroutines.flow.StateFlow
++import kotlinx.coroutines.flow.collectLatest
++import kotlinx.coroutines.launch
++
++object SocketManager {
++
++    private var socket: Socket? = null
++    private var listener: ((event: SocketEvent) -> Unit)? = null
++    private var tokenJob: Job? = null
++
++    fun setListener(callback: (event: SocketEvent) -> Unit) {
++        listener = callback
++    }
++
++    fun init(token: String, serverUrl: String = AppConstant.SOCKET_URL) {
++        if(socket != null) return
++
++        val options = IO.Options().apply {
++            auth = mapOf("token" to token)
++            transports = arrayOf("websocket")
++            reconnection = true
++            reconnectionAttempts = 10
++            reconnectionDelay = 3000
++        }
++
++        socket = IO.socket(serverUrl, options)
++
++        socket?.apply {
++            on(Socket.EVENT_CONNECT) {
++                AppConstant.debugMessage("CONNECTING SOCKET :: WORKED")
++                listener?.invoke(SocketEvent.Connected())
++            }
++            on(Socket.EVENT_DISCONNECT) { listener?.invoke(SocketEvent.Disconnected()) }
++            on("Device_Status") { args ->
++                AppConstant.debugMessage("CONNECTING SOCKET :: WORKED :: DEVICE STATUS :: ${args[0]}")
++                listener?.invoke(SocketEvent.DeviceStatus(args[0]))
++            }
++            on("Attendance_Status") { args ->
++                listener?.invoke(SocketEvent.AttendanceStatus(args[0]))
++                AppConstant.debugMessage("CONNECTING SOCKET :: WORKED :: ATTENDANCE STATUS :: ${args[0]}")
++            }
++            on("message") { args -> listener?.invoke(SocketEvent.Message(args[0])) }
++        }
++    }
++
++    // As soon as we have the token, we have a socket to listen to!
++    // Just use the ViewModel, which explore the states! using SharedFlow
++    fun observeToken(tokenFlow: StateFlow<String?>) {
++        // Cancel previous job if any
++        tokenJob?.cancel()
++        tokenJob = CoroutineScope(Dispatchers.IO).launch {
++            tokenFlow.collectLatest { token ->
++                if (!token.isNullOrEmpty()) {
++                    init(token)
++                    connect()
++                } else {
++                    disconnect()
++                }
++            }
++        }
++    }
++
++    fun connect() {
++        AppConstant.debugMessage("CONNECTING 2 Socket")
++        socket?.connect()
++    }
++
++    fun disconnect() { socket?.disconnect() }
++
++    fun hasActiveConnection(): Boolean = socket?.connected() == true
++
++    fun emit(event: String, data: Any) { socket?.emit(event, data) }
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/di/RepositoryModule.kt b/app/src/main/java/com/bandymoot/fingerprint/app/di/RepositoryModule.kt
+index d991eff..7306fc7 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/di/RepositoryModule.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/di/RepositoryModule.kt
+@@ -20,6 +20,7 @@ import com.bandymoot.fingerprint.app.data.websocket.EnrollmentSocketDataSourceIm
+ import com.bandymoot.fingerprint.app.domain.repository.AttendanceRepository
+ import com.bandymoot.fingerprint.app.domain.repository.AuthRepository
+ import com.bandymoot.fingerprint.app.domain.repository.DeviceRepository
++import com.bandymoot.fingerprint.app.domain.repository.EnrollmentRepository
+ import com.bandymoot.fingerprint.app.domain.repository.UserRepository
+ import dagger.Module
+ import dagger.Provides
+@@ -48,9 +49,15 @@ object RepositoryModule {
+     @Provides
+     @Singleton
+     fun provideEnrollmentRepositoryImpl(
+-        enrollmentSocketDataSourceImpl: EnrollmentSocketDataSourceImpl
+-    ): EnrollmentRepositoryImpl {
+-        return EnrollmentRepositoryImpl(enrollmentSocketDataSourceImpl = enrollmentSocketDataSourceImpl)
++        enrollmentSocketDataSourceImpl: EnrollmentSocketDataSourceImpl,
++        apiServices: ApiServices,
++        tokenProvider: TokenProvider
++    ): EnrollmentRepository {
++        return EnrollmentRepositoryImpl(
++            enrollmentSocketDataSourceImpl = enrollmentSocketDataSourceImpl,
++            apiServices = apiServices,
++            tokenProvider = tokenProvider
++        )
+     }
+ 
+     @Provides
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/di/UseCaseModule.kt b/app/src/main/java/com/bandymoot/fingerprint/app/di/UseCaseModule.kt
+index 31ce2e1..b6c93dd 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/di/UseCaseModule.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/di/UseCaseModule.kt
+@@ -2,6 +2,8 @@ package com.bandymoot.fingerprint.app.di
+ 
+ import com.bandymoot.fingerprint.app.data.repository.UserRepositoryImpl
+ import com.bandymoot.fingerprint.app.domain.repository.AttendanceRepository
++import com.bandymoot.fingerprint.app.domain.repository.EnrollmentRepository
++import com.bandymoot.fingerprint.app.domain.usecase.EnrollUserUseCase
+ import com.bandymoot.fingerprint.app.domain.usecase.GetAllUsersUseCase
+ import com.bandymoot.fingerprint.app.domain.usecase.GetAttendanceGroupedByDate
+ import com.bandymoot.fingerprint.app.domain.usecase.GetUserByIdUseCase
+@@ -34,4 +36,11 @@ object UseCaseModule {
+     ): GetAttendanceGroupedByDate {
+         return GetAttendanceGroupedByDate(repositoryImpl)
+     }
++
++    @Provides
++    fun provideEnrollUserUseCase(
++        enrollmentRepository: EnrollmentRepository
++    ): EnrollUserUseCase {
++        return EnrollUserUseCase(enrollmentRepository)
++    }
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/domain/model/EnrollmentSocketEvent.kt b/app/src/main/java/com/bandymoot/fingerprint/app/domain/model/EnrollmentSocketEvent.kt
+index 638a02a..83b0a50 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/domain/model/EnrollmentSocketEvent.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/domain/model/EnrollmentSocketEvent.kt
+@@ -4,9 +4,7 @@ sealed class EnrollmentSocketEvent {
+     object IDLE : EnrollmentSocketEvent()
+     object Connected : EnrollmentSocketEvent()
+     object Disconnected : EnrollmentSocketEvent()
+-
+     data class EnrollPending(val fingerprintId: Int) : EnrollmentSocketEvent()
+-
+     data class EnrollSuccess(val user: User) : EnrollmentSocketEvent()
+     // Received: {"type":"ENROLL_SUCCESS","user":{"fingerprintId":8,"employeeId":"1005","name":"Afnan1","email":"test@mail2.com","phone":"9999999999","department":"IT","customTimezone":"+05:30","lastDeviceIn":null,"currentStatus":"OUT","_id":"6954fcdb2964c2c6a214f26a","createdAt":"2025-12-31T10:37:15.621Z","updatedAt":"2025-12-31T10:37:15.621Z","__v":0}}
+ 
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/domain/model/NewEnrollUser.kt b/app/src/main/java/com/bandymoot/fingerprint/app/domain/model/NewEnrollUser.kt
+index c59caa8..2df3c93 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/domain/model/NewEnrollUser.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/domain/model/NewEnrollUser.kt
+@@ -6,6 +6,7 @@ data class NewEnrollUser(
+     val employeeId: String = "",
+     val phone: String = "",
+     val department: String = "",
++    val deviceId: String = "6982c9e3aa8bf4f172a1dbdc",
+     val timeZone: String = "UTC",
+     val isValid: Boolean = false
+ )
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/domain/model/SocketEvent.kt b/app/src/main/java/com/bandymoot/fingerprint/app/domain/model/SocketEvent.kt
+index ffc9bbc..16c942b 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/domain/model/SocketEvent.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/domain/model/SocketEvent.kt
+@@ -1,4 +1,10 @@
+ package com.bandymoot.fingerprint.app.domain.model
+ 
+-class SocketEvent {
+-}
+\ No newline at end of file
++sealed class SocketEvent(val data: Any) {
++    class IDLE: SocketEvent(Unit)
++    class Connected : SocketEvent(Unit)
++    class Disconnected : SocketEvent(Unit)
++    data class DeviceStatus(val status: Any) : SocketEvent(status)
++    data class AttendanceStatus(val status: Any) : SocketEvent(status)
++    data class Message(val msg: Any) : SocketEvent(msg)
++}
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/domain/repository/AuthRepository.kt b/app/src/main/java/com/bandymoot/fingerprint/app/domain/repository/AuthRepository.kt
+index e59c879..748097e 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/domain/repository/AuthRepository.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/domain/repository/AuthRepository.kt
+@@ -3,6 +3,6 @@ package com.bandymoot.fingerprint.app.domain.repository
+ import com.bandymoot.fingerprint.app.domain.model.LoginResult
+ 
+ interface AuthRepository {
+-    suspend fun loginUser(userName: String, password: String): LoginResult
++    suspend fun loginUser(userEmail: String, password: String): LoginResult
+     suspend fun logout()
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/domain/repository/EnrollmentRepository.kt b/app/src/main/java/com/bandymoot/fingerprint/app/domain/repository/EnrollmentRepository.kt
+index e706cc5..a5c5d81 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/domain/repository/EnrollmentRepository.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/domain/repository/EnrollmentRepository.kt
+@@ -1,5 +1,6 @@
+ package com.bandymoot.fingerprint.app.domain.repository
+ 
++import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+ import com.bandymoot.fingerprint.app.domain.model.EnrollmentSocketEvent
+ import com.bandymoot.fingerprint.app.domain.model.NewEnrollUser
+ import kotlinx.coroutines.flow.Flow
+@@ -7,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
+ interface EnrollmentRepository {
+     fun observeEnrollment() : Flow<EnrollmentSocketEvent>
+ 
+-    suspend fun startEnrollment(newEnrollUser: NewEnrollUser)
++    suspend fun startEnrollment(newEnrollUser: NewEnrollUser): RepositoryResult<Boolean>
+ 
+     suspend fun cancelEnrollment()
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/domain/usecase/EnrollUserUseCase.kt b/app/src/main/java/com/bandymoot/fingerprint/app/domain/usecase/EnrollUserUseCase.kt
+index 7da5639..8800f69 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/domain/usecase/EnrollUserUseCase.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/domain/usecase/EnrollUserUseCase.kt
+@@ -1,4 +1,15 @@
+ package com.bandymoot.fingerprint.app.domain.usecase
+ 
+-class EnrollUserUseCase {
++import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
++import com.bandymoot.fingerprint.app.domain.model.NewEnrollUser
++import com.bandymoot.fingerprint.app.domain.repository.EnrollmentRepository
++import javax.inject.Inject
++
++class EnrollUserUseCase @Inject constructor(
++    private val enrollmentRepository: EnrollmentRepository
++) {
++    suspend operator fun invoke(newEnrollUser: NewEnrollUser): RepositoryResult<Boolean> {
++        // I know it's too simple!
++        return  enrollmentRepository.startEnrollment(newEnrollUser)
++    }
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/domain/usecase/LogInUseCase.kt b/app/src/main/java/com/bandymoot/fingerprint/app/domain/usecase/LogInUseCase.kt
+index 9b3a43e..4fb5bbc 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/domain/usecase/LogInUseCase.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/domain/usecase/LogInUseCase.kt
+@@ -11,12 +11,14 @@ class LogInUseCase @Inject constructor(
+     private val authRepository: AuthRepository
+ ) {
+     suspend operator fun invoke(email: String, password: String): LoginResult {
++
++        // Validate Input
+         if(!email.isValidEmail() || !password.isValidPassword()) {
+             return LoginResult.Failed(AppError.InValidDataEntered())
+         }
+ 
+         // Validate Rate Limiting!
+ 
+-        return authRepository.loginUser(email, password)
++        return authRepository.loginUser(userEmail = email, password = password)
+     }
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/MainActivity.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/MainActivity.kt
+index 8c2bf67..7007462 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/MainActivity.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/MainActivity.kt
+@@ -5,6 +5,7 @@ import android.os.Bundle
+ import androidx.activity.compose.setContent
+ import androidx.appcompat.app.AppCompatActivity
+ import androidx.compose.runtime.getValue
++import androidx.core.view.WindowCompat
+ import androidx.navigation.compose.currentBackStackEntryAsState
+ import androidx.navigation.compose.rememberNavController
+ import com.bandymoot.fingerprint.app.data.local.TokenProvider
+@@ -24,6 +25,8 @@ class MainActivity : AppCompatActivity() {
+     override fun onCreate(savedInstanceState: Bundle?) {
+         super.onCreate(savedInstanceState)
+ 
++        // WindowCompat.setDecorFitsSystemWindows(window, false)
++
+         setContent {
+             val navController = rememberNavController()
+             val navBackStackEntry by navController.currentBackStackEntryAsState()
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/EnrollmentViewModel.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/EnrollmentViewModel.kt
+index 8d1aa30..eb9dcf8 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/EnrollmentViewModel.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/EnrollmentViewModel.kt
+@@ -3,39 +3,36 @@ package com.bandymoot.fingerprint.app.ui.screen.enroll
+ import androidx.lifecycle.ViewModel
+ import androidx.lifecycle.viewModelScope
+ import com.bandymoot.fingerprint.app.data.repository.EnrollmentRepositoryImpl
++import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
++import com.bandymoot.fingerprint.app.data.socket.SocketManager
+ import com.bandymoot.fingerprint.app.domain.model.EnrollmentSocketEvent
+ import com.bandymoot.fingerprint.app.domain.model.NewEnrollUser
++import com.bandymoot.fingerprint.app.domain.usecase.EnrollUserUseCase
+ import com.bandymoot.fingerprint.app.ui.screen.enroll.event.EnrollScreenEvent
+ import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentScreenState
+ import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
+ import com.bandymoot.fingerprint.app.utils.AppConstant
++import com.bandymoot.fingerprint.app.utils.showSnackBar
+ import dagger.hilt.android.lifecycle.HiltViewModel
+ import kotlinx.coroutines.Job
+ import kotlinx.coroutines.flow.MutableStateFlow
+ import kotlinx.coroutines.flow.StateFlow
+ import kotlinx.coroutines.flow.catch
++import kotlinx.coroutines.flow.update
+ import kotlinx.coroutines.launch
+ import javax.inject.Inject
+ 
+ @HiltViewModel
+ class EnrollmentViewModel @Inject constructor(
+-    val enrollmentRepositoryImpl: EnrollmentRepositoryImpl
++    private val enrollmentRepositoryImpl: EnrollmentRepositoryImpl,
++    private val enrollUserUseCase: EnrollUserUseCase
+ ): ViewModel() {
+ 
+     // Ensure ONE SOCKET!
+     private var socketJob: Job? = null
+ 
+-    // Current UI State
+-    private val _currentUiState = MutableStateFlow<EnrollmentScreenState>(EnrollmentScreenState.IDLE)
+-    val currentUiState: StateFlow<EnrollmentScreenState> = _currentUiState
+-
+-    // Current State Data
+-    private val _currentStateData = MutableStateFlow(EnrollmentState())
+-    val currentStateData: StateFlow<EnrollmentState> = _currentStateData
+-
+-    // Current Input Field State
+-    private val _currentInputFieldState = MutableStateFlow(NewEnrollUser()) // Why I can't hold data when the screen navigation changes?? Figure me out!
+-    val currentInputFieldState: StateFlow<NewEnrollUser> = _currentInputFieldState
++    private val _uiState = MutableStateFlow(EnrollmentState())
++    val uiState: StateFlow<EnrollmentState> = _uiState
+ 
+     // The state will help use in tracking events - and handle viewModel!
+     private val _activeWebsocketState = MutableStateFlow<EnrollmentSocketEvent>(EnrollmentSocketEvent.IDLE)
+@@ -44,147 +41,98 @@ class EnrollmentViewModel @Inject constructor(
+ 
+     fun onEvent(event: EnrollScreenEvent) {
+         when(event) {
+-            is EnrollScreenEvent.LevelUp -> { levelUpToNextStateEvent() }
+-            is EnrollScreenEvent.ConnectToSocket -> { connectToSocket() }
+-            is EnrollScreenEvent.IDLE -> { }
+-
+-            is EnrollScreenEvent.CANCEL -> { }
+-            is EnrollScreenEvent.Error -> { }
+-
+-            is EnrollScreenEvent.TextFieldInput -> { trackInputField(event.newEnrollUser) }
+-            is EnrollScreenEvent.ResetTextFieldInput -> { resetTextInputField() } // Do use me when necessary!
+-
+-            else -> { }
+-        }
+-    }
+-
+-    fun connectToSocket() {
+-        AppConstant.debugMessage("WS: Connecting to Socket observer!", "WS")
+-        if (socketJob != null) return
+-
+-        socketJob = viewModelScope.launch {
+-            enrollmentRepositoryImpl.observeEnrollment()
+-                .catch { e ->
+-                    AppConstant.debugMessage("WS ERROR: ${e.message}", "WS")
++            is EnrollScreenEvent.StartEnrollment -> {
++                _uiState.update {
++                    it.copy(isLoading = true)
+                 }
+-                .collect { event ->
+-                    AppConstant.debugMessage("WS: ARRIVED ONE MESSAGE!", "WS")
+-                    AppConstant.debugMessage("WS: $event", "WS")
+-                    _activeWebsocketState.value = event
++                checkSocketConnection()
+             }
+-        }
+-    }
+-
+-    fun levelUpToNextStateEvent() {
+-        // Check Current UiState
+-        when (_currentUiState.value) {
+-            EnrollmentScreenState.IDLE -> { }
+-            EnrollmentScreenState.UserInput -> {
++            is EnrollScreenEvent.ValidateUserInfoAndStartBiometric -> {
+                 viewModelScope.launch {
+-                    AppConstant.debugMessage("WS: Start Enrolling", "WS")
+-                    enrollmentRepositoryImpl.startEnrollment(newEnrollUser = _currentInputFieldState.value )
++                    val response = enrollUserUseCase(_uiState.value.userEnrollInfo)
++                    when(response) {
++                        is RepositoryResult.Success -> {
++                            _uiState.update {
++                                it.copy(
++                                    currentStep = 2,
++                                    enrollmentProgress = .25f,
++                                    enrollmentScreenState = EnrollmentScreenState.EnrollingStepOne
++                                )
++                            }
++                        }
++                        is RepositoryResult.Failed -> {
++                            _uiState.update { it.copy(errorMessage = "Failed to start enrollment") }
++                            showSnackBar("Failed to start enrollment")
++                        }
++                    }
+                 }
+             }
+-            EnrollmentScreenState.EnrollingStepOne -> { levelUpToEnrollmentStepTwo() }
+-            EnrollmentScreenState.EnrollingStepTwo -> {  }
+-            EnrollmentScreenState.Verifying -> {  }
+-            EnrollmentScreenState.Completed -> { }
+-            is EnrollmentScreenState.Error -> { }
++            is EnrollScreenEvent.CheckSocketConnection -> { checkSocketConnection() }
++            is EnrollScreenEvent.CANCEL -> { }
++            is EnrollScreenEvent.TextFieldInput -> { _uiState.update { it.copy(userEnrollInfo = event.newEnrollUser) } }
++            is EnrollScreenEvent.ResetTextFieldInput -> { _uiState.update { it.copy(userEnrollInfo = NewEnrollUser()) } }
++            is EnrollScreenEvent.Verify -> { } // check the biometric
++            is EnrollScreenEvent.Completed -> { } // navigate back
++            else -> { }
+         }
+     }
+ 
+-    fun levelUpToUserInput() {
+-
+-        // Change the UiState
+-        _currentUiState.value = EnrollmentScreenState.UserInput
+-
+-        // Change the state Data
+-        _currentStateData.value = _currentStateData.value.copy(
+-            currentStep = 1,
+-            isEnrolling = true,
+-            enrollmentProgress = .25f,
+-            enrollmentMessage = "",
+-            isCompleted = false,
+-            errorMessage = null,
+-        )
+-    }
+-    fun levelUpToEnrollmentStepOne() {
+-
+-        // Change the UiState
+-        _currentUiState.value = EnrollmentScreenState.EnrollingStepOne
++    // There should be only one websocket opened!
++    fun checkSocketConnection() {
++        AppConstant.debugMessage("WS: Connecting to Socket observer!", "WS")
+ 
+-        // Change the state Data
+-        _currentStateData.value = _currentStateData.value.copy(
+-            currentStep = 2, // This should be coming from repo! / server and not vm!
+-            isEnrolling = true,
+-            enrollmentProgress = .50f,
+-            enrollmentMessage = "",
+-            isCompleted = false,
+-            errorMessage = null,
+-        )
+-    }
+-    fun levelUpToEnrollmentStepTwo() {
+-        // Change the UiState
+-        _currentUiState.value = EnrollmentScreenState.EnrollingStepTwo
++        if(!SocketManager.hasActiveConnection()) {
+ 
+-        // Change the state Data
+-        _currentStateData.value = _currentStateData.value.copy(
+-            currentStep = 3,
+-            isEnrolling = true,
+-            enrollmentProgress = .75f,
+-            enrollmentMessage = "",
+-            isCompleted = false,
+-            errorMessage = null,
+-        )
+-    }
+-    fun levelUpToVerifying() {
+-        // Change the UiState
+-        _currentUiState.value = EnrollmentScreenState.Verifying
++            AppConstant.debugMessage("WS ERROR", "WS")
+ 
+-        // Change the state Data
+-        _currentStateData.value = _currentStateData.value.copy(
+-            currentStep = 4,
+-            isEnrolling = true,
+-            enrollmentProgress = .90f,
+-            enrollmentMessage = "",
+-            isCompleted = false,
+-            errorMessage = null,
+-        )
++            _uiState.update {
++                it.copy(
++                    isLoading = false,
++                    errorMessage = "Failed to Connect Socket"
++                )
++            }
++        } else {
++            AppConstant.debugMessage("WS: ARRIVED ONE MESSAGE!", "WS")
++
++            _uiState.update {
++                it.copy(
++                    currentStep = 1,
++                    enrollmentProgress = .10f,
++                    isLoading = false,
++                    isEnrolling = true,
++                    enrollmentScreenState = EnrollmentScreenState.UserInput
++                )
++            }
++        }
+     }
+-    fun levelUpToComplete() {
+-        // Change the UiState
+-        _currentUiState.value = EnrollmentScreenState.Completed
+ 
+-        // Change the state Data
+-        _currentStateData.value = _currentStateData.value.copy(
+-            currentStep = 4,
+-            isEnrolling = false,
+-            enrollmentProgress = 1f,
+-            enrollmentMessage = "",
+-            isCompleted = true,
+-            errorMessage = null,
+-        )
+-    }
+     fun showError() {
+-        _currentUiState.value = EnrollmentScreenState.Error(message = "Failed To Connect")
+-        _currentStateData.value = EnrollmentState(errorMessage = "Failed To Connect")
++        showSnackBar("Failed to Connect")
++        _uiState.update {
++            it.copy(
++                errorMessage = "Failed to Enroll User"
++            )
++        }
+     }
+ 
+-    fun trackInputField(newEnrollUser: NewEnrollUser) { _currentInputFieldState.value = newEnrollUser }
+-
+-    fun resetTextInputField() { _currentInputFieldState.value = NewEnrollUser() }
+-
+     private fun observeWebSocketState() {
+         viewModelScope.launch {
+             _activeWebsocketState.collect { event ->
+                 when (event) {
+                     is EnrollmentSocketEvent.IDLE -> { }
+ 
+-                    is EnrollmentSocketEvent.Connected -> { levelUpToUserInput() }
+-                    is EnrollmentSocketEvent.EnrollPending -> { levelUpToEnrollmentStepOne() }
+-                    is EnrollmentSocketEvent.EnrollSuccess -> { levelUpToVerifying() }
+-                    is EnrollmentSocketEvent.AttendanceEvent -> { levelUpToComplete() }
+-
++                    is EnrollmentSocketEvent.Connected -> { }
++                    is EnrollmentSocketEvent.EnrollPending -> { }
++                    is EnrollmentSocketEvent.EnrollSuccess -> {
++                        _uiState.update {
++                            it.copy(
++                                currentStep = 4,
++                                enrollmentProgress = .90f,
++                                enrollmentScreenState = EnrollmentScreenState.Enrolled
++                            )
++                        }
++                    }
++                    is EnrollmentSocketEvent.AttendanceEvent -> { }
+                     is EnrollmentSocketEvent.Disconnected -> { showError() }
+                     is EnrollmentSocketEvent.VerificationFailed -> { showError() }
+                     is EnrollmentSocketEvent.Error -> { showError() }
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/StartEnrollmentProcess.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/StartEnrollmentProcess.kt
+index d40943b..fe8cb55 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/StartEnrollmentProcess.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/StartEnrollmentProcess.kt
+@@ -7,29 +7,29 @@ import androidx.hilt.navigation.compose.hiltViewModel
+ import androidx.navigation.NavBackStackEntry
+ import com.bandymoot.fingerprint.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
+ import com.bandymoot.fingerprint.app.ui.screen.enroll.event.EnrollScreenEvent
++import com.bandymoot.fingerprint.app.ui.screen.socket.SocketEventViewModel
++import com.bandymoot.fingerprint.app.utils.AppConstant
+ 
+ @Composable
+ fun StartEnrollmentProcess(
+     onCompleteEnrollment: () -> Unit,
+-    navBackStackEntry: NavBackStackEntry?
++    navBackStackEntry: NavBackStackEntry?,
++    socketViewModel: SocketEventViewModel = hiltViewModel()
+ ) {
+     val viewModel: EnrollmentViewModel = if(navBackStackEntry==null) { hiltViewModel() } else { hiltViewModel(navBackStackEntry) }
++    val uiState by viewModel.uiState.collectAsState()
+ 
+-    // These two values changes together -> cause 2 recomposition -> Fix in later version!
+-    val currentUiState by viewModel.currentUiState.collectAsState()
+-    val currentStateData by viewModel.currentStateData.collectAsState()
+-    val currentTextFieldData by viewModel.currentInputFieldState.collectAsState()
++
++    val socket = socketViewModel.events.collectAsState()
++
++    AppConstant.debugMessage("CHECK THE DATA OVER HERE :: ${socket.value.data}")
+ 
+     FingerprintEnrollmentScreen(
+-        uiState = currentUiState,
+-        stateData = currentStateData,
+-        currentTextFieldData = currentTextFieldData,
+-        onStartEnrollment = { viewModel.onEvent(EnrollScreenEvent.ConnectToSocket) },
+-        onRetry = { viewModel.onEvent(EnrollScreenEvent.IDLE) },
+-        onComplete = {
+-            // Level 2 & 3 are only updated within viewmodel, currently the business logic is inside UI!!
+-            // Fix as soon / or after connecting the Websocket!!
+-            viewModel.onEvent(EnrollScreenEvent.LevelUp) },
++        uiState = uiState,
++        onStartEnrollment = { viewModel.onEvent(EnrollScreenEvent.StartEnrollment) },
++        onRetry = { viewModel.onEvent(EnrollScreenEvent.RESET) },
++        onValidateInputAndStartEnroll = { viewModel.onEvent(EnrollScreenEvent.ValidateUserInfoAndStartBiometric) },
++        onComplete = { },
+         onCompleteEnrollment = onCompleteEnrollment,
+         onInputChanged = { it -> viewModel.onEvent(EnrollScreenEvent.TextFieldInput(it)) }
+     )
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentActionOne.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentActionOne.kt
+index cf2967d..b521d47 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentActionOne.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentActionOne.kt
+@@ -1,117 +1,205 @@
+ package com.bandymoot.fingerprint.app.ui.screen.enroll.components
+ 
+ import androidx.compose.foundation.layout.Arrangement
+-import androidx.compose.foundation.layout.Column
++import androidx.compose.foundation.layout.PaddingValues
+ import androidx.compose.foundation.layout.Row
++import androidx.compose.foundation.layout.WindowInsets
+ import androidx.compose.foundation.layout.fillMaxWidth
+-import androidx.compose.foundation.rememberScrollState
+-import androidx.compose.foundation.verticalScroll
++import androidx.compose.foundation.layout.imePadding
++import androidx.compose.foundation.layout.navigationBars
++import androidx.compose.foundation.layout.navigationBarsPadding
++import androidx.compose.foundation.layout.windowInsetsPadding
++import androidx.compose.foundation.lazy.LazyColumn
++import androidx.compose.foundation.lazy.rememberLazyListState
+ import androidx.compose.material3.Button
++import androidx.compose.material3.DropdownMenuItem
++import androidx.compose.material3.ExperimentalMaterial3Api
++import androidx.compose.material3.ExposedDropdownMenuBox
++import androidx.compose.material3.ExposedDropdownMenuDefaults
++import androidx.compose.material3.FilledTonalButton
+ import androidx.compose.material3.MaterialTheme
+ import androidx.compose.material3.OutlinedButton
+ import androidx.compose.material3.OutlinedTextField
+ import androidx.compose.material3.Text
+ import androidx.compose.runtime.Composable
++import androidx.compose.runtime.getValue
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.runtime.remember
++import androidx.compose.runtime.rememberCoroutineScope
++import androidx.compose.runtime.setValue
+ import androidx.compose.ui.Modifier
++import androidx.compose.ui.platform.LocalFocusManager
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.sp
+ import com.bandymoot.fingerprint.app.domain.model.NewEnrollUser
+-import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentScreenState
+ import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
++import kotlinx.coroutines.launch
+ 
++@OptIn(ExperimentalMaterial3Api::class)
+ @Composable
+ fun EnrollmentActionOne(
+-    uiState: EnrollmentScreenState,
+-    state: EnrollmentState,
++    uiState: EnrollmentState,
+     onRetry: () -> Unit,
+     onComplete: () -> Unit,
+     newUser: NewEnrollUser,
+     onInputChanged: (NewEnrollUser) -> Unit
+ ) {
+-    Column(
++    val listState = rememberLazyListState()
++    val scope = rememberCoroutineScope()
++    val focusManager = LocalFocusManager.current
++
++    var deviceExpanded by remember { mutableStateOf(false) }
++
++    LazyColumn(
++        state = listState,
+         verticalArrangement = Arrangement.spacedBy(12.dp),
+-        modifier = Modifier.verticalScroll(rememberScrollState()),
++        modifier = Modifier
++            .fillMaxWidth()
++//            .imePadding()
++//            .windowInsetsPadding(WindowInsets.navigationBars)
+     ) {
+ 
+-        // These data need to be validated && Must be stored in viewModel temporarly..!!
+-        // Otherwise there will be some side-effects!
+-        OutlinedTextField(
+-            value = newUser.name,
+-            onValueChange = { onInputChanged(newUser.copy(name = it)) },
+-            placeholder = { Text("Name") },
+-            maxLines = 1,
+-            modifier = Modifier.fillMaxWidth()
+-        )
++        item {
++            ScrollToTopButton {
++                focusManager.clearFocus(force = true)
++                scope.launch {
++                    listState.animateScrollToItem(0)
++                }
++            }
++        }
+ 
+-        OutlinedTextField(
+-            value = newUser.email,
+-            onValueChange = { onInputChanged(newUser.copy(email = it)) },
+-            placeholder = { Text("Email") },
+-            maxLines = 1,
+-            modifier = Modifier.fillMaxWidth()
+-        )
++        item {
++            OutlinedTextField(
++                value = newUser.name,
++                onValueChange = { onInputChanged(newUser.copy(name = it)) },
++                label = { Text("Name") },
++                singleLine = true,
++                modifier = Modifier.fillMaxWidth()
++            )
++        }
+ 
+-        OutlinedTextField(
+-            value = newUser.employeeId,
+-            onValueChange = { onInputChanged(newUser.copy(employeeId = it)) },
+-            placeholder = { Text("Employee ID") },
+-            maxLines = 1,
+-            modifier = Modifier.fillMaxWidth()
+-        )
++        item {
++            OutlinedTextField(
++                value = newUser.email,
++                onValueChange = { onInputChanged(newUser.copy(email = it)) },
++                label = { Text("Email") },
++                singleLine = true,
++                modifier = Modifier.fillMaxWidth()
++            )
++        }
+ 
+-        OutlinedTextField(
+-            value = newUser.phone,
+-            onValueChange = { onInputChanged(newUser.copy(phone = it)) },
+-            placeholder = { Text("Phone") },
+-            maxLines = 1,
+-            modifier = Modifier.fillMaxWidth()
+-        )
++        item {
++            OutlinedTextField(
++                value = newUser.employeeId,
++                onValueChange = { onInputChanged(newUser.copy(employeeId = it)) },
++                label = { Text("Employee ID") },
++                singleLine = true,
++                modifier = Modifier.fillMaxWidth()
++            )
++        }
+ 
+-        OutlinedTextField(
+-            value = newUser.department,
+-            onValueChange = { onInputChanged(newUser.copy(department = it)) },
+-            placeholder = { Text("Department") },
+-            maxLines = 1,
+-            modifier = Modifier.fillMaxWidth()
+-        )
++        item {
++            OutlinedTextField(
++                value = newUser.phone,
++                onValueChange = { onInputChanged(newUser.copy(phone = it)) },
++                label = { Text("Phone") },
++                singleLine = true,
++                modifier = Modifier.fillMaxWidth()
++            )
++        }
+ 
+-        // TimeZone (simple version for now)
+-        OutlinedTextField(
+-            value = newUser.timeZone,
+-            onValueChange = { onInputChanged(newUser.copy(timeZone = it)) },
+-            placeholder = { Text("Time Zone") },
+-            maxLines = 1,
+-            modifier = Modifier.fillMaxWidth(),
+-            readOnly = true
+-        )
++        item {
++            OutlinedTextField(
++                value = newUser.department,
++                onValueChange = { onInputChanged(newUser.copy(department = it)) },
++                label = { Text("Department") },
++                singleLine = true,
++                modifier = Modifier.fillMaxWidth()
++            )
++        }
+ 
+-        Row(
+-            modifier = Modifier.fillMaxWidth(),
+-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+-        ) {
+-            Button(
+-                onClick = onComplete,
+-                modifier = Modifier.weight(1f),
+-                shape = MaterialTheme.shapes.large,
+-                enabled = true
++        /** Device selector */
++        item {
++            ExposedDropdownMenuBox(
++                expanded = deviceExpanded,
++                onExpandedChange = { deviceExpanded = !deviceExpanded }
+             ) {
+-                Text(
+-                    text = "Continue",
+-                    fontSize = 16.sp,
+-                    fontWeight = FontWeight.SemiBold
++                OutlinedTextField(
++                    value = newUser.deviceId,
++                    onValueChange = {},
++                    readOnly = true,
++                    label = { Text("Select Device") },
++                    trailingIcon = {
++                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = deviceExpanded)
++                    },
++                    modifier = Modifier
++                        .fillMaxWidth()
+                 )
++
++                ExposedDropdownMenu(
++                    expanded = deviceExpanded,
++                    onDismissRequest = { deviceExpanded = false }
++                ) {
++                    uiState.listOfDevice.forEach { device ->
++                        DropdownMenuItem(
++                            text = { Text(device.name ?: device.deviceCode) },
++                            onClick = {
++                                onInputChanged(newUser.copy(deviceId = device.deviceCode))
++                                deviceExpanded = false
++                                focusManager.clearFocus()
++                            }
++                        )
++                    }
++                }
+             }
++        }
+ 
+-            if (state.errorMessage != null) {
+-                OutlinedButton(
+-                    onClick = onRetry,
++        item {
++            Row(
++                modifier = Modifier.fillMaxWidth(),
++                horizontalArrangement = Arrangement.spacedBy(16.dp)
++            ) {
++                Button(
++                    onClick = {
++                        focusManager.clearFocus()
++                        onComplete()
++                    },
+                     modifier = Modifier.weight(1f),
+                     shape = MaterialTheme.shapes.large
+                 ) {
+-                    Text("Retry")
++                    Text(
++                        text = "Continue",
++                        fontSize = 16.sp,
++                        fontWeight = FontWeight.SemiBold
++                    )
++                }
++
++                if (uiState.errorMessage != null) {
++                    OutlinedButton(
++                        onClick = onRetry,
++                        modifier = Modifier.weight(1f),
++                        shape = MaterialTheme.shapes.large
++                    ) {
++                        Text("Retry")
++                    }
+                 }
+             }
+         }
+     }
+-}
+\ No newline at end of file
++}
++
++@Composable
++private fun ScrollToTopButton(onClick: () -> Unit) {
++    Row(
++        modifier = Modifier.fillMaxWidth(),
++        horizontalArrangement = Arrangement.End
++    ) {
++        FilledTonalButton(
++            onClick = onClick,
++            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
++        ) {
++            Text("↑ Top")
++        }
++    }
++}
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentActionTwo.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentActionTwo.kt
+index 03fbee4..8b2390f 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentActionTwo.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentActionTwo.kt
+@@ -9,14 +9,12 @@ import androidx.compose.runtime.LaunchedEffect
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.unit.dp
+-import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentScreenState
+ import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
+ import kotlinx.coroutines.delay
+ 
+ @Composable
+ fun EnrollmentActionTwo(
+-    uiState: EnrollmentScreenState,
+-    state: EnrollmentState,
++    uiState: EnrollmentState,
+     onRetry: () -> Unit,
+     onComplete: () -> Unit
+ ) {
+@@ -27,13 +25,13 @@ fun EnrollmentActionTwo(
+     // We may experience some crash if we rotate the screen for now / or Change tHEME!!
+     // I need structure like hell!!!(something i've never done before)
+     // This business logic inside UI is dangerous!, Kindly move to viewModel!!!
+-    LaunchedEffect(state) {
+-        if(state.currentStep == 2) {
++    LaunchedEffect(uiState) {
++        if(uiState.currentStep == 2) {
+             delay(4000)
+             onComplete()
+         }
+         // At step 3 check from the websocket, if we get enrolled response!!
+-        if(state.currentStep == 3) {
++        if(uiState.currentStep == 3) {
+             delay(5000)
+             onComplete()
+         }
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentActions.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentActions.kt
+index 47c1460..f2d85c0 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentActions.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentActions.kt
+@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.Spacer
+ import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.fillMaxWidth
+ import androidx.compose.foundation.layout.height
++import androidx.compose.foundation.layout.padding
+ import androidx.compose.foundation.layout.size
+ import androidx.compose.material.icons.Icons
+ import androidx.compose.material.icons.filled.Check
+ import androidx.compose.material.icons.filled.PersonAdd
+ import androidx.compose.material3.Button
++import androidx.compose.material3.CircularProgressIndicator
+ import androidx.compose.material3.Icon
+ import androidx.compose.material3.MaterialTheme
+ import androidx.compose.material3.OutlinedButton
+@@ -28,8 +30,7 @@ import com.bandymoot.fingerprint.app.utils.AppConstant
+ 
+ @Composable
+ fun EnrollmentActions(
+-    uiState: EnrollmentScreenState,
+-    state: EnrollmentState,
++    uiState: EnrollmentState,
+     onStartEnrollment: () -> Unit,
+     onRetry: () -> Unit,
+     onComplete: () -> Unit,
+@@ -47,7 +48,7 @@ fun EnrollmentActions(
+             verticalArrangement = Arrangement.Center,
+             horizontalAlignment = Alignment.CenterHorizontally
+         ) {
+-            when(uiState) {
++            when(uiState.enrollmentScreenState) {
+                 // Add the current UI State -> Success / Failed
+                 is EnrollmentScreenState.Completed -> {
+                     Icon(
+@@ -85,45 +86,55 @@ fun EnrollmentActions(
+ 
+         // Buttons Row
+         Row(
+-            modifier = Modifier.fillMaxWidth(),
++            modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
+             horizontalArrangement = Arrangement.spacedBy(16.dp)
+         ) {
+-            if (uiState == EnrollmentScreenState.IDLE) {
+-                Button(
+-                    onClick = onStartEnrollment,
+-                    modifier = Modifier.weight(1f),
+-                    shape = MaterialTheme.shapes.large,
+-                    enabled = true
+-                ) {
+-                    Text(
+-                        text = "Start Enrollment",
+-                        fontSize = 16.sp,
+-                        fontWeight = FontWeight.SemiBold
+-                    )
++            when {
++                uiState.errorMessage != null -> {
++                    OutlinedButton(
++                        onClick = onRetry,
++                        modifier = Modifier.weight(1f),
++                        shape = MaterialTheme.shapes.large
++                    ) {
++                        Text("Retry")
++                    }
+                 }
+-            }
+ 
+-            if (uiState == EnrollmentScreenState.Completed) {
+-                Button(
+-                    onClick = onCompleteEnrollment,
+-                    modifier = Modifier.weight(1f),
+-                    shape = MaterialTheme.shapes.large
+-                ) {
+-                    Text(
+-                        text = "Continue",
+-                        fontSize = 16.sp,
+-                        fontWeight = FontWeight.SemiBold
+-                    )
++                uiState.enrollmentScreenState == EnrollmentScreenState.IDLE -> {
++                    Button(
++                        onClick = onStartEnrollment,
++                        modifier = Modifier.weight(1f),
++                        shape = MaterialTheme.shapes.large,
++                        enabled = !uiState.isLoading
++                    ) {
++                        if (uiState.isLoading) {
++                            CircularProgressIndicator(
++                                modifier = Modifier.size(20.dp),
++                                strokeWidth = 2.dp,
++                                color = MaterialTheme.colorScheme.onPrimary
++                            )
++                        } else {
++                            Text(
++                                text = "Start Enrollment",
++                                fontSize = 16.sp,
++                                fontWeight = FontWeight.SemiBold
++                            )
++                        }
++                    }
+                 }
+-            }
+ 
+-            if (state.errorMessage != null) {
+-                OutlinedButton(
+-                    onClick = onRetry,
+-                    modifier = Modifier.weight(1f),
+-                    shape = MaterialTheme.shapes.large
+-                ) {
+-                    Text("Retry")
++                uiState.enrollmentScreenState == EnrollmentScreenState.Completed -> {
++                    Button(
++                        onClick = onCompleteEnrollment,
++                        modifier = Modifier.weight(1f),
++                        shape = MaterialTheme.shapes.large
++                    ) {
++                        Text(
++                            text = "Continue",
++                            fontSize = 16.sp,
++                            fontWeight = FontWeight.SemiBold
++                        )
++                    }
+                 }
+             }
+         }
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentHeader.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentHeader.kt
+index affa755..9f3c99d 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentHeader.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentHeader.kt
+@@ -11,18 +11,13 @@ import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
+ 
+ @Composable
+ fun EnrollmentHeader(
+-    uiState: EnrollmentScreenState,
+-    state: EnrollmentState
++    uiState: EnrollmentState,
+ ) {
+     Column(
+         horizontalAlignment = Alignment.CenterHorizontally
+     ) {
+ 
+-        val text = if(state.isCompleted) {
+-            "Enrollment Complete!" //+ uiState.toString() // + state.enrollmentMessage + "Step: ${state.currentStep}"
+-        } else {
+-            "Fingerprint Enrollment" //+ uiState.toString()// + state.enrollmentMessage + "Step: ${state.currentStep}"
+-        }
++        val text = "Fingerprint Enrollment"
+ 
+         // Show Header
+         Text(
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentProgressSection.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentProgressSection.kt
+index 16f88bb..bd265d1 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentProgressSection.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/EnrollmentProgressSection.kt
+@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.text.style.TextAlign
+ import androidx.compose.ui.unit.dp
++import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentScreenState
+ import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
+ import com.bandymoot.fingerprint.app.ui.screen.enroll.utils.UtilsEnrollScreen
+ 
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt
+index 05b536f..14806f4 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/components/FingerprintEnrollmentScreen.kt
+@@ -21,12 +21,11 @@ import com.bandymoot.fingerprint.app.utils.DebugType
+ 
+ @Composable
+ fun FingerprintEnrollmentScreen(
+-    uiState: EnrollmentScreenState,
+-    stateData: EnrollmentState,
+-    currentTextFieldData: NewEnrollUser,
++    uiState: EnrollmentState,
+     onStartEnrollment: () -> Unit,
+-    onRetry: () -> Unit,
++    onRetry: () -> Unit,    // Need to build retry mechanism!
+     onComplete: () -> Unit,
++    onValidateInputAndStartEnroll: () -> Unit,
+     onCompleteEnrollment: () -> Unit,
+     onInputChanged: (NewEnrollUser) -> Unit,
+     modifier: Modifier = Modifier
+@@ -42,25 +41,20 @@ fun FingerprintEnrollmentScreen(
+             horizontalAlignment = Alignment.CenterHorizontally,
+         ) {
+             // Title section
+-            EnrollmentHeader(uiState, stateData)
++            EnrollmentHeader(uiState)
+ 
+             Spacer(modifier = Modifier.height(48.dp))
+ 
+             // Progress and instruction
+-            EnrollmentProgressSection(stateData)
++            EnrollmentProgressSection(uiState)
+ 
+             Spacer(modifier = Modifier.height(32.dp))
+ 
+-            // Enrollment actions -> handles start and stop
+-            // EnrollmentActionOne -> handles
+-
+-            AppConstant.debugMessage("Current UiState: $uiState && data: $stateData")
+-            when(uiState) {
++            when(uiState.enrollmentScreenState) {
+                 is EnrollmentScreenState.IDLE -> {
+                     // Call onStartEnrollment
+                     EnrollmentActions(
+                         uiState = uiState,
+-                        state = stateData,
+                         onStartEnrollment = onStartEnrollment,
+                         onRetry = onRetry,
+                         onComplete = onComplete,
+@@ -72,10 +66,9 @@ fun FingerprintEnrollmentScreen(
+                     AppConstant.debugMessage("The UserInput is been rendered!", debugType = DebugType.DESCRIPTION)
+                     EnrollmentActionOne(
+                         uiState = uiState,
+-                        state = stateData,
+                         onRetry = onRetry,
+-                        onComplete = onComplete,
+-                        newUser = currentTextFieldData,
++                        onComplete = onValidateInputAndStartEnroll,
++                        newUser = uiState.userEnrollInfo,
+                         onInputChanged = onInputChanged
+                     )
+                 }
+@@ -83,7 +76,6 @@ fun FingerprintEnrollmentScreen(
+                 is EnrollmentScreenState.EnrollingStepOne, EnrollmentScreenState.EnrollingStepTwo -> {
+                     EnrollmentActionTwo(
+                         uiState = uiState,
+-                        state = stateData,
+                         onRetry = onRetry,
+                         onComplete = onComplete
+                     )
+@@ -98,7 +90,6 @@ fun FingerprintEnrollmentScreen(
+                 is EnrollmentScreenState.Completed -> {
+                     EnrollmentActions(
+                         uiState = uiState,
+-                        state = stateData,
+                         onStartEnrollment = onStartEnrollment,
+                         onRetry = onRetry,
+                         onComplete = onComplete,
+@@ -109,7 +100,7 @@ fun FingerprintEnrollmentScreen(
+             }
+ 
+             // Error message if any
+-            stateData.errorMessage?.let {
++            uiState.errorMessage?.let {
+                 Spacer(modifier = Modifier.height(16.dp))
+                 ErrorMessage(it)
+             }
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/event/EnrollScreenEvent.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/event/EnrollScreenEvent.kt
+index 4a2a52d..507499c 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/event/EnrollScreenEvent.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/event/EnrollScreenEvent.kt
+@@ -3,18 +3,14 @@ package com.bandymoot.fingerprint.app.ui.screen.enroll.event
+ import com.bandymoot.fingerprint.app.domain.model.NewEnrollUser
+ 
+ sealed class EnrollScreenEvent {
+-    object LevelUp: EnrollScreenEvent()
+-    object IDLE: EnrollScreenEvent()
+-    object ConnectToSocket: EnrollScreenEvent()
+-    object UserInput: EnrollScreenEvent()
+-    object EnrollingStepOne: EnrollScreenEvent()
+-    object EnrollingStepTwo: EnrollScreenEvent()
+-    object Verifying: EnrollScreenEvent()
++    object StartEnrollment: EnrollScreenEvent()
++    object ValidateUserInfoAndStartBiometric: EnrollScreenEvent()
++    object CheckSocketConnection: EnrollScreenEvent()
++    object Verify: EnrollScreenEvent()
+     object Completed: EnrollScreenEvent()
+     object CANCEL: EnrollScreenEvent()
++    object RESET: EnrollScreenEvent()
+ 
+     data class TextFieldInput(val newEnrollUser: NewEnrollUser): EnrollScreenEvent()
+     object ResetTextFieldInput: EnrollScreenEvent() // Do use me!
+-
+-    data class Error(val message: String?): EnrollScreenEvent()
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/state/EnrollmentState.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/state/EnrollmentState.kt
+index 875838e..4874090 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/state/EnrollmentState.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/state/EnrollmentState.kt
+@@ -1,11 +1,29 @@
+ package com.bandymoot.fingerprint.app.ui.screen.enroll.state
+ 
++import com.bandymoot.fingerprint.app.domain.model.Device
++import com.bandymoot.fingerprint.app.domain.model.NewEnrollUser
++
+ data class EnrollmentState (
+     val currentStep: Int = 1,
+     val totalSteps: Int = 4,
+-    val isEnrolling: Boolean = false,
+     val enrollmentProgress: Float = 0f,
+     val enrollmentMessage: String = "",
+     val isCompleted: Boolean = false,
++    val userEnrollInfo: NewEnrollUser = NewEnrollUser(),
++    val enrollmentScreenState: EnrollmentScreenState = EnrollmentScreenState.IDLE,
++    val isLoading: Boolean = false,
++    val isEnrolling: Boolean = false,
++    val listOfDevice: List<Device> = emptyList(),
+     val errorMessage: String? = null
+-)
+\ No newline at end of file
++)
++
++sealed class EnrollmentScreenState {
++    object IDLE: EnrollmentScreenState()
++    object UserInput: EnrollmentScreenState()
++    object EnrollingStepOne: EnrollmentScreenState()
++    object EnrollingStepTwo: EnrollmentScreenState()
++    object Enrolled: EnrollmentScreenState()
++    object Verifying: EnrollmentScreenState()
++    object Completed: EnrollmentScreenState()
++    data class Error(val message: String?): EnrollmentScreenState()
++}
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestEnrollmentActions.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestEnrollmentActions.kt
+index 5bd534e..c60529b 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestEnrollmentActions.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestEnrollmentActions.kt
+@@ -10,6 +10,5 @@ import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
+ @Composable
+ fun TestEnrollmentActions() {
+     val state = EnrollmentState()
+-    val uiState = EnrollmentScreenState.IDLE
+-    EnrollmentActions(uiState, state, {}, {}, {}, {})
++    EnrollmentActions(state, {}, {}, {}, {})
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestEnrollmentHeader.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestEnrollmentHeader.kt
+index 15e52a6..fec8a5d 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestEnrollmentHeader.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestEnrollmentHeader.kt
+@@ -1,16 +1,14 @@
+-package com.bandymoot.fingerprint.app.ui.enroll.tests
++package com.bandymoot.fingerprint.app.ui.screen.enroll.tests
+ 
+ import androidx.compose.runtime.Composable
+ import androidx.compose.ui.tooling.preview.Preview
+ import com.bandymoot.fingerprint.app.ui.screen.enroll.components.EnrollmentHeader
+-import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentScreenState
+ import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
+ 
+ @Preview(showBackground = true)
+ @Composable
+ fun TestEnrollmentHeader() {
+-    val uiState = EnrollmentScreenState.IDLE
+     val state = EnrollmentState()
+ 
+-    EnrollmentHeader(uiState, state)
++    EnrollmentHeader(state)
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestEnrollmentProgressSection.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestEnrollmentProgressSection.kt
+index f997c68..fa93ff2 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestEnrollmentProgressSection.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestEnrollmentProgressSection.kt
+@@ -1,4 +1,4 @@
+-package com.bandymoot.fingerprint.app.ui.enroll.tests
++package com.bandymoot.fingerprint.app.ui.screen.enroll.tests
+ 
+ import androidx.compose.runtime.Composable
+ import androidx.compose.ui.tooling.preview.Preview
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestErrorMessage.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestErrorMessage.kt
+index 004fa3d..c0e1b8b 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestErrorMessage.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestErrorMessage.kt
+@@ -1,4 +1,4 @@
+-package com.bandymoot.fingerprint.app.ui.enroll.tests
++package com.bandymoot.fingerprint.app.ui.screen.enroll.tests
+ 
+ import androidx.compose.runtime.Composable
+ import androidx.compose.ui.tooling.preview.Preview
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestFingerprintEnrollment.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestFingerprintEnrollment.kt
+index 8877dd9..f8ca758 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestFingerprintEnrollment.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestFingerprintEnrollment.kt
+@@ -1,4 +1,4 @@
+-package com.bandymoot.fingerprint.app.ui.enroll.tests
++package com.bandymoot.fingerprint.app.ui.screen.enroll.tests
+ 
+ //@Preview(showBackground = true, showSystemUi = true)
+ //@Composable
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestStepIndicator.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestStepIndicator.kt
+index 36c06db..5ef6173 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestStepIndicator.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/enroll/tests/TestStepIndicator.kt
+@@ -1,4 +1,4 @@
+-package com.bandymoot.fingerprint.app.ui.enroll.tests
++package com.bandymoot.fingerprint.app.ui.screen.enroll.tests
+ 
+ import androidx.compose.runtime.Composable
+ import androidx.compose.ui.tooling.preview.Preview
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/socket/SocketEventViewModel.kt b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/socket/SocketEventViewModel.kt
+index 05a880c..936c9b3 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/socket/SocketEventViewModel.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/ui/screen/socket/SocketEventViewModel.kt
+@@ -2,70 +2,27 @@ package com.bandymoot.fingerprint.app.ui.screen.socket
+ 
+ import androidx.lifecycle.ViewModel
+ import androidx.lifecycle.viewModelScope
+-import com.bandymoot.fingerprint.app.data.local.TokenProvider
+ import com.bandymoot.fingerprint.app.data.socket.SocketManager
+ import com.bandymoot.fingerprint.app.domain.model.SocketEvent
+-import com.bandymoot.fingerprint.app.utils.AppConstant
+ import dagger.hilt.android.lifecycle.HiltViewModel
+ import kotlinx.coroutines.flow.MutableSharedFlow
++import kotlinx.coroutines.flow.MutableStateFlow
+ import kotlinx.coroutines.flow.SharedFlow
++import kotlinx.coroutines.flow.StateFlow
+ import kotlinx.coroutines.launch
+ import javax.inject.Inject
+ 
+ @HiltViewModel
+-class SocketViewModel @Inject constructor(
+-    private val tokenProvider: TokenProvider
+-): ViewModel() {
+-
+-    private val _deviceStatus = MutableSharedFlow<Any>()
+-    val deviceStatus: SharedFlow<Any> = _deviceStatus
+-
+-    private val _attendanceStatus = MutableSharedFlow<Any>()
+-    val attendanceStatus: SharedFlow<Any> = _attendanceStatus
++class SocketEventViewModel @Inject constructor(
+ 
+-    private val _message = MutableSharedFlow<Any>()
+-    val message: SharedFlow<Any> = _message
+-
+-    private val _connectionState = MutableSharedFlow<Boolean>()
+-    val connectionState: SharedFlow<Boolean> = _connectionState
+-
+-    fun startSocket(token: String = tokenProvider.getAccessToken() ?: "INVALID_TOKEN") {
++): ViewModel() {
+ 
+-        AppConstant.debugMessage("CONNECTING TO SOCKET!")
++    private val _events = MutableStateFlow<SocketEvent>(SocketEvent.IDLE())
++    val events: StateFlow<SocketEvent> = _events
+ 
++    init {
+         SocketManager.setListener { event ->
+-            viewModelScope.launch {
+-
+-                AppConstant.debugMessage("TheSocketEvent: ${event.data}")
+-                when (event) {
+-                    is SocketEvent.Connected -> {
+-                        _connectionState.emit(true)
+-                    }
+-                    is SocketEvent.Disconnected -> {
+-                        _connectionState.emit(false)
+-                    }
+-                    is SocketEvent.DeviceStatus -> {
+-                        _deviceStatus.emit(event.data)
+-                    }
+-                    is SocketEvent.AttendanceStatus -> {
+-                        _attendanceStatus.emit(event.data)
+-                    }
+-                    is SocketEvent.Message -> {
+-                        _message.emit(event.data)
+-                    }
+-                }
+-            }
++            viewModelScope.launch { _events.emit(event) }
+         }
+-
+-        SocketManager.init(token, AppConstant.SOCKET_URL)
+-        SocketManager.connect()
+-    }
+-
+-    fun stopSocket() {
+-        SocketManager.disconnect()
+-    }
+-
+-    fun sendMessage(event: String, data: Any) {
+-        SocketManager.emit(event, data)
+     }
+-}
++}
+\ No newline at end of file
+diff --git a/app/src/main/java/com/bandymoot/fingerprint/app/utils/AppConstant.kt b/app/src/main/java/com/bandymoot/fingerprint/app/utils/AppConstant.kt
+index 6344ade..f9550d2 100644
+--- a/app/src/main/java/com/bandymoot/fingerprint/app/utils/AppConstant.kt
++++ b/app/src/main/java/com/bandymoot/fingerprint/app/utils/AppConstant.kt
+@@ -4,8 +4,10 @@ import android.util.Log
+ 
+ object AppConstant {
+     const val BASE_URL = "http://192.168.0.176:4000/"
+-    const val WEB_SOCKET_URL = "ws://137.97.126.110:4005"
++    const val WEB_SOCKET_URL = "ws://192.168.0.176:4000"
++    const val SOCKET_URL = "http://192.168.0.176:4000"
+     const val LOGIN_USER_API = "api/auth/login/manager"
++    const val START_USER_ENROLLMENT = "/api/user/enrolled-user"
+     const val GET_ALL_USERS_API = "api/users"
+     const val USER_GET_URL = "api/users/fp" // add the ID of user
+     const val GET_USER_BY_ID_API = "api/users/fp"
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+index b96a0ee..4bfef11 100644
+--- a/gradle/libs.versions.toml
++++ b/gradle/libs.versions.toml
+@@ -25,6 +25,8 @@ hilt = "2.51"
+ hilt-navigation = "1.2.0"
+ junitKtx = "1.3.0"
+ room = "2.6.1"
++socketio = "2.1.0"
++json = "20231013"
+ 
+ [libraries]
+ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+@@ -54,6 +56,8 @@ androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.
+ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room"}
+ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
++socketio-client = { group = "io.socket", name = "socket.io-client", version.ref = "socketio" }
++json = { group = "org.json", name = "json", version.ref = "json" }
+ 
+ [plugins]
+ # android.application helps in buiding the application + understand the "android{}" block

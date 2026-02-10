@@ -15,10 +15,10 @@ class AuthRepositoryImpl @Inject constructor(
     private val tokenProvider: TokenProvider
 ): AuthRepository {
 
-    override suspend fun loginUser(userName: String, password: String): LoginResult {
+    override suspend fun loginUser(userEmail: String, password: String): LoginResult {
 
         try {
-            val request = LoginRequest(userName, password)
+            val request = LoginRequest(userEmail, password)
             val response = apiServices.loginUser(request)
 
             if (!response.isSuccessful) {
@@ -33,6 +33,8 @@ class AuthRepositoryImpl @Inject constructor(
                 )
 
             tokenProvider.saveAccessToken(body.data)
+            tokenProvider.saveUserEmail(email = userEmail)
+            tokenProvider.saveLoginTimestamp()
 
             return LoginResult.Success(isAuthenticated = true)
 
@@ -42,6 +44,6 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun logout() {
-        TODO("Not yet implemented")
+        tokenProvider.removeAllToken()
     }
 }

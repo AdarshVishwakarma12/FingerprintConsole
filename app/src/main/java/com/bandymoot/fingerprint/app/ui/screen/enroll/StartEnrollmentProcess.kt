@@ -7,29 +7,29 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import com.bandymoot.fingerprint.app.ui.screen.enroll.components.FingerprintEnrollmentScreen
 import com.bandymoot.fingerprint.app.ui.screen.enroll.event.EnrollScreenEvent
+import com.bandymoot.fingerprint.app.ui.screen.socket.SocketEventViewModel
+import com.bandymoot.fingerprint.app.utils.AppConstant
 
 @Composable
 fun StartEnrollmentProcess(
     onCompleteEnrollment: () -> Unit,
-    navBackStackEntry: NavBackStackEntry?
+    navBackStackEntry: NavBackStackEntry?,
+    socketViewModel: SocketEventViewModel = hiltViewModel()
 ) {
     val viewModel: EnrollmentViewModel = if(navBackStackEntry==null) { hiltViewModel() } else { hiltViewModel(navBackStackEntry) }
+    val uiState by viewModel.uiState.collectAsState()
 
-    // These two values changes together -> cause 2 recomposition -> Fix in later version!
-    val currentUiState by viewModel.currentUiState.collectAsState()
-    val currentStateData by viewModel.currentStateData.collectAsState()
-    val currentTextFieldData by viewModel.currentInputFieldState.collectAsState()
+
+    val socket = socketViewModel.events.collectAsState()
+
+    AppConstant.debugMessage("CHECK THE DATA OVER HERE :: ${socket.value.data}")
 
     FingerprintEnrollmentScreen(
-        uiState = currentUiState,
-        stateData = currentStateData,
-        currentTextFieldData = currentTextFieldData,
-        onStartEnrollment = { viewModel.onEvent(EnrollScreenEvent.ConnectToSocket) },
-        onRetry = { viewModel.onEvent(EnrollScreenEvent.IDLE) },
-        onComplete = {
-            // Level 2 & 3 are only updated within viewmodel, currently the business logic is inside UI!!
-            // Fix as soon / or after connecting the Websocket!!
-            viewModel.onEvent(EnrollScreenEvent.LevelUp) },
+        uiState = uiState,
+        onStartEnrollment = { viewModel.onEvent(EnrollScreenEvent.StartEnrollment) },
+        onRetry = { viewModel.onEvent(EnrollScreenEvent.RESET) },
+        onValidateInputAndStartEnroll = { viewModel.onEvent(EnrollScreenEvent.ValidateUserInfoAndStartBiometric) },
+        onComplete = { },
         onCompleteEnrollment = onCompleteEnrollment,
         onInputChanged = { it -> viewModel.onEvent(EnrollScreenEvent.TextFieldInput(it)) }
     )

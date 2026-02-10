@@ -11,12 +11,14 @@ class LogInUseCase @Inject constructor(
     private val authRepository: AuthRepository
 ) {
     suspend operator fun invoke(email: String, password: String): LoginResult {
+
+        // Validate Input
         if(!email.isValidEmail() || !password.isValidPassword()) {
             return LoginResult.Failed(AppError.InValidDataEntered())
         }
 
         // Validate Rate Limiting!
 
-        return authRepository.loginUser(email, password)
+        return authRepository.loginUser(userEmail = email, password = password)
     }
 }

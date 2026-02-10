@@ -1,4 +1,4 @@
-package com.bandymoot.fingerprint.app.ui.enroll.tests
+package com.bandymoot.fingerprint.app.ui.screen.enroll.tests
 
 //@Preview(showBackground = true, showSystemUi = true)
 //@Composable

@@ -21,12 +21,11 @@ import com.bandymoot.fingerprint.app.utils.DebugType
 
 @Composable
 fun FingerprintEnrollmentScreen(
-    uiState: EnrollmentScreenState,
-    stateData: EnrollmentState,
-    currentTextFieldData: NewEnrollUser,
+    uiState: EnrollmentState,
     onStartEnrollment: () -> Unit,
-    onRetry: () -> Unit,
+    onRetry: () -> Unit,    // Need to build retry mechanism!
     onComplete: () -> Unit,
+    onValidateInputAndStartEnroll: () -> Unit,
     onCompleteEnrollment: () -> Unit,
     onInputChanged: (NewEnrollUser) -> Unit,
     modifier: Modifier = Modifier
@@ -42,25 +41,20 @@ fun FingerprintEnrollmentScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Title section
-            EnrollmentHeader(uiState, stateData)
+            EnrollmentHeader(uiState)
 
             Spacer(modifier = Modifier.height(48.dp))
 
             // Progress and instruction
-            EnrollmentProgressSection(stateData)
+            EnrollmentProgressSection(uiState)
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Enrollment actions -> handles start and stop
-            // EnrollmentActionOne -> handles
-
-            AppConstant.debugMessage("Current UiState: $uiState && data: $stateData")
-            when(uiState) {
+            when(uiState.enrollmentScreenState) {
                 is EnrollmentScreenState.IDLE -> {
                     // Call onStartEnrollment
                     EnrollmentActions(
                         uiState = uiState,
-                        state = stateData,
                         onStartEnrollment = onStartEnrollment,
                         onRetry = onRetry,
                         onComplete = onComplete,
@@ -72,10 +66,9 @@ fun FingerprintEnrollmentScreen(
                     AppConstant.debugMessage("The UserInput is been rendered!", debugType = DebugType.DESCRIPTION)
                     EnrollmentActionOne(
                         uiState = uiState,
-                        state = stateData,
                         onRetry = onRetry,
-                        onComplete = onComplete,
-                        newUser = currentTextFieldData,
+                        onComplete = onValidateInputAndStartEnroll,
+                        newUser = uiState.userEnrollInfo,
                         onInputChanged = onInputChanged
                     )
                 }
@@ -83,7 +76,6 @@ fun FingerprintEnrollmentScreen(
                 is EnrollmentScreenState.EnrollingStepOne, EnrollmentScreenState.EnrollingStepTwo -> {
                     EnrollmentActionTwo(
                         uiState = uiState,
-                        state = stateData,
                         onRetry = onRetry,
                         onComplete = onComplete
                     )
@@ -98,7 +90,6 @@ fun FingerprintEnrollmentScreen(
                 is EnrollmentScreenState.Completed -> {
                     EnrollmentActions(
                         uiState = uiState,
-                        state = stateData,
                         onStartEnrollment = onStartEnrollment,
                         onRetry = onRetry,
                         onComplete = onComplete,
@@ -109,7 +100,7 @@ fun FingerprintEnrollmentScreen(
             }
 
             // Error message if any
-            stateData.errorMessage?.let {
+            uiState.errorMessage?.let {
                 Spacer(modifier = Modifier.height(16.dp))
                 ErrorMessage(it)
             }
