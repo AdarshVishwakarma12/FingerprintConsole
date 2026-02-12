@@ -1,6 +1,7 @@
 package com.bandymoot.fingerprint.app.data.socket
 
-import com.bandymoot.fingerprint.app.domain.model.SocketEvent
+import com.bandymoot.fingerprint.app.data.mapper.toSocketTopicAttendance
+import com.bandymoot.fingerprint.app.data.mapper.toSocketTopicDevice
 import com.bandymoot.fingerprint.app.utils.AppConstant
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -10,6 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 object SocketManager {
 
@@ -35,20 +37,25 @@ object SocketManager {
         socket = IO.socket(serverUrl, options)
 
         socket?.apply {
-            on(Socket.EVENT_CONNECT) {
-                AppConstant.debugMessage("CONNECTING SOCKET :: WORKED")
-                listener?.invoke(SocketEvent.Connected())
-            }
-            on(Socket.EVENT_DISCONNECT) { listener?.invoke(SocketEvent.Disconnected()) }
+            on(Socket.EVENT_CONNECT) { listener?.invoke(SocketEvent.Connected) }
+            on(Socket.EVENT_DISCONNECT) { listener?.invoke(SocketEvent.Disconnected) }
             on("Device_Status") { args ->
-                AppConstant.debugMessage("CONNECTING SOCKET :: WORKED :: DEVICE STATUS :: ${args[0]}")
-                listener?.invoke(SocketEvent.DeviceStatus(args[0]))
+                try {
+                    val jsonObject = args[0] as JSONObject
+                    listener?.invoke(SocketEvent.Device(jsonObject.toSocketTopicDevice()))
+                } catch (e: Exception) {
+                    listener?.invoke(SocketEvent.Error(message = e.message?:e.localizedMessage))
+                }
             }
             on("Attendance_Status") { args ->
-                listener?.invoke(SocketEvent.AttendanceStatus(args[0]))
-                AppConstant.debugMessage("CONNECTING SOCKET :: WORKED :: ATTENDANCE STATUS :: ${args[0]}")
+                try {
+                    val jsonObject = args[0] as JSONObject
+                    listener?.invoke(SocketEvent.Attendance(jsonObject.toSocketTopicAttendance()))
+                } catch (e: Exception) {
+                    listener?.invoke(SocketEvent.Error(message = e.message?:e.localizedMessage))
+                }
             }
-            on("message") { args -> listener?.invoke(SocketEvent.Message(args[0])) }
+            on("message") { args ->  }
         }
     }
 
@@ -69,10 +76,7 @@ object SocketManager {
         }
     }
 
-    fun connect() {
-        AppConstant.debugMessage("CONNECTING 2 Socket")
-        socket?.connect()
-    }
+    fun connect() { socket?.connect() }
 
     fun disconnect() { socket?.disconnect() }
 

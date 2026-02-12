@@ -1,4 +1,4 @@
-package com.bandymoot.fingerprint.app.ui.screen.enroll.utils
+package com.bandymoot.fingerprint.app.ui.screen.enroll_user.utils
 
 // Helper function for step instructions
 object UtilsEnrollScreen {

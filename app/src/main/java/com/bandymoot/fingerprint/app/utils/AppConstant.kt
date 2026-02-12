@@ -3,9 +3,9 @@ package com.bandymoot.fingerprint.app.utils
 import android.util.Log
 
 object AppConstant {
-    const val BASE_URL = "http://192.168.0.176:4000/"
-    const val WEB_SOCKET_URL = "ws://192.168.0.176:4000"
-    const val SOCKET_URL = "http://192.168.0.176:4000"
+    const val BASE_URL = "http://137.97.126.110:4003/"
+    const val WEB_SOCKET_URL = "ws://137.97.126.110:4003"
+    const val SOCKET_URL = "http://137.97.126.110:4003"
     const val LOGIN_USER_API = "api/auth/login/manager"
     const val START_USER_ENROLLMENT = "/api/user/enrolled-user"
     const val GET_ALL_USERS_API = "api/users"
@@ -17,6 +17,9 @@ object AppConstant {
     // Validation Constants
     const val MIN_PASSWORD_LENGTH = 4
     const val MAX_PASSWORD_LENGTH = 128
+
+    // Enroll Timeout
+    const val ENROLLMENT_TIMEOUT: Long = 35_000
 
     // SHARED PREFERENCE
     const val SHARED_PREF = "secure_prefs"

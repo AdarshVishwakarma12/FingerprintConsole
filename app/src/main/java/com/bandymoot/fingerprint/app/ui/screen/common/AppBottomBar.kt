@@ -22,7 +22,7 @@ fun DashboardBottomNav(
 ) {
 
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surfaceVariant
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
     ) {
         listOf(
             Route.Home,

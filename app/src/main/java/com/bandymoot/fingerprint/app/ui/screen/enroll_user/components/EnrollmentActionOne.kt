@@ -1,17 +1,15 @@
-package com.bandymoot.fingerprint.app.ui.screen.enroll.components
+package com.bandymoot.fingerprint.app.ui.screen.enroll_user.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -33,8 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bandymoot.fingerprint.app.domain.model.NewEnrollUser
-import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
-import kotlinx.coroutines.launch
+import com.bandymoot.fingerprint.app.ui.screen.enroll_user.state.EnrollmentState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,18 +53,8 @@ fun EnrollmentActionOne(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier
             .fillMaxWidth()
-//            .imePadding()
-//            .windowInsetsPadding(WindowInsets.navigationBars)
+            .imePadding()
     ) {
-
-        item {
-            ScrollToTopButton {
-                focusManager.clearFocus(force = true)
-                scope.launch {
-                    listState.animateScrollToItem(0)
-                }
-            }
-        }
 
         item {
             OutlinedTextField(
@@ -166,13 +153,22 @@ fun EnrollmentActionOne(
                         onComplete()
                     },
                     modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.large
+                    shape = MaterialTheme.shapes.large,
+                    enabled = !uiState.isLoading
                 ) {
-                    Text(
-                        text = "Continue",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text(
+                            text = "Continue",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
 
                 if (uiState.errorMessage != null) {

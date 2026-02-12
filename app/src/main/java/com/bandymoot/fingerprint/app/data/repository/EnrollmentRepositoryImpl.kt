@@ -26,7 +26,8 @@ class EnrollmentRepositoryImpl @Inject constructor(
     override suspend fun startEnrollment(newEnrollUser: NewEnrollUser): RepositoryResult<Boolean> {
         try {
             val response = apiServices.startEnrollment(token = tokenProvider.getAccessToken() ?: "Invalid token", requestBody = newEnrollUser.toRequestDto())
-            if(!response.isSuccessful) return RepositoryResult.Failed(Exception("Unsuccess Response"))
+            if(!response.isSuccessful) return RepositoryResult.Failed(Exception(response.body()?.message ?: "Unsuccess Response"))
+            if(!(response.body()?.success ?: true)) return RepositoryResult.Failed(Exception("Failed to start Enrollment"))
             return RepositoryResult.Success(true)
         } catch (e: Exception) {
             return RepositoryResult.Failed(e)

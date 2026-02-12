@@ -1,9 +1,9 @@
-package com.bandymoot.fingerprint.app.ui.screen.enroll.tests
+package com.bandymoot.fingerprint.app.ui.screen.enroll_user.tests
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import com.bandymoot.fingerprint.app.ui.screen.enroll.components.EnrollmentProgressSection
-import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
+import com.bandymoot.fingerprint.app.ui.screen.enroll_user.components.EnrollmentProgressSection
+import com.bandymoot.fingerprint.app.ui.screen.enroll_user.state.EnrollmentState
 
 @Preview(showBackground = true)
 @Composable

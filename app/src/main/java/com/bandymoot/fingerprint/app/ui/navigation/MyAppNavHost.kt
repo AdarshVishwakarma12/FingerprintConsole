@@ -17,7 +17,7 @@ import com.bandymoot.fingerprint.app.ui.screen.detail_attendance.DetailAttendanc
 import com.bandymoot.fingerprint.app.ui.screen.logs.LogsScreen
 import com.bandymoot.fingerprint.app.ui.screen.home.FingerprintDashboard
 import com.bandymoot.fingerprint.app.ui.screen.devices.DeviceScreen
-import com.bandymoot.fingerprint.app.ui.screen.enroll.StartEnrollmentProcess
+import com.bandymoot.fingerprint.app.ui.screen.enroll_user.StartEnrollmentProcess
 import com.bandymoot.fingerprint.app.ui.screen.users.UsersListScreen
 
 @Composable

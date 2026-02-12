@@ -1,7 +1,9 @@
 package com.bandymoot.fingerprint.app.ui.screen.common
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,6 +32,7 @@ fun MyAppScaffold(
 ) {
 
     val snackBarHostState = remember { SnackbarHostState() }
+    val imeOpen = rememberImeOpen() // IT WORKS! But It's a Curse!
 
     LaunchedEffect(Unit) {
         SnackBarManager.snackBarFlow.collect { message ->
@@ -64,36 +67,42 @@ fun MyAppScaffold(
         },
 
         bottomBar = {
-            DashboardBottomNav(
-                currentRoute,
-                onDashboardNavigationClick = {
-                    navController.navigate(Route.Home.route) {
-                        popUpTo(Route.Home.route) { inclusive = true }
-                        launchSingleTop = true
+            // BAD CODE GOES HERE! -> for future dev: find a better solution!
+            if(!imeOpen) {
+                DashboardBottomNav(
+                    currentRoute,
+                    onDashboardNavigationClick = {
+                        navController.navigate(Route.Home.route) {
+                            popUpTo(Route.Home.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    },
+                    onUsersNavigationClick = {
+                        navController.navigate(Route.Users.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onDeviceNavigationClick = {
+                        navController.navigate(Route.Devices.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onLogsNavigationClick = {
+                        navController.navigate(Route.Logs.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onSettingsNavigationClick = {
+                        navController.navigate(Route.Settings.route) {
+                            launchSingleTop = true
+                        }
                     }
-                },
-                onUsersNavigationClick = {
-                    navController.navigate(Route.Users.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onDeviceNavigationClick = {
-                    navController.navigate(Route.Devices.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onLogsNavigationClick = {
-                    navController.navigate(Route.Logs.route) {
-                        launchSingleTop = true
-                    }
-                },
-                onSettingsNavigationClick = {
-                    navController.navigate(Route.Settings.route) {
-                        launchSingleTop = true
-                    }
-                }
-            )
-        }
+                )
+            }
+            // BAD CODE ENDS HERE
+        },
+        // Add Padding for System Bars
+        contentWindowInsets = WindowInsets.systemBars,
     ) { innerPadding ->
 
         MyAppNavHost(navController = navController, innerPadding = innerPadding)

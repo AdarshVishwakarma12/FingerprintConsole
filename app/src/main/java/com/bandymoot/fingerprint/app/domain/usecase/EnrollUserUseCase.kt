@@ -9,7 +9,22 @@ class EnrollUserUseCase @Inject constructor(
     private val enrollmentRepository: EnrollmentRepository
 ) {
     suspend operator fun invoke(newEnrollUser: NewEnrollUser): RepositoryResult<Boolean> {
-        // I know it's too simple!
-        return  enrollmentRepository.startEnrollment(newEnrollUser)
+
+        if(
+            newEnrollUser.name.isEmpty() ||
+            newEnrollUser.email.isEmpty() ||
+            newEnrollUser.employeeId.isEmpty() ||
+            newEnrollUser.phone.isEmpty() ||
+            newEnrollUser.department.isEmpty() ||
+            newEnrollUser.deviceId.isEmpty()
+        ) {
+            RepositoryResult.Failed(Exception("All Fields are required!"))
+        }
+
+
+        // Extensively check for Device ID:
+        // if it fails the validation! Must return the Failed Status Before Hand
+
+        return  enrollmentRepository.startEnrollment(newEnrollUser) // I think it can return
     }
 }

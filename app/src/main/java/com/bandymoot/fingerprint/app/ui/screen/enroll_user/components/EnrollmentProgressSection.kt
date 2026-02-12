@@ -1,4 +1,4 @@
-package com.bandymoot.fingerprint.app.ui.screen.enroll.components
+package com.bandymoot.fingerprint.app.ui.screen.enroll_user.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,9 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentScreenState
-import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
-import com.bandymoot.fingerprint.app.ui.screen.enroll.utils.UtilsEnrollScreen
+import com.bandymoot.fingerprint.app.ui.screen.enroll_user.state.EnrollmentState
 
 @Composable
 fun EnrollmentProgressSection(
@@ -36,7 +34,7 @@ fun EnrollmentProgressSection(
         ) {
             // Progress bar
             LinearProgressIndicator(
-                progress = { state.enrollmentProgress },
+                progress = { state.enrollmentScreenState.enrollmentProgress },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp),
@@ -48,7 +46,7 @@ fun EnrollmentProgressSection(
 
             // Current Instruction
             Text(
-                text = UtilsEnrollScreen.getStepInstruction(state.currentStep, state.isEnrolling, state.isCompleted),
+                text = state.enrollmentScreenState.enrollmentMessage,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,

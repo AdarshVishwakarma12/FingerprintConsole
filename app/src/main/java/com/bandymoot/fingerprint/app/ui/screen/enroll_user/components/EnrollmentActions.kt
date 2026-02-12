@@ -1,4 +1,4 @@
-package com.bandymoot.fingerprint.app.ui.screen.enroll.components
+package com.bandymoot.fingerprint.app.ui.screen.enroll_user.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,8 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentScreenState
-import com.bandymoot.fingerprint.app.ui.screen.enroll.state.EnrollmentState
+import com.bandymoot.fingerprint.app.ui.screen.enroll_user.state.EnrollmentScreenState
+import com.bandymoot.fingerprint.app.ui.screen.enroll_user.state.EnrollmentState
 import com.bandymoot.fingerprint.app.utils.AppConstant
 
 @Composable
@@ -50,7 +50,7 @@ fun EnrollmentActions(
         ) {
             when(uiState.enrollmentScreenState) {
                 // Add the current UI State -> Success / Failed
-                is EnrollmentScreenState.Completed -> {
+                is EnrollmentScreenState.Enrolled -> {
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = "Completed",
@@ -123,7 +123,7 @@ fun EnrollmentActions(
                     }
                 }
 
-                uiState.enrollmentScreenState == EnrollmentScreenState.Completed -> {
+                uiState.enrollmentScreenState == EnrollmentScreenState.Enrolled -> {
                     Button(
                         onClick = onCompleteEnrollment,
                         modifier = Modifier.weight(1f),
