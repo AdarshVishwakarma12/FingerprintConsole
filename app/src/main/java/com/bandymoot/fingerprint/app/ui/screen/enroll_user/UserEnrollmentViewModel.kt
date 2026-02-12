@@ -47,7 +47,12 @@ class UserEnrollmentViewModel @Inject constructor(
         when (event) {
 
             UserEnrollScreenEvent.StartEnrollment -> {
-                moveTo(EnrollmentScreenState.UserInput)
+                if(SocketManager.hasActiveConnection()) {
+                    moveTo(EnrollmentScreenState.UserInput)
+                }
+                else {
+                    moveTo(EnrollmentScreenState.Error("Connection failed"))
+                }
             }
 
             UserEnrollScreenEvent.ValidateUserInfoAndStartBiometric -> {

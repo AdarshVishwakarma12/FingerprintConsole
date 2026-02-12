@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import com.bandymoot.fingerprint.app.data.local.TokenProvider
 import com.bandymoot.fingerprint.app.data.remote.api.ApiServices
 import com.bandymoot.fingerprint.app.data.websocket.TestWebSocket
+import com.bandymoot.fingerprint.app.network.NetworkManager
 import com.bandymoot.fingerprint.app.utils.AppConstant
 import dagger.Module
 import dagger.Provides
@@ -21,6 +22,15 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    // Network Manager
+    @Provides
+    @Singleton
+    fun provideNetworkManager(
+        @ApplicationContext context: Context
+    ): NetworkManager {
+        return NetworkManager(context)
+    }
 
     // TestWebSocket
     @Provides

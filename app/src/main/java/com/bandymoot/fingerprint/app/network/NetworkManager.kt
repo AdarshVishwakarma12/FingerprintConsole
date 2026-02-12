@@ -5,12 +5,13 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 class NetworkManager @Inject constructor(
-    private val applicationContext: Context
+    @ApplicationContext applicationContext: Context
 ) {
 
     // We need Stateflow, to expose our data!
