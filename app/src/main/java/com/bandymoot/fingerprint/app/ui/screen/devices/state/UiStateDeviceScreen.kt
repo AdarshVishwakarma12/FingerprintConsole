@@ -6,7 +6,8 @@ data class UiStateDeviceScreen (
     val isLoading: Boolean = true,
     val deviceList: List<Device> = emptyList(),
     val isErrorState: Boolean = false,
-    val errorType: DeviceScreenErrorState = DeviceScreenErrorState.NoError
+    val errorType: DeviceScreenErrorState = DeviceScreenErrorState.NoError,
+    val isRefreshing: Boolean = false
 )
 
 sealed class DeviceScreenErrorState() {

@@ -9,9 +9,13 @@ object AppConstant {
     const val SOCKET_URL = "http://$SERVER_URL"
     const val LOGIN_USER_API = "api/auth/login/manager"
     const val START_USER_ENROLLMENT = "/api/user/enrolled-user"
-    const val GET_ALL_USERS_API = "api/users"
+    const val GET_ALL_USERS_API = "api/user/get-users"
     const val USER_GET_URL = "api/users/fp" // add the ID of user
     const val GET_USER_BY_ID_API = "api/users/fp"
+    const val GET_ALL_ORGANISATION_API = "/api/auth/get-organization"
+    const val GET_ALL_MANAGER_API = "/api/auth/manager"
+    const val GET_ALL_DEVICES_API = "/api/device/get-device"
+    const val GET_ALL_ATTENDANCE_API = "/api/attendance/get-attendance/All/"
 
     const val DEBUG = true
 

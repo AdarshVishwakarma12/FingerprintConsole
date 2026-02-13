@@ -1,8 +1,11 @@
 package com.bandymoot.fingerprint.app.data.repository
 
+import androidx.room.withTransaction
 import com.bandymoot.fingerprint.app.data.local.dao.AttendanceRecordDao
 import com.bandymoot.fingerprint.app.data.mapper.toDomain
+import com.bandymoot.fingerprint.app.data.mapper.toEntity
 import com.bandymoot.fingerprint.app.data.remote.api.ApiServices
+import com.bandymoot.fingerprint.app.data.remote.safeApiCall
 import com.bandymoot.fingerprint.app.di.AppDatabase
 import com.bandymoot.fingerprint.app.domain.model.AttendanceRecord
 import com.bandymoot.fingerprint.app.domain.repository.AttendanceRepository
@@ -90,11 +93,22 @@ class AttendanceRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun sync(): RepositoryResult<Nothing> {
-        return RepositoryResult.Failed(Throwable("Not Implemented"))
+    override suspend fun sync(startDate: String, endDate: String): RepositoryResult<Unit> {
+        return try {
 
-        // use instant Instead of Calendar!
-        // For storing date in database!
-        // val instant = Instant.ofEpochMilli(currentDate)
+            val response = safeApiCall { apiServices.getAttendanceDataByDate(startDate, endDate) }
+
+            if(response is RepositoryResult.Failed) return response
+
+            val attendanceRecordList = (response as RepositoryResult.Success).data.data
+
+            appDatabase.withTransaction {
+                attendanceRecordList.map { attendanceRecordDao.upsert(it.toEntity()) }
+            }
+
+            RepositoryResult.Success(Unit)
+        } catch (e: kotlin.Exception) {
+            RepositoryResult.Failed(e)
+        }
     }
 }

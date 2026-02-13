@@ -15,12 +15,14 @@ import com.bandymoot.fingerprint.app.data.repository.AuthRepositoryImpl
 import com.bandymoot.fingerprint.app.data.repository.DeviceRepositoryImpl
 import com.bandymoot.fingerprint.app.data.repository.EnrollmentRepositoryImpl
 import com.bandymoot.fingerprint.app.data.repository.FakeDataRepository
+import com.bandymoot.fingerprint.app.data.repository.ManagerRepositoryImpl
 import com.bandymoot.fingerprint.app.data.repository.UserRepositoryImpl
 import com.bandymoot.fingerprint.app.data.websocket.EnrollmentSocketDataSourceImpl
 import com.bandymoot.fingerprint.app.domain.repository.AttendanceRepository
 import com.bandymoot.fingerprint.app.domain.repository.AuthRepository
 import com.bandymoot.fingerprint.app.domain.repository.DeviceRepository
 import com.bandymoot.fingerprint.app.domain.repository.EnrollmentRepository
+import com.bandymoot.fingerprint.app.domain.repository.ManagerRepository
 import com.bandymoot.fingerprint.app.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
@@ -86,9 +88,17 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideDeviceRepository(
-        deviceDao: DeviceDao
+        deviceDao: DeviceDao,
+        apiServices: ApiServices,
+        tokenProvider: TokenProvider,
+        appDatabase: AppDatabase
     ): DeviceRepository {
-        return DeviceRepositoryImpl(deviceDao = deviceDao)
+        return DeviceRepositoryImpl(
+            deviceDao = deviceDao,
+            apiServices = apiServices,
+            tokenProvider = tokenProvider,
+            appDatabase = appDatabase
+        )
     }
 
     @Provides
@@ -96,12 +106,14 @@ object RepositoryModule {
     fun providesUserRepository(
         apiServices: ApiServices,
         userDao: UserDao,
+        tokenProvider: TokenProvider,
         appDatabase: AppDatabase
     ): UserRepository {
         return UserRepositoryImpl(
             apiServices = apiServices,
             userDao = userDao,
-            appDatabase = appDatabase
+            appDatabase = appDatabase,
+            tokenProvider = tokenProvider
         )
     }
 
@@ -128,6 +140,24 @@ object RepositoryModule {
         return AuthRepositoryImpl(
             apiServices,
             tokenProvider
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideManagerRepository(
+        apiServices: ApiServices,
+        tokenProvider: TokenProvider,
+        organizationDao: OrganizationDao,
+        managerDao: ManagerDao,
+        appDatabase: AppDatabase
+    ): ManagerRepository {
+        return ManagerRepositoryImpl(
+            apiServices = apiServices,
+            tokenProvider = tokenProvider,
+            managerDao = managerDao,
+            organizationDao = organizationDao,
+            appDatabase = appDatabase
         )
     }
 }

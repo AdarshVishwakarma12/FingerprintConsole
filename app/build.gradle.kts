@@ -83,4 +83,6 @@ dependencies {
 
     implementation(libs.socketio.client)
     implementation(libs.json)
+
+    implementation("androidx.compose.material3:material3:1.1.0-alpha05")
 }

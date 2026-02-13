@@ -1,7 +1,6 @@
 package com.bandymoot.fingerprint.app.data.repository
 
 import com.bandymoot.fingerprint.app.data.local.TokenProvider
-import com.bandymoot.fingerprint.app.data.mapper.toJson
 import com.bandymoot.fingerprint.app.data.mapper.toRequestDto
 import com.bandymoot.fingerprint.app.data.remote.api.ApiServices
 import com.bandymoot.fingerprint.app.data.websocket.EnrollmentSocketDataSourceImpl
@@ -44,16 +43,16 @@ class EnrollmentRepositoryImpl @Inject constructor(
     }
 }
 
-fun buildEnrollNewUserJson(newEnrollUser: NewEnrollUser): String {
-    val payload = newEnrollUser.toJson()
-
-    val root = JSONObject().apply {
-        put("type", "ENROLL_NEW_USER")
-        put("payload", payload)
-    }
-
-    return root.toString()
-}
+//fun buildEnrollNewUserJson(newEnrollUser: NewEnrollUser): String {
+//    val payload = newEnrollUser.toJson()
+//
+//    val root = JSONObject().apply {
+//        put("type", "ENROLL_NEW_USER")
+//        put("payload", payload)
+//    }
+//
+//    return root.toString()
+//}
 
 fun cancelEnroll(): String {
     val root = JSONObject().apply {

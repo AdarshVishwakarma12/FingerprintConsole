@@ -1,9 +1,12 @@
 package com.bandymoot.fingerprint.app.data.repository
 
+import androidx.room.withTransaction
+import com.bandymoot.fingerprint.app.data.local.TokenProvider
 import com.bandymoot.fingerprint.app.data.local.dao.UserDao
 import com.bandymoot.fingerprint.app.data.mapper.toDomain
-import com.bandymoot.fingerprint.app.data.remote.NetworkException
+import com.bandymoot.fingerprint.app.data.mapper.toEntity
 import com.bandymoot.fingerprint.app.data.remote.api.ApiServices
+import com.bandymoot.fingerprint.app.data.remote.safeApiCall
 import com.bandymoot.fingerprint.app.di.AppDatabase
 import com.bandymoot.fingerprint.app.domain.model.User
 import com.bandymoot.fingerprint.app.domain.model.UserDetail
@@ -11,13 +14,13 @@ import com.bandymoot.fingerprint.app.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import retrofit2.Response
 import java.util.UUID
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
     private val apiServices: ApiServices,
     private val userDao: UserDao,
+    private val tokenProvider: TokenProvider,
     private val appDatabase: AppDatabase
 ): UserRepository {
 
@@ -58,18 +61,23 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun sync(): RepositoryResult<Unit> {
-        // Call the ApiService
-        return RepositoryResult.Failed(Exception("Method not Implemented"))
-    }
-}
+        return try {
+            // Call the ApiService
+            val tokenValue = tokenProvider.tokenFLow.value ?: return RepositoryResult.Failed(Exception("Token Not Exist"))
+            val response = safeApiCall { apiServices.getAllUsers(tokenValue) }
 
-private fun mapHttpException(response: Response<*>?): NetworkException {
-    val code = response?.code() ?: -1
-    val errorBody = response?.errorBody()?.string()
+            if(response is RepositoryResult.Failed) return response
 
-    return when (code) {
-        in 400..499 -> NetworkException.ClientError(code, errorBody)
-        in 500..599 -> NetworkException.ServerError(code)
-        else -> NetworkException.Unknown(Exception("HTTP error $code"))
+            val userEntity = (response as RepositoryResult.Success).data.data
+
+            appDatabase.withTransaction {
+                userEntity.map {
+                    userDao.upsert(it.toEntity())
+                }
+            }
+            RepositoryResult.Success(Unit)
+        } catch (e: Exception) {
+            RepositoryResult.Failed(e)
+        }
     }
 }

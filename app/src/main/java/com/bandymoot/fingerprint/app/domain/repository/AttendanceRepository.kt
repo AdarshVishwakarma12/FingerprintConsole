@@ -11,5 +11,5 @@ interface AttendanceRepository {
     suspend fun getAttendanceByDate(date: LocalDate): RepositoryResult<List<AttendanceRecord>>
     suspend fun getAttendanceByDateAndDevice(date: Long, deviceId: String): RepositoryResult<List<AttendanceRecord>>
     suspend fun getAttendanceByMonthAndUser(yearMonth: YearMonth, userId: String): RepositoryResult<List<AttendanceRecord>>
-    suspend fun sync(): RepositoryResult<Nothing>
+    suspend fun sync(startDate: String, endDate: String): RepositoryResult<Unit>
 }
