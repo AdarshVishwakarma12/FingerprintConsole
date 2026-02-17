@@ -11,6 +11,7 @@ import com.bandymoot.fingerprint.app.di.AppDatabase
 import com.bandymoot.fingerprint.app.domain.model.User
 import com.bandymoot.fingerprint.app.domain.model.UserDetail
 import com.bandymoot.fingerprint.app.domain.repository.UserRepository
+import com.bandymoot.fingerprint.app.utils.AppConstant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
@@ -68,10 +69,16 @@ class UserRepositoryImpl @Inject constructor(
 
             if(response is RepositoryResult.Failed) return response
 
-            val userEntity = (response as RepositoryResult.Success).data.data
+            val userDto = (response as RepositoryResult.Success).data.data
+
+            AppConstant.debugMessage("This is USER DTO:: $userDto")
+
+            userDto.map {
+                AppConstant.debugMessage("This is USER ENTITY:: ${it.toEntity()}")
+            }
 
             appDatabase.withTransaction {
-                userEntity.map {
+                userDto.map {
                     userDao.upsert(it.toEntity())
                 }
             }

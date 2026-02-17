@@ -1,6 +1,7 @@
 package com.bandymoot.fingerprint.app.data.repository
 
 import androidx.room.withTransaction
+import com.bandymoot.fingerprint.app.data.dto.EnrollNewDeviceRequest
 import com.bandymoot.fingerprint.app.data.local.TokenProvider
 import com.bandymoot.fingerprint.app.data.local.dao.DeviceDao
 import com.bandymoot.fingerprint.app.data.mapper.toDomain
@@ -38,7 +39,8 @@ class DeviceRepositoryImpl @Inject constructor(
         try {
             // Define a permanent manager Id
             // as the auth page hasn't build and we don't have current manager info!!
-            val managerId = "mgr-reg-1" // this should be stored under the sharedPref!
+            val managerId = tokenProvider.getUserId() // this should be stored under the sharedPref!
+            if(managerId == null) return RepositoryResult.Failed(Exception("Manager Not Found"))
             val response = deviceDao.getDevicesByManagerId(managerId)
             return RepositoryResult.Success(response.map { it.toDomain() })
         } catch (e: Exception) {
@@ -48,6 +50,17 @@ class DeviceRepositoryImpl @Inject constructor(
 
     override suspend fun delete(): RepositoryResult<Unit> {
         return RepositoryResult.Failed(Exception("Not Implemented"))
+    }
+
+    override suspend fun enrollNewDevice(requestData: EnrollNewDeviceRequest): RepositoryResult<Unit> {
+
+        tokenProvider.tokenFLow.value ?: return RepositoryResult.Failed(Exception("Token Not Found"))
+        val response = safeApiCall { apiServices.enrollNewDevice(tokenProvider.tokenFLow.value!!, requestData) }
+
+        if(response is RepositoryResult.Failed) return response
+        if((response as RepositoryResult.Success).data.success) return RepositoryResult.Success(Unit)
+
+        return RepositoryResult.Failed(Exception("Couldn't Enroll Device"))
     }
 
     override suspend fun sync(): RepositoryResult<Unit> {

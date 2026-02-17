@@ -68,24 +68,12 @@ class AttendanceRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAttendanceByMonthAndUser(
-        yearMonth: YearMonth, // MonthYear
+        startOfMonth: Long,
+        endOfMonth: Long,
         userId: String
     ): RepositoryResult<List<AttendanceRecord>> {
         try {
             // Calc Start of Month [ it will be consistent over change in TimeZone! ]
-            val startOfMonth = LocalDate
-                .of(yearMonth.year, yearMonth.month, 1)
-                .atStartOfDay(ZoneId.of(AppConstant.ZONE_ID))
-                .toInstant()
-                .toEpochMilli()
-
-            val endOfMonth = LocalDate
-                .of(yearMonth.year, yearMonth.month, yearMonth.lengthOfMonth())
-                .atStartOfDay(ZoneId.of(AppConstant.ZONE_ID))
-                .toInstant()
-                .toEpochMilli()
-
-            AppConstant.debugMessage("startOfMonth: $startOfMonth && endOfMonth: $endOfMonth")
             val response = attendanceRecordDao.extractAttendanceByMonthAndUser(userId, startOfMonth, endOfMonth)
             return RepositoryResult.Success(response.map { it.toDomain() })
         } catch (e: Exception) {

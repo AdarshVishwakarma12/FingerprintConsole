@@ -6,6 +6,7 @@ import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
 import com.bandymoot.fingerprint.app.data.socket.SocketEvent
 import com.bandymoot.fingerprint.app.data.socket.SocketManager
 import com.bandymoot.fingerprint.app.domain.model.NewEnrollUser
+import com.bandymoot.fingerprint.app.domain.repository.DeviceRepository
 import com.bandymoot.fingerprint.app.domain.usecase.EnrollUserUseCase
 import com.bandymoot.fingerprint.app.ui.screen.enroll_user.event.UserEnrollScreenEvent
 import com.bandymoot.fingerprint.app.ui.screen.enroll_user.state.EnrollmentScreenState
@@ -22,7 +23,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UserEnrollmentViewModel @Inject constructor(
-    private val enrollUserUseCase: EnrollUserUseCase
+    private val enrollUserUseCase: EnrollUserUseCase,
+    private val deviceRepository: DeviceRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EnrollmentState())
@@ -40,6 +42,16 @@ class UserEnrollmentViewModel @Inject constructor(
             }
         }
         observeWebSocketState()
+    }
+
+    init {
+        viewModelScope.launch {
+            val deviceResult = deviceRepository.observeDeviceByCurrentManager()
+            AppConstant.debugMessage("DEVICE LIST: $deviceResult")
+            if(deviceResult is RepositoryResult.Success) {
+                _uiState.update { it.copy(listOfDevice = deviceResult.data) }
+            }
+        }
     }
 
     // UI EVENTS

@@ -12,6 +12,7 @@ import com.bandymoot.fingerprint.app.domain.model.DeviceType
 fun TestDeviceStatusCard() {
 
     val deviceStatus = Device(
+        "",
         "000",
         "Arvind Kumar",
         null,

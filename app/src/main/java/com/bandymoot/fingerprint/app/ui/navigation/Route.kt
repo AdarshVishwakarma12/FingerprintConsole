@@ -8,7 +8,6 @@ import androidx.compose.material.icons.filled.NotInterested
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.bandymoot.fingerprint.app.utils.AppConstant
 
 sealed class Route(
     val route: String,
@@ -17,35 +16,32 @@ sealed class Route(
 ) {
 
     // Auth
-    data object Login : Route("login_screen", parentTab = "Auth")
+    data object Login : Route("Auth/login_screen", parentTab = "Auth")
 
     // HOME TAB
-    data object Home : Route("home_screen", parentTab = "Home", icon = Icons.Default.Dashboard)
+    data object Home : Route("Home/home_screen", parentTab = "Home", icon = Icons.Default.Dashboard)
 
     // USERS TAB
-    data object Users : Route("user_screen", parentTab = "Users", icon = Icons.Default.People)
-    data object UserEnroll : Route("enroll_screen", parentTab = "Users")
-    data object UserDetail : Route("user_detail_screen", parentTab = "Users")
+    data object Users : Route("Users/user_screen", parentTab = "Users", icon = Icons.Default.People)
+    data object UserEnroll : Route("Users/enroll_screen", parentTab = "Users")
+    data object UserDetail : Route("Users/user_detail_screen", parentTab = "Users")
 
-    data object Attendance : Route("attendance_screen", parentTab = "Users") {
+    data object Attendance : Route("Users/attendance_screen", parentTab = "Users") {
         const val argUserServerId = "userServerId"
-        // Use this for the NavHost route definition
         val routeWithArgs = "$route/{$argUserServerId}"
-
-        // Use this for actual navigation: navController.navigate(Route.Attendance.createRoute("123"))
         fun createRoute(userId: String) = "$route/$userId"
     }
 
     // DEVICES TAB
-    data object Devices : Route("devices_screen", parentTab = "Devices", icon = Icons.Default.Devices)
-    data object DeviceDetail: Route("device_detail", parentTab = "Devices")
-    data object DeviceEnroll: Route("device_enroll", parentTab = "Devices")
+    data object Devices : Route("Devices/devices_screen", parentTab = "Devices", icon = Icons.Default.Devices)
+    data object DeviceDetail: Route("Devices/device_detail", parentTab = "Devices")
+    data object DeviceEnroll: Route("Devices/device_enroll", parentTab = "Devices")
 
     // LOGS TAB
-    data object Logs : Route("logs_screen", parentTab = "Attendance", icon = Icons.Default.CoPresent)
+    data object Logs : Route("Attendance/logs_screen", parentTab = "Attendance", icon = Icons.Default.CoPresent)
 
     // SETTINGS TAB
-    data object Settings : Route("setting_screen", parentTab = "Settings", icon = Icons.Default.Settings)
+    data object Settings : Route("Settings/setting_screen", parentTab = "Settings", icon = Icons.Default.Settings)
 
 
     companion object {
@@ -56,7 +52,6 @@ sealed class Route(
                 Attendance, Devices, Logs, Settings
             )
 
-            // e.g., "attendance_screen/123" starts with "attendance_screen"
             return allRoutes.find { routeStr.startsWith(it.route) } ?: Home
         }
 

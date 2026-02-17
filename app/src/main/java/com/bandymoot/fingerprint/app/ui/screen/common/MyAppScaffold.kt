@@ -48,7 +48,7 @@ fun MyAppScaffold(
             when(currentRoute) {
                 Route.Devices.route -> {
                     ExtendedFloatingActionButton(
-                        onClick = { navController.navigate(Route.Devices.route) },
+                        onClick = { navController.navigate(Route.DeviceEnroll.route) },
                         icon = { Icon(Icons.Default.Add, "Add Device") },
                         text = { Text("Add Device") },
                         modifier = Modifier.padding(bottom = 16.dp)

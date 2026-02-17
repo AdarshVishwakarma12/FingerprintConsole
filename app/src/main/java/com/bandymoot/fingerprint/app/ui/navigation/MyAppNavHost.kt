@@ -17,7 +17,9 @@ import com.bandymoot.fingerprint.app.ui.screen.detail_attendance.DetailAttendanc
 import com.bandymoot.fingerprint.app.ui.screen.logs.LogsScreen
 import com.bandymoot.fingerprint.app.ui.screen.home.FingerprintDashboard
 import com.bandymoot.fingerprint.app.ui.screen.devices.DeviceScreen
+import com.bandymoot.fingerprint.app.ui.screen.enroll_device.DeviceEnrollScreen
 import com.bandymoot.fingerprint.app.ui.screen.enroll_user.StartEnrollmentProcess
+import com.bandymoot.fingerprint.app.ui.screen.profile.ProfileScreen
 import com.bandymoot.fingerprint.app.ui.screen.users.UsersListScreen
 
 @Composable
@@ -68,6 +70,10 @@ fun MyAppNavHost(
             DeviceScreen(emptyList(), { })
         }
 
+        composable(route = Route.DeviceEnroll.route) {
+            DeviceEnrollScreen()
+        }
+
         composable(route = Route.Logs.route) {
             LogsScreen()
         }
@@ -87,7 +93,7 @@ fun MyAppNavHost(
         }
 
         composable(route = Route.Settings.route) {
-
+            ProfileScreen()
         }
     }
 }

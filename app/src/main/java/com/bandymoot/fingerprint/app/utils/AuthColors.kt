@@ -13,7 +13,7 @@ data class AuthColors(
     val iconTint: Color
 )
 
-fun authColors(theme: AppThemeMode): AuthColors {
+fun authColors(theme: AppThemeMode = AppThemeMode.LIGHT): AuthColors {
     return if (theme == AppThemeMode.DARK) {
         AuthColors(
             background = Color(0xFF121212),

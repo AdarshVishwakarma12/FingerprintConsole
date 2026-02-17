@@ -8,6 +8,8 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import com.bandymoot.fingerprint.R
 import com.bandymoot.fingerprint.app.ui.navigation.Route
 
 @Composable
@@ -48,7 +50,7 @@ fun DashboardBottomNav(
                     Icon(
                         imageVector = item.icon,
                         contentDescription = item.parentTab,
-                        tint = if(Route.isCurrentMatchWithItem(currentRoute, item)) Color.Blue else Color.Gray
+                        tint = if(currentRoute != null && currentRoute.contains(item.parentTab)) colorResource(R.color.strat_blue) else Color.Gray
                     )
                 },
                 label = { Text(item.parentTab) },

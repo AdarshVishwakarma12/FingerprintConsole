@@ -1,5 +1,6 @@
 package com.bandymoot.fingerprint.app.data.repository
 
+import android.content.SharedPreferences
 import androidx.room.withTransaction
 import com.bandymoot.fingerprint.app.data.local.TokenProvider
 import com.bandymoot.fingerprint.app.data.local.dao.ManagerDao
@@ -43,6 +44,8 @@ class ManagerRepositoryImpl @Inject constructor(
 
         val managerEntity = (managerResult as RepositoryResult.Success).data.data.toEntity()
         val organizationEntity = managerResult.data.data.organization.toEntity()
+
+        tokenProvider.saveUserId(managerEntity.serverManagerId)
 
         return try {
             appDatabase.withTransaction {

@@ -20,6 +20,9 @@ interface ManagerDao {
     @Query("SELECT * FROM managers WHERE organization_server_id = :orgId")
     suspend fun getByOrganization(orgId: String): List<ManagerEntity>
 
+    @Query("SELECT count(*) FROM managers")
+    suspend fun getManagerCount(): Int
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(entity: ManagerEntity)
 

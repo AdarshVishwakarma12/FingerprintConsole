@@ -1,6 +1,7 @@
 package com.bandymoot.fingerprint.app.domain.model
 
 data class Device (
+    val serverDeviceId: String,
     val deviceCode: String,
     val name: String?,
     val location: String?,

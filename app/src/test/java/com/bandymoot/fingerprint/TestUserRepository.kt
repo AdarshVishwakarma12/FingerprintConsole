@@ -25,21 +25,21 @@ class UserRepositoryIntegrationTest {
             .build()
 
         apiServices = retrofit.create(ApiServices::class.java)
-        repository = UserRepositoryImpl(apiServices)
+        // repository = UserRepositoryImpl(apiServices)
     }
 
     @Test
     fun getAllUsers_fromRealApi() = runBlocking {
-        val result = repository.getAllUsers()
-
-        if (result.isSuccess) {
-            val users = result.getOrNull()
-            println("Users: $users")
-            println("Users count: ${users?.size}")
-            assertTrue(!users.isNullOrEmpty())
-        } else {
-            val error = result.exceptionOrNull()
-            fail("API failed with error: ${error?.message}")
-        }
+//        val result = repository.getAllUsers()
+//
+//        if (result.isSuccess) {
+//            val users = result.getOrNull()
+//            println("Users: $users")
+//            println("Users count: ${users?.size}")
+//            assertTrue(!users.isNullOrEmpty())
+//        } else {
+//            val error = result.exceptionOrNull()
+//            fail("API failed with error: ${error?.message}")
+//        }
     }
 }

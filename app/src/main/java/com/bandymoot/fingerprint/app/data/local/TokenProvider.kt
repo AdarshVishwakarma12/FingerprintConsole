@@ -28,6 +28,10 @@ class TokenProvider @Inject constructor(
         return sharedPreference.getString(AppConstant.SHARED_PREF_USER_EMAIL, null)
     }
 
+    fun getUserId(): String? {
+        return sharedPreference.getString(AppConstant.SHARED_PREF_USER_ID, null)
+    }
+
     fun saveAccessToken(token: String) {
 
         sharedPreference.edit {
@@ -66,7 +70,8 @@ class TokenProvider @Inject constructor(
     fun removeAllToken() {
         println("Token Removed!!")
         sharedPreference.edit {
-            // clear()
+            clear()
         }
+        _tokenFlow.value = null
     }
 }

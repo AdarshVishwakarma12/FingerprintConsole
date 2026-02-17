@@ -21,6 +21,8 @@ class EnrollUserUseCase @Inject constructor(
             RepositoryResult.Failed(Exception("All Fields are required!"))
         }
 
+        newEnrollUser.deviceId
+
 
         // Extensively check for Device ID:
         // if it fails the validation! Must return the Failed Status Before Hand

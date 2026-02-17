@@ -16,7 +16,7 @@ fun DeviceDto.toEntity(): DeviceEntity {
         name = deviceName,
         location = deviceLocation,
         deviceStatus = lastStatus.toDeviceStatusEntity(),
-        lastSeenAt = parseIsoToEpoch(deviceLastSeen),
+        lastSeenAt = parseIsoToEpoch(deviceLastSeen ?: "2026-02-16T05:28:40.667Z"), // Update Later!
         firmwareVersion = parseVersionToLong(deviceFirmwareVersion),
         batteryLevel = null, // not provided by API
         enrolledAt = parseIsoToEpoch(createdAt),
@@ -50,6 +50,7 @@ fun parseVersionToLong(version: String): Long {
 
 fun DeviceEntity.toDomain(): Device {
     return Device(
+        serverDeviceId = serverDeviceId,
         deviceCode = deviceCode,
         name = name,
         location = location,

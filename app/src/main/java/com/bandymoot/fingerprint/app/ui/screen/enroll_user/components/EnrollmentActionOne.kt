@@ -1,7 +1,6 @@
 package com.bandymoot.fingerprint.app.ui.screen.enroll_user.components
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -14,8 +13,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -23,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
@@ -43,7 +41,6 @@ fun EnrollmentActionOne(
     onInputChanged: (NewEnrollUser) -> Unit
 ) {
     val listState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
 
     var deviceExpanded by remember { mutableStateOf(false) }
@@ -113,7 +110,7 @@ fun EnrollmentActionOne(
                 onExpandedChange = { deviceExpanded = !deviceExpanded }
             ) {
                 OutlinedTextField(
-                    value = newUser.deviceId,
+                    value = uiState.listOfDevice.find { device -> device.serverDeviceId == newUser.deviceId}?.deviceCode ?: "",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Select Device") },
@@ -121,6 +118,7 @@ fun EnrollmentActionOne(
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = deviceExpanded)
                     },
                     modifier = Modifier
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable, true)
                         .fillMaxWidth()
                 )
 
@@ -132,7 +130,7 @@ fun EnrollmentActionOne(
                         DropdownMenuItem(
                             text = { Text(device.name ?: device.deviceCode) },
                             onClick = {
-                                onInputChanged(newUser.copy(deviceId = device.deviceCode))
+                                onInputChanged(newUser.copy(deviceId = device.serverDeviceId))
                                 deviceExpanded = false
                                 focusManager.clearFocus()
                             }
@@ -181,21 +179,6 @@ fun EnrollmentActionOne(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun ScrollToTopButton(onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End
-    ) {
-        FilledTonalButton(
-            onClick = onClick,
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-        ) {
-            Text("↑ Top")
         }
     }
 }

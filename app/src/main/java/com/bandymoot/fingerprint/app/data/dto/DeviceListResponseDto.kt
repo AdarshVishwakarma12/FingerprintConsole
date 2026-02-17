@@ -52,5 +52,5 @@ data class DeviceDto(
     val lastStatus: String,
 
     @SerializedName("device_last_seen")
-    val deviceLastSeen: String
+    val deviceLastSeen: String?
 )

@@ -3,7 +3,7 @@ package com.bandymoot.fingerprint.app.utils
 import android.util.Log
 
 object AppConstant {
-    const val SERVER_URL = "192.168.0.176:4000"  // "137.97.126.110:4003"
+    const val SERVER_URL = "137.97.126.110:4003" // "192.168.0.190:4000"
     const val BASE_URL = "http://$SERVER_URL/"
     const val WEB_SOCKET_URL = "ws://$SERVER_URL"
     const val SOCKET_URL = "http://$SERVER_URL"
@@ -16,6 +16,7 @@ object AppConstant {
     const val GET_ALL_MANAGER_API = "/api/auth/manager"
     const val GET_ALL_DEVICES_API = "/api/device/get-device"
     const val GET_ALL_ATTENDANCE_API = "/api/attendance/get-attendance/All/"
+    const val ENROLL_NEW_DEVICE_API = "/api/device/add-device"
 
     const val DEBUG = true
 

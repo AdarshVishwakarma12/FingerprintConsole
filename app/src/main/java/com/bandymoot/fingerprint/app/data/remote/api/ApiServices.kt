@@ -1,6 +1,8 @@
 package com.bandymoot.fingerprint.app.data.remote.api
 
 import com.bandymoot.fingerprint.app.data.dto.DeviceListResponseDto
+import com.bandymoot.fingerprint.app.data.dto.EnrollNewDeviceRequest
+import com.bandymoot.fingerprint.app.data.dto.EnrollNewDeviceResponse
 import com.bandymoot.fingerprint.app.data.dto.FetchAttendanceResponseDto
 import com.bandymoot.fingerprint.app.data.dto.FetchUsersResponseDto
 import com.bandymoot.fingerprint.app.data.dto.LoginRequest
@@ -10,6 +12,7 @@ import com.bandymoot.fingerprint.app.data.dto.UserEnrollRequestDto
 import com.bandymoot.fingerprint.app.data.dto.UserEnrollResponseDto
 import com.bandymoot.fingerprint.app.data.dto.UserResponseDto
 import com.bandymoot.fingerprint.app.utils.AppConstant
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -60,4 +63,10 @@ interface ApiServices {
         @Path("startDate") startDate: String,
         @Path("endDate") endDate: String
     ): Response<FetchAttendanceResponseDto>
+
+    @POST(AppConstant.ENROLL_NEW_DEVICE_API)
+    suspend fun enrollNewDevice(
+        @Header("Authorization") token: String,
+        @Body requestBody: EnrollNewDeviceRequest
+    ): Response<EnrollNewDeviceResponse>
 }

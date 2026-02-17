@@ -2,11 +2,17 @@ package com.bandymoot.fingerprint.app.di
 
 import com.bandymoot.fingerprint.app.data.repository.UserRepositoryImpl
 import com.bandymoot.fingerprint.app.domain.repository.AttendanceRepository
+import com.bandymoot.fingerprint.app.domain.repository.DeviceRepository
 import com.bandymoot.fingerprint.app.domain.repository.EnrollmentRepository
+import com.bandymoot.fingerprint.app.domain.repository.ManagerRepository
+import com.bandymoot.fingerprint.app.domain.repository.UserRepository
+import com.bandymoot.fingerprint.app.domain.usecase.EnrollDeviceUseCase
 import com.bandymoot.fingerprint.app.domain.usecase.EnrollUserUseCase
 import com.bandymoot.fingerprint.app.domain.usecase.GetAllUsersUseCase
+import com.bandymoot.fingerprint.app.domain.usecase.GetAttendanceByUserAndMonthUseCase
 import com.bandymoot.fingerprint.app.domain.usecase.GetAttendanceGroupedByDate
 import com.bandymoot.fingerprint.app.domain.usecase.GetUserByIdUseCase
+import com.bandymoot.fingerprint.app.domain.usecase.InitialSyncUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -42,5 +48,34 @@ object UseCaseModule {
         enrollmentRepository: EnrollmentRepository
     ): EnrollUserUseCase {
         return EnrollUserUseCase(enrollmentRepository)
+    }
+
+    @Provides
+    fun provideInitialSyncUseCase(
+        managerRepository: ManagerRepository,
+        deviceRepository: DeviceRepository,
+        userRepository: UserRepository
+    ): InitialSyncUseCase {
+        return InitialSyncUseCase(
+            managerRepository = managerRepository,
+            deviceRepository = deviceRepository,
+            userRepository = userRepository
+        )
+    }
+
+    @Provides
+    fun provideEnrollDeviceUseCase(
+        deviceRepository: DeviceRepository
+    ): EnrollDeviceUseCase {
+        return EnrollDeviceUseCase(deviceRepository)
+    }
+
+    @Provides
+    fun provideGetAttendanceByUserAndMonthUseCase(
+        attendanceRepository: AttendanceRepository
+    ): GetAttendanceByUserAndMonthUseCase {
+        return GetAttendanceByUserAndMonthUseCase(
+            attendanceRepository = attendanceRepository
+        )
     }
 }

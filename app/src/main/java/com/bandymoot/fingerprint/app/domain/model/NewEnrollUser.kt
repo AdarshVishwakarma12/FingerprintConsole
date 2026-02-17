@@ -6,7 +6,7 @@ data class NewEnrollUser(
     val employeeId: String = "110220260232",
     val phone: String = "0000000000",
     val department: String = "Data Analytics",
-    val deviceId: String = "698b1c2cb3a4bfb0890bcaa3",
+    val deviceId: String = "",
     val timeZone: String = "UTC",
     val isValid: Boolean = false
 )

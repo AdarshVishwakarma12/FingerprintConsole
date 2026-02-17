@@ -10,6 +10,6 @@ interface AttendanceRepository {
     fun observeAll(): Flow<List<AttendanceRecord>>
     suspend fun getAttendanceByDate(date: LocalDate): RepositoryResult<List<AttendanceRecord>>
     suspend fun getAttendanceByDateAndDevice(date: Long, deviceId: String): RepositoryResult<List<AttendanceRecord>>
-    suspend fun getAttendanceByMonthAndUser(yearMonth: YearMonth, userId: String): RepositoryResult<List<AttendanceRecord>>
+    suspend fun getAttendanceByMonthAndUser(startOfMonth: Long, endOfMonth: Long, userId: String): RepositoryResult<List<AttendanceRecord>>
     suspend fun sync(startDate: String, endDate: String): RepositoryResult<Unit>
 }

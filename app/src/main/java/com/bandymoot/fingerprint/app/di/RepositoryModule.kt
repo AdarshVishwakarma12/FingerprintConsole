@@ -74,14 +74,14 @@ object RepositoryModule {
         attendanceRecordDao: AttendanceRecordDao
     ): FakeDataRepository {
         return FakeDataRepository(
-            organizationDao,
-            managerDao,
-            deviceDao,
-            userDao,
-            fingerprintDao,
-            authenticationLogDao,
-            auditLogDao,
-            attendanceRecordDao
+            organizationDao = organizationDao,
+            managerDao = managerDao,
+            deviceDao = deviceDao,
+            userDao = userDao,
+            fingerprintDao = fingerprintDao,
+            authenticationLogDao = authenticationLogDao,
+            auditLogDao = auditLogDao,
+            attendanceRecordDao = attendanceRecordDao
         )
     }
 
@@ -135,11 +135,13 @@ object RepositoryModule {
     @Singleton
     fun provideAuthRepository(
         apiServices: ApiServices,
-        tokenProvider: TokenProvider
+        tokenProvider: TokenProvider,
+        appDatabase: AppDatabase
     ): AuthRepository {
         return AuthRepositoryImpl(
-            apiServices,
-            tokenProvider
+            apiServices = apiServices,
+            tokenProvider = tokenProvider,
+            appDatabase = appDatabase
         )
     }
 
