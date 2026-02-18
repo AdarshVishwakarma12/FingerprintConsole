@@ -52,6 +52,7 @@ class UserScreenViewModel @Inject constructor(
             is UsersUiEvent.OpenUserDetail -> { fetchUserDetail(event.user) }
             is UsersUiEvent.CloseUserDetail -> { _uiState.update { it.copy(detailUserUiState = DetailUserUiState.Hidden) } }
             is UsersUiEvent.ShowSnackBar -> {  }
+            is UsersUiEvent.PullToRefresh -> { syncDataFromApi() }
         }
     }
 
@@ -112,6 +113,14 @@ class UserScreenViewModel @Inject constructor(
                     showSnackBar(detailUser.throwable.message ?: "Something Went Wrong")
                 }
             }
+        }
+    }
+
+    fun syncDataFromApi() {
+        viewModelScope.launch {
+            val response = userRepository.sync()
+            if(response is RepositoryResult.Failed) { showSnackBar("Failed to fetch Users") }
+            _uiState.update { it.copy(isRefreshing = false) }
         }
     }
 }

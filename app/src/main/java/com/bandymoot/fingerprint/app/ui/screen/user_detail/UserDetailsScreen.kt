@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -77,6 +78,7 @@ fun UserDetailsDialog(
                     )
                     UserDetailsRow(Icons.Default.AccessTime, "Last Access", userDetail.enrolledAt)
                     UserDetailsRow(Icons.Default.Work, "Department", userDetail.department ?: "-")
+                    UserDetailsRow(Icons.Default.Phone, "Phone", userDetail.phone)
                     UserDetailsRow(Icons.Default.LocationOn, "Notes", userDetail.notes ?: "-")
 
                     Spacer(modifier = Modifier.height(16.dp))

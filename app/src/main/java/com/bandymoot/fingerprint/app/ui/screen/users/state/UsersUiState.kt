@@ -4,6 +4,7 @@ import com.bandymoot.fingerprint.app.domain.model.User
 import com.bandymoot.fingerprint.app.domain.model.UserDetail
 
 data class UsersUiState (
+    val isRefreshing: Boolean = false,
     val listState: UsersListState = UsersListState.Loading,
     val detailUserUiState: DetailUserUiState = DetailUserUiState.Hidden,
     val searchQueryUiState: SearchQueryUiState = SearchQueryUiState.InActive

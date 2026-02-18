@@ -81,14 +81,17 @@ class UserEnrollmentViewModel @Inject constructor(
                 }
             }
 
-            UserEnrollScreenEvent.RESET -> { _uiState.update {
-                it.copy(
-                    isCompleted = false,
-                    userEnrollInfo = NewEnrollUser(),
-                    enrollmentScreenState = EnrollmentScreenState.IDLE,
-                    isLoading = false
-                )
-            } }
+            UserEnrollScreenEvent.RESET -> {
+                // Don't update the userEnrollInfo / it will reset user info!
+                _uiState.update {
+                    it.copy(
+                        isCompleted = false,
+                        // userEnrollInfo = NewEnrollUser(),
+                        enrollmentScreenState = EnrollmentScreenState.IDLE,
+                        isLoading = false
+                    )
+                }
+            }
 
             else -> Unit
         }

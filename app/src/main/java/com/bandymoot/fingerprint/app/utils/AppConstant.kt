@@ -1,9 +1,10 @@
 package com.bandymoot.fingerprint.app.utils
 
 import android.util.Log
+import java.time.format.DateTimeFormatter
 
 object AppConstant {
-    const val SERVER_URL = "137.97.126.110:4003" // "192.168.0.190:4000"
+    const val SERVER_URL =  "192.168.0.139:4000" // "137.97.126.110:4003"
     const val BASE_URL = "http://$SERVER_URL/"
     const val WEB_SOCKET_URL = "ws://$SERVER_URL"
     const val SOCKET_URL = "http://$SERVER_URL"
@@ -49,6 +50,10 @@ object AppConstant {
             if(debugType == DebugType.DESCRIPTION) Log.d(tag, msg)
         }
     }
+
+    // Api Attendnce Url pattern
+    val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
 }
 
 enum class DebugType {

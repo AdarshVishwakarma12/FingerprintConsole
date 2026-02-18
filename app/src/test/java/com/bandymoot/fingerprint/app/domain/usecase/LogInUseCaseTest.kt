@@ -4,7 +4,6 @@ import com.bandymoot.fingerprint.app.domain.model.AppError
 import com.bandymoot.fingerprint.app.domain.model.LoginResult
 import com.bandymoot.fingerprint.app.domain.repository.AuthRepository
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Test

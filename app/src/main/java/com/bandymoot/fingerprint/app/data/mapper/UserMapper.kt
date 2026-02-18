@@ -10,6 +10,7 @@ import java.time.ZoneId
 
 fun UserEntity.toDomain(): User {
     return User(
+        uniqueServerId = serverUserId,
         employeeCode = userCode,
         fullName = fullName,
         email = email,
@@ -51,7 +52,7 @@ fun Long.fromLongToDateString(convertToDate: Boolean = true): String {
             instant.toLocalTime().toString()
         }
 
-    } catch (e : Exception) {
+    } catch (_ : Exception) {
         "ERR"
     }
 }

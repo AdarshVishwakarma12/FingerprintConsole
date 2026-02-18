@@ -54,8 +54,8 @@ class DeviceRepositoryImpl @Inject constructor(
 
     override suspend fun enrollNewDevice(requestData: EnrollNewDeviceRequest): RepositoryResult<Unit> {
 
-        tokenProvider.tokenFLow.value ?: return RepositoryResult.Failed(Exception("Token Not Found"))
-        val response = safeApiCall { apiServices.enrollNewDevice(tokenProvider.tokenFLow.value!!, requestData) }
+        val tokenValue = tokenProvider.tokenFLow.value ?: return RepositoryResult.Failed(Exception("Token Not Found"))
+        val response = safeApiCall { apiServices.enrollNewDevice(tokenValue, requestData) }
 
         if(response is RepositoryResult.Failed) return response
         if((response as RepositoryResult.Success).data.success) return RepositoryResult.Success(Unit)
@@ -64,16 +64,17 @@ class DeviceRepositoryImpl @Inject constructor(
     }
 
     override suspend fun sync(): RepositoryResult<Unit> {
-        val token = tokenProvider.tokenFLow.value ?: throw Exception("Token Not Found")
+        val token = tokenProvider.tokenFLow.value ?: return RepositoryResult.Failed(Exception("Token Not Found"))
         return try {
 
             val response = safeApiCall { apiServices.getAllDevices(token) }
             if(response is RepositoryResult.Failed) return response
 
-            val deviceEntity = (response as RepositoryResult.Success).data.data
+            val listDeviceDto = (response as RepositoryResult.Success).data.data
+            val safeListDeviceEntity = listDeviceDto.mapNotNull { it.toEntity() }
 
             appDatabase.withTransaction {
-                deviceEntity.map { deviceDao.upsert(it.toEntity()) }
+                safeListDeviceEntity.map { deviceDao.upsert(it) }
             }
 
             RepositoryResult.Success(Unit)

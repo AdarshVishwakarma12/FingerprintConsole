@@ -23,7 +23,7 @@ fun UsersList(
          verticalArrangement = Arrangement.spacedBy(8.dp),
          contentPadding = PaddingValues(6.dp)
     ) {
-        items(users, key = { it.employeeCode }) { user ->
+        items(users, key = { it.uniqueServerId }) { user ->
             UserListItem(
                 user = user,
                 onClick = { onUserClick(user) },

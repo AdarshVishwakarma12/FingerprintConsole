@@ -1,6 +1,7 @@
 package com.bandymoot.fingerprint.app.data.repository
 
 import androidx.room.withTransaction
+import com.bandymoot.fingerprint.app.data.local.TokenProvider
 import com.bandymoot.fingerprint.app.data.local.dao.AttendanceRecordDao
 import com.bandymoot.fingerprint.app.data.mapper.toDomain
 import com.bandymoot.fingerprint.app.data.mapper.toEntity
@@ -21,9 +22,10 @@ import java.time.ZoneId
 import javax.inject.Inject
 
 class AttendanceRepositoryImpl @Inject constructor(
-    val apiServices: ApiServices,
-    val attendanceRecordDao: AttendanceRecordDao,
-    val appDatabase: AppDatabase
+    private val apiServices: ApiServices,
+    private val attendanceRecordDao: AttendanceRecordDao,
+    private val tokenProvider: TokenProvider,
+    private val appDatabase: AppDatabase
 ): AttendanceRepository {
     override fun observeAll(): Flow<List<AttendanceRecord>> = flow {
         attendanceRecordDao.observeAll().collect { attendanceData ->
@@ -82,20 +84,26 @@ class AttendanceRepositoryImpl @Inject constructor(
     }
 
     override suspend fun sync(startDate: String, endDate: String): RepositoryResult<Unit> {
+
+        val tokenValue = tokenProvider.tokenFLow.value ?: return RepositoryResult.Failed(Exception("Token Not Found"))
+
         return try {
 
-            val response = safeApiCall { apiServices.getAttendanceDataByDate(startDate, endDate) }
+            val response = safeApiCall { apiServices.getAttendanceDataByDate(token = tokenValue, startDate = startDate, endDate = endDate) }
 
             if(response is RepositoryResult.Failed) return response
 
             val attendanceRecordList = (response as RepositoryResult.Success).data.data
 
+            AppConstant.debugMessage("SUCCESS ATTENDANCE RECORD: $attendanceRecordList")
+            attendanceRecordList.map { AppConstant.debugMessage("INDIVIDUAL::$it") }
             appDatabase.withTransaction {
                 attendanceRecordList.map { attendanceRecordDao.upsert(it.toEntity()) }
             }
 
             RepositoryResult.Success(Unit)
         } catch (e: kotlin.Exception) {
+            AppConstant.debugMessage("ERROR TO SYNC THE ATTENDANCE DATA: ${e.message} ${e.localizedMessage}}")
             RepositoryResult.Failed(e)
         }
     }

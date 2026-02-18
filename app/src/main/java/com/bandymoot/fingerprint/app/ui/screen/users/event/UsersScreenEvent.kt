@@ -9,4 +9,5 @@ sealed interface UsersUiEvent {
     data class SearchQueryChanged(val query: String) : UsersUiEvent
     data class OpenUserDetail(val user: User) : UsersUiEvent
     object CloseUserDetail : UsersUiEvent
+    object PullToRefresh: UsersUiEvent
 }

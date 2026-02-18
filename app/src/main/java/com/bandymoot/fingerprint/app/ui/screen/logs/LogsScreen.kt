@@ -126,7 +126,7 @@ fun AttendanceLoadingScreen(
                     .background(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
                                 MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
                             )
                         )
@@ -173,7 +173,7 @@ fun AttendanceEmptyScreen(
                     .background(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
                                 MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
                             )
                         )
@@ -185,6 +185,8 @@ fun AttendanceEmptyScreen(
                     contentDescription = null
                 )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Main message
             Text(

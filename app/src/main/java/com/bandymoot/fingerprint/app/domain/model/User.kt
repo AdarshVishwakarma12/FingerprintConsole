@@ -1,6 +1,7 @@
 package com.bandymoot.fingerprint.app.domain.model
 
 data class User(
+    val uniqueServerId: String,
     val employeeCode: String,
     val fullName: String,
     val email: String?,

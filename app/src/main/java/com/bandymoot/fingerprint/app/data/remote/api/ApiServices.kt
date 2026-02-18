@@ -58,8 +58,9 @@ interface ApiServices {
         @Header("Authorization") token: String
     ): Response<DeviceListResponseDto>
 
-    @GET(AppConstant.GET_ALL_ATTENDANCE_API + "/{startDate}/{endDate}")
+    @GET(AppConstant.GET_ALL_ATTENDANCE_API + "{startDate}/{endDate}")
     suspend fun getAttendanceDataByDate(
+        @Header("Authorization") token: String,
         @Path("startDate") startDate: String,
         @Path("endDate") endDate: String
     ): Response<FetchAttendanceResponseDto>

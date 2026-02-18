@@ -54,12 +54,14 @@ object UseCaseModule {
     fun provideInitialSyncUseCase(
         managerRepository: ManagerRepository,
         deviceRepository: DeviceRepository,
-        userRepository: UserRepository
+        userRepository: UserRepository,
+        attendanceRepository: AttendanceRepository
     ): InitialSyncUseCase {
         return InitialSyncUseCase(
             managerRepository = managerRepository,
             deviceRepository = deviceRepository,
-            userRepository = userRepository
+            userRepository = userRepository,
+            attendanceRepository = attendanceRepository
         )
     }
 

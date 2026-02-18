@@ -92,13 +92,11 @@ fun UserListItem(
                     Spacer(modifier = Modifier.weight(1f))
 
                     // Fingerprint count
-                    if (user.phone != null) {
-                        Text(
-                            text = "${user.phone} prints",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
-                    }
+                    Text(
+                        text = user.employeeCode,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
                 }
             }
         }

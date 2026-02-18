@@ -10,8 +10,10 @@ import com.bandymoot.fingerprint.app.utils.AppConstant
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 fun AttendanceDto.toEntity(): AttendanceRecordEntity {
 
@@ -63,9 +65,9 @@ fun AttendanceRecordEntityProjector.toDomain(): AttendanceRecord {
         dateString = attendanceRecordEntity.date.fromLongToDateString(),
         checkInTime = checkIn,
         checkOutTime = checkOut,
-        totalWorkingTime = attendanceRecordEntity.totalWorkingMinutes.toString(),
-        breakTime = attendanceRecordEntity.breakMinutes.toString(),
-        overtimeTime = attendanceRecordEntity.overtimeMinutes.toString(),
+        totalWorkingTime = formatMinutes(attendanceRecordEntity.totalWorkingMinutes),
+        breakTime = formatMinutes(attendanceRecordEntity.breakMinutes),
+        overtimeTime = formatMinutes(attendanceRecordEntity.overtimeMinutes),
         status = attendanceRecordEntity.status,
         remark = attendanceRecordEntity.remarks
     )
@@ -86,11 +88,17 @@ private fun extractMonth(date: String): Int {
 private fun parseDateTime(date: String, time: String?): Long? {
     if (time.isNullOrBlank()) return null
 
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd h:mm a")
-    val localDateTime = LocalDateTime.parse("$date $time", formatter)
+    val localDate = LocalDate.parse(date) // ISO format assumed: yyyy-MM-dd
 
-    return localDateTime
-        .atZone(ZoneId.of(AppConstant.ZONE_ID))
+    val localTime = LocalTime.parse(
+        time,
+        DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH)
+    )
+
+    val zoneId = ZoneId.of(AppConstant.ZONE_ID)
+
+    return LocalDateTime.of(localDate, localTime)
+        .atZone(zoneId)
         .toInstant()
         .toEpochMilli()
 }
@@ -105,6 +113,20 @@ private fun parseMinutes(time: String?): Int {
     val minutes = parts[1].toIntOrNull() ?: 0
 
     return hours * 60 + minutes
+}
+
+fun formatMinutes(totalMinutes: Int): String {
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+
+    val hourText = if (hours == 1) "hr" else "hrs"
+    val minuteText = if (minutes == 1) "min" else "mins"
+
+    return when {
+        hours > 0 && minutes > 0 -> "$hours $hourText $minutes $minuteText"
+        hours > 0 -> "$hours $hourText"
+        else -> "$minutes $minuteText"
+    }
 }
 
 private fun mapStatus(status: String): AttendanceStatus {

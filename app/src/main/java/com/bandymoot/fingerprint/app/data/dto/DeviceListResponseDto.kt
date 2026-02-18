@@ -14,7 +14,7 @@ data class DeviceDto(
     val id: String,
 
     @SerializedName("device_name")
-    val deviceName: String,
+    val deviceName: String?,
 
     @SerializedName("device_code")
     val deviceCode: String,
@@ -23,13 +23,13 @@ data class DeviceDto(
     val secretKey: String,
 
     @SerializedName("users_count")
-    val usersCount: Int,
+    val usersCount: Int?,
 
     @SerializedName("device_location")
-    val deviceLocation: String,
+    val deviceLocation: String?,
 
     @SerializedName("device_firmware_version")
-    val deviceFirmwareVersion: String,
+    val deviceFirmwareVersion: String?,
 
     @SerializedName("device_manager_id")
     val deviceManagerId: String,
@@ -42,15 +42,22 @@ data class DeviceDto(
     val createdBy: String,
     val updatedBy: String?,
 
-    val createdAt: String,
-    val updatedAt: String,
+    val createdAt: String?,
+    val updatedAt: String?,
 
     @SerializedName("__v")
     val version: Int,
 
     @SerializedName("last_status")
-    val lastStatus: String,
+    val lastStatus: String?,
 
     @SerializedName("device_last_seen")
     val deviceLastSeen: String?
 )
+
+// Non Negotiable Field - filter at mapNotNull
+// "_id"
+// "deviceCode"
+// "secretKey"
+// "deviceManagerId"
+// "orgId"

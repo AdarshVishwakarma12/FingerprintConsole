@@ -122,11 +122,13 @@ object RepositoryModule {
     fun provideAttendanceRepository(
         apiService: ApiServices,
         attendanceRecordDao: AttendanceRecordDao,
+        tokenProvider: TokenProvider,
         appDatabase: AppDatabase
     ): AttendanceRepository {
         return AttendanceRepositoryImpl(
             apiServices = apiService,
             attendanceRecordDao = attendanceRecordDao,
+            tokenProvider = tokenProvider,
             appDatabase = appDatabase
         )
     }

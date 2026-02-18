@@ -5,6 +5,8 @@ import com.bandymoot.fingerprint.app.domain.model.User
 import org.json.JSONObject
 
 fun String.toWebsocketEvent(): EnrollmentSocketEvent {
+    // I don't think we have use of this code anymore!
+    // we've migrated to Socket.IO instead.
     val root = JSONObject(this)
     val type = root.getString("type")
     val user = root.optJSONObject("user")
@@ -18,6 +20,7 @@ fun String.toWebsocketEvent(): EnrollmentSocketEvent {
 
         "ENROLL_SUCCESS" -> {
             val user = User(
+                uniqueServerId = userJson?.getString("uniqueServerId") ?: "",
                 employeeCode = userJson?.getString("employeeId") ?: "",
                 fullName = userJson?.getString("name") ?: "",
                 email = userJson?.getString("email"),
@@ -34,6 +37,7 @@ fun String.toWebsocketEvent(): EnrollmentSocketEvent {
         "ATTENDANCE_EVENT" -> {
 
             val user = User(
+                uniqueServerId = userJson?.getString("uniqueServerId") ?: "",
                 employeeCode = userJson?.getString("employeeId") ?: "",
                 fullName = userJson?.getString("name") ?: "",
                 email = userJson?.getString("email"),

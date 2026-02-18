@@ -13,7 +13,6 @@ import com.bandymoot.fingerprint.app.utils.AppConstant
 import com.bandymoot.fingerprint.app.utils.DebugType
 import com.bandymoot.fingerprint.app.utils.showSnackBar
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -95,11 +94,14 @@ class LogsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
+                val fetchAttendanceResponse = attendanceRecordRepository.sync(
+                    date.format(AppConstant.dateTimeFormatter),
+                    date.format(AppConstant.dateTimeFormatter)
+                )
+                if(fetchAttendanceResponse is RepositoryResult.Failed) showSnackBar("Failed to fetch attendance for: ${date.format(AppConstant.dateTimeFormatter)}")
                 val attendanceData = attendanceRecordRepository.getAttendanceByDate(date)
                 when(attendanceData) {
                     is RepositoryResult.Success -> {
-
-                        delay(1500) // 1.5 Second delay!
 
                         _uiState.update {
                             it.copy(
