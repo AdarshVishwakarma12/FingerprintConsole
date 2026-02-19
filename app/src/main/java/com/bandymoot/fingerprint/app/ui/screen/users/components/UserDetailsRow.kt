@@ -28,13 +28,13 @@ fun UserDetailsRow(
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.width(12.dp))
+//        Icon(
+//            imageVector = icon,
+//            contentDescription = null,
+//            modifier = Modifier.size(20.dp),
+//            tint = MaterialTheme.colorScheme.onSurfaceVariant
+//        )
+//        Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = "$label:",
             style = MaterialTheme.typography.bodyMedium,

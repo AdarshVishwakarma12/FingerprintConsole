@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bandymoot.fingerprint.app.domain.model.User
 import com.bandymoot.fingerprint.app.domain.model.UserDetail
-import com.bandymoot.fingerprint.app.ui.screen.devices.event.UiEventDeviceEvent
 import com.bandymoot.fingerprint.app.ui.screen.users.components.EmptyUsersState
 import com.bandymoot.fingerprint.app.ui.screen.user_detail.UserDetailsDialog
 import com.bandymoot.fingerprint.app.ui.screen.users.components.UsersList
@@ -84,8 +83,8 @@ fun UsersListScreen(
                 }
             }
 
-            when (uiState.detailUserUiState) {
-                is DetailUserUiState.Hidden -> {}
+            when (val userDetail = uiState.detailUserUiState) {
+                is DetailUserUiState.Hidden -> { }
                 is DetailUserUiState.Loading -> {
                     // Show Loading State!
                     LoadingAlertDialog(
@@ -98,7 +97,7 @@ fun UsersListScreen(
                 is DetailUserUiState.Success -> {
                     AppConstant.debugMessage("I am active! And want to render!!")
                     UserDetailsDialog(
-                        userDetail = (uiState.detailUserUiState as DetailUserUiState.Success).detailUser,
+                        userDetail = userDetail.detailUser,
                         onDismiss = {
                             userScreenViewModel.onEvent(UsersUiEvent.CloseUserDetail)
                         },

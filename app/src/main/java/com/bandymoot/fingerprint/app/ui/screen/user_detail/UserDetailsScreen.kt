@@ -87,7 +87,7 @@ fun UserDetailsDialog(
                     userDetail.enrolledBy?.let { manager ->
                         Text("Enrolled By", fontWeight = FontWeight.Bold)
                         UserDetailsRow(Icons.Default.Person, "Full Name", manager.fullName)
-                        UserDetailsRow(Icons.Default.Email, "Email", manager.email ?: "-")
+                        UserDetailsRow(Icons.Default.Email, "Email", manager.email)
                         UserDetailsRow(Icons.Default.Person, "Username", manager.userName)
                     }
 

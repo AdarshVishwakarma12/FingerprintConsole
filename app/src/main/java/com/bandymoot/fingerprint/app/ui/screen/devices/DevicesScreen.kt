@@ -1,36 +1,28 @@
 package com.bandymoot.fingerprint.app.ui.screen.devices
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.pullToRefresh
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.bandymoot.fingerprint.app.domain.model.DeviceStatus
+import com.bandymoot.fingerprint.app.ui.screen.devices.components.DeviceDialogManager
 import com.bandymoot.fingerprint.app.ui.screen.devices.components.DeviceStatusRow
 import com.bandymoot.fingerprint.app.ui.screen.devices.components.NoDevicesEmptyState
-import com.bandymoot.fingerprint.app.ui.screen.devices.event.UiEventDeviceEvent
+import com.bandymoot.fingerprint.app.ui.screen.devices.event.DeviceUiEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeviceScreen(
-    devices: List<DeviceStatus>,
-    onDeviceClick: (String) -> Unit,
     deviceScreenViewModel: DeviceScreenViewModel = hiltViewModel()
 ) {
     // Collecting state from the ViewModel
@@ -40,7 +32,7 @@ fun DeviceScreen(
     PullToRefreshBox(
         isRefreshing = uiStateDeviceScreen.isRefreshing,
         onRefresh = {
-            deviceScreenViewModel.onEvent(UiEventDeviceEvent.PullToRefresh)
+            deviceScreenViewModel.onEvent(DeviceUiEvent.OnPullToRefresh)
         },
         modifier = Modifier.fillMaxSize()
     ) {
@@ -60,10 +52,16 @@ fun DeviceScreen(
                 items(uiStateDeviceScreen.deviceList) { device ->
                     DeviceStatusRow(
                         device = device,
-                        onClick = { onDeviceClick(device.deviceCode) }
+                        onClick = { deviceServerId -> deviceScreenViewModel.onEvent(DeviceUiEvent.OnDeviceClick(deviceServerId)) }
                     )
                 }
             }
         }
     }
+
+    // Alert Dialog
+    DeviceDialogManager(
+        state = uiStateDeviceScreen.deviceAlertDialog,
+        onEvent = { event -> deviceScreenViewModel.onEvent(event) }
+    )
 }

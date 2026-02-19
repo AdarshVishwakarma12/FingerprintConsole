@@ -67,7 +67,7 @@ fun MyAppNavHost(
         }
 
         composable(route = Route.Devices.route) {
-            DeviceScreen(emptyList(), { })
+            DeviceScreen()
         }
 
         composable(route = Route.DeviceEnroll.route) {

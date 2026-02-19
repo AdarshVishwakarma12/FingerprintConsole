@@ -4,7 +4,7 @@ import android.util.Log
 import java.time.format.DateTimeFormatter
 
 object AppConstant {
-    const val SERVER_URL =  "192.168.0.139:4000" // "137.97.126.110:4003"
+    const val SERVER_URL =  "137.97.126.110:4003" // "192.168.0.139:4000"
     const val BASE_URL = "http://$SERVER_URL/"
     const val WEB_SOCKET_URL = "ws://$SERVER_URL"
     const val SOCKET_URL = "http://$SERVER_URL"
