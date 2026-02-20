@@ -14,6 +14,7 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
     private val apiServices: ApiServices,
     private val tokenProvider: TokenProvider,
+    private val fakeDataRepository: FakeDataRepository,
     private val appDatabase: AppDatabase
 ): AuthRepository {
 
@@ -40,6 +41,18 @@ class AuthRepositoryImpl @Inject constructor(
 
             return LoginResult.Success(isAuthenticated = true)
 
+        } catch (e: Exception) {
+            return LoginResult.Failed(e.toAppError())
+        }
+    }
+
+    override suspend fun loginFakeUserForDemo(userEmail: String, password: String): LoginResult {
+        try {
+            fakeDataRepository.seedMassiveData()
+            tokenProvider.saveAccessToken("demoApplicationSecuredToken")
+            tokenProvider.saveUserEmail(email = userEmail)
+            tokenProvider.saveLoginTimestamp()
+            return LoginResult.Success(isAuthenticated = true)
         } catch (e: Exception) {
             return LoginResult.Failed(e.toAppError())
         }

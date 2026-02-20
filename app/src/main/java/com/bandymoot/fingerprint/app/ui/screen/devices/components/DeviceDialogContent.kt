@@ -13,22 +13,32 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bandymoot.fingerprint.app.domain.model.Device
 import com.bandymoot.fingerprint.app.domain.model.DeviceStatusType
-import com.bandymoot.fingerprint.app.ui.home.utils.HomeUtils
+import com.bandymoot.fingerprint.app.ui.screen.home.utils.HomeUtils
 
 @Composable
 fun DeviceDetailContent(device: Device) {
@@ -76,7 +86,7 @@ fun DeviceDetailContent(device: Device) {
                 InfoRow(label = "Vendor", value = device.vendor)
                 InfoRow(label = "Algorithm", value = device.supportedAlgorithm)
                 InfoRow(label = "Template v.", value = device.templateVersion)
-                InfoRow(label = "Secret Key", value = "••••••••${device.secretKey.takeLast(4)}")
+                SecretRow(label = "Secret Key", secret = device.secretKey)
             }
         }
     }
@@ -90,6 +100,58 @@ private fun InfoRow(label: String, value: String) {
     ) {
         Text(text = label, style = MaterialTheme.typography.labelMedium, color = Color.Gray)
         Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+    }
+}
+
+// The CHEAP SOLUTION!!
+// Cause making it survival takes a lot of time!
+// And kind of unnecessary - Just make default { false }, no more rocket science.
+@Composable
+private fun SecretRow(label: String, secret: String) {
+    var isSecretVisible by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.Gray
+        )
+
+        // The "Pill" container for the secret
+        Surface(
+            onClick = { isSecretVisible = !isSecretVisible },
+            shape = RoundedCornerShape(8.dp),
+            color = Color(0xFFECEFF1), // Muted Slate Bg
+            modifier = Modifier.padding(start = 8.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = if (isSecretVisible) secret else "••••••••••••",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = FontFamily.Monospace // Makes it look like a key/code
+                    ),
+                    color = Color(0xFF455A64), // Deep Slate Text
+                    fontWeight = FontWeight.Bold
+                )
+
+                Icon(
+                    imageVector = if (isSecretVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = Color.Gray
+                )
+            }
+        }
     }
 }
 

@@ -141,11 +141,13 @@ object RepositoryModule {
     fun provideAuthRepository(
         apiServices: ApiServices,
         tokenProvider: TokenProvider,
+        fakeDataRepository: FakeDataRepository,
         appDatabase: AppDatabase
     ): AuthRepository {
         return AuthRepositoryImpl(
             apiServices = apiServices,
             tokenProvider = tokenProvider,
+            fakeDataRepository = fakeDataRepository,
             appDatabase = appDatabase
         )
     }

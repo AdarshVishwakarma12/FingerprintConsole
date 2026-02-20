@@ -1,4 +1,4 @@
-package com.bandymoot.fingerprint.app.ui.screen.devices.components
+package com.bandymoot.fingerprint.app.ui.screen.profile.components
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -7,21 +7,15 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.bandymoot.fingerprint.app.ui.screen.devices.DeviceScreenViewModel
 import com.bandymoot.fingerprint.app.utils.AppConstant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DeviceTopBar(
-    userScreenViewModel: DeviceScreenViewModel = hiltViewModel()
-) {
-    // val uiState by userScreenViewModel.uiState.collectAsState()
-
+fun ProfileTopBar() {
     TopAppBar(
         title = {
             Text(
-                text = "Devices",
+                text = "Settings",
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
             )

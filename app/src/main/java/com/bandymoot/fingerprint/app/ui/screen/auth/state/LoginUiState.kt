@@ -3,8 +3,8 @@ package com.bandymoot.fingerprint.app.ui.screen.auth.state
 import com.bandymoot.fingerprint.app.domain.model.AppError
 
 data class LoginUiState(
-    val email: String = "Adarsh@gmail.com",
-    val password: String = "1234",
+    val email: String = "demoapplication@gmail.com",
+    val password: String = "securedDemoApplication",
 
     val isLoading: Boolean = false,
 

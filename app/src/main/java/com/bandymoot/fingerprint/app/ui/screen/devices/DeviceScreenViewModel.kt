@@ -4,15 +4,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
 import com.bandymoot.fingerprint.app.domain.repository.DeviceRepository
+import com.bandymoot.fingerprint.app.network.ErrorResolver
 import com.bandymoot.fingerprint.app.ui.screen.devices.event.DeviceUiEvent
 import com.bandymoot.fingerprint.app.ui.screen.devices.state.DeviceDialogStage
 import com.bandymoot.fingerprint.app.ui.screen.devices.state.DeviceDialogStatus
 import com.bandymoot.fingerprint.app.ui.screen.devices.state.DeviceDialogUiState
 import com.bandymoot.fingerprint.app.ui.screen.devices.state.DeviceScreenErrorState
 import com.bandymoot.fingerprint.app.ui.screen.devices.state.UiStateDeviceScreen
+import com.bandymoot.fingerprint.app.utils.AppConstant
 import com.bandymoot.fingerprint.app.utils.showSnackBar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -104,14 +107,14 @@ class DeviceScreenViewModel @Inject constructor(
             val response = deviceRepository.sync()
             when(response) {
                 is RepositoryResult.Failed -> {
-                    val responseThrowable = response.throwable
-                    showSnackBar(responseThrowable.message ?: responseThrowable.localizedMessage)
-                    _uiStateDeviceScreen.update { it.copy(isRefreshing = false) }
+                    val responseThrowableString = response.descriptiveError ?: response.throwable.message ?: response.throwable.localizedMessage ?: "An unexpected error occurred!"
+                    AppConstant.debugMessage("throwable: $responseThrowableString && descriptiveError::${response.descriptiveError}::" , "REPOSITORY")
+                    showSnackBar(responseThrowableString)
                 }
-                is RepositoryResult.Success -> {
-                    _uiStateDeviceScreen.update { it.copy(isRefreshing = false) }
-                }
+                is RepositoryResult.Success -> { }
             }
+            delay(3500) // may some people says it's bad, but it's actually useful here! SORRY GUYS!
+            _uiStateDeviceScreen.update { it.copy(isRefreshing = false) }
         }
     }
 

@@ -16,10 +16,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,6 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.bandymoot.fingerprint.app.ui.screen.users.UserScreenViewModel
 import com.bandymoot.fingerprint.app.ui.screen.users.event.UsersUiEvent
 import com.bandymoot.fingerprint.app.ui.screen.users.state.SearchQueryUiState
+import com.bandymoot.fingerprint.app.utils.AppConstant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,6 +100,9 @@ fun UsersListTopBar(
                     }
                 }
             }
-        }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = AppConstant.TOP_APP_COLOR
+        ),
     )
 }

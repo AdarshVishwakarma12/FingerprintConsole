@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import com.bandymoot.fingerprint.app.ui.home.components.DashboardTopBar
 import com.bandymoot.fingerprint.app.ui.navigation.Route
 import com.bandymoot.fingerprint.app.ui.screen.devices.components.DeviceTopBar
+import com.bandymoot.fingerprint.app.ui.screen.logs.components.AttendanceTopBar
+import com.bandymoot.fingerprint.app.ui.screen.profile.components.ProfileTopBar
 import com.bandymoot.fingerprint.app.ui.screen.users.components.UsersListTopBar
 
 @Composable
@@ -26,6 +28,12 @@ fun AppTopBar(
         }
         Route.Devices.route -> {
             DeviceTopBar()
+        }
+        Route.Logs.route -> {
+            AttendanceTopBar()
+        }
+        Route.Settings.route -> {
+            ProfileTopBar()
         }
         else -> { }
     }

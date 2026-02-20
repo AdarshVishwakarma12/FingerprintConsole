@@ -1,5 +1,6 @@
 package com.bandymoot.fingerprint.app.ui.screen.users
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -23,6 +24,7 @@ import com.bandymoot.fingerprint.app.utils.AppConstant
 
 // Main users list composable
 @OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun UsersListScreen(
     onEnrollUser: (User?) -> Unit,
@@ -56,7 +58,6 @@ fun UsersListScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
             ) {
                 when(uiState.listState) {
                     is UsersListState.Loading -> { }

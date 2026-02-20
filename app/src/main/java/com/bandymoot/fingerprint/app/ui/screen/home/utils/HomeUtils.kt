@@ -1,4 +1,4 @@
-package com.bandymoot.fingerprint.app.ui.home.utils
+package com.bandymoot.fingerprint.app.ui.screen.home.utils
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Computer
@@ -23,10 +23,10 @@ object HomeUtils {
     }
 
     fun getDeviceColor(status: DeviceStatusType): Color = when (status) {
-        DeviceStatusType.ONLINE -> Color(0xFF2E7D32)
-        DeviceStatusType.OFFLINE -> Color(0xFFF9A825)
-        DeviceStatusType.MAINTENANCE -> Color.Yellow
-        DeviceStatusType.ERROR -> Color.Red
+        DeviceStatusType.ONLINE -> Color(0xFF2E7D32)      // Emerald
+        DeviceStatusType.OFFLINE -> Color(0xFF455A64)     // Slate Gray (Neutral)
+        DeviceStatusType.MAINTENANCE -> Color(0xFFF9A825) // Amber (Warning)
+        DeviceStatusType.ERROR -> Color(0xFFC62828)       // Crimson (Critical)
     }
 
     fun getHealthColor(score: Int): Color = when {

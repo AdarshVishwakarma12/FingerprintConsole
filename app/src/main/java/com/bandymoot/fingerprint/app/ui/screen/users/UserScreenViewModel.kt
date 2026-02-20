@@ -14,6 +14,7 @@ import com.bandymoot.fingerprint.app.ui.screen.users.state.UsersUiState
 import com.bandymoot.fingerprint.app.utils.AppConstant
 import com.bandymoot.fingerprint.app.utils.showSnackBar
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -34,12 +35,6 @@ class UserScreenViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UsersUiState())
     val uiState: StateFlow<UsersUiState> = _uiState
 
-//    init {
-//        viewModelScope.launch {
-//            fakeDataRepository.seedMassiveData()
-//        }
-//    }
-
     init {
         getAllUsers()
     }
@@ -52,7 +47,10 @@ class UserScreenViewModel @Inject constructor(
             is UsersUiEvent.OpenUserDetail -> { fetchUserDetail(event.user) }
             is UsersUiEvent.CloseUserDetail -> { _uiState.update { it.copy(detailUserUiState = DetailUserUiState.Hidden) } }
             is UsersUiEvent.ShowSnackBar -> {  }
-            is UsersUiEvent.PullToRefresh -> { syncDataFromApi() }
+            is UsersUiEvent.PullToRefresh -> {
+                _uiState.update { it.copy(isRefreshing = true) }
+                syncDataFromApi()
+            }
         }
     }
 
@@ -108,8 +106,6 @@ class UserScreenViewModel @Inject constructor(
                             detailUserUiState = DetailUserUiState.Error("Error Loading!")
                         )
                     }
-
-                    AppConstant.debugMessage("!!!SHOWING SNACK BAR NOW!!! ViewModel")
                     showSnackBar(detailUser.throwable.message ?: "Something Went Wrong")
                 }
             }
@@ -120,6 +116,7 @@ class UserScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val response = userRepository.sync()
             if(response is RepositoryResult.Failed) { showSnackBar("Failed to fetch Users") }
+            delay(3500)
             _uiState.update { it.copy(isRefreshing = false) }
         }
     }

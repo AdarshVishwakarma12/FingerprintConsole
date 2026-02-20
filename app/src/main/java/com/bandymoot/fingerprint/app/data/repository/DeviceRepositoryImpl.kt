@@ -15,6 +15,7 @@ import com.bandymoot.fingerprint.app.data.socket.SocketTopicDeviceStatus
 import com.bandymoot.fingerprint.app.di.AppDatabase
 import com.bandymoot.fingerprint.app.domain.model.Device
 import com.bandymoot.fingerprint.app.domain.repository.DeviceRepository
+import com.bandymoot.fingerprint.app.network.ErrorResolver
 import com.bandymoot.fingerprint.app.utils.AppConstant
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -116,7 +117,7 @@ class DeviceRepositoryImpl @Inject constructor(
             RepositoryResult.Success(Unit)
 
         } catch (e: Exception) {
-            RepositoryResult.Failed(throwable = e)
+            RepositoryResult.Failed(throwable = e, descriptiveError = ErrorResolver.resolve(e))
         }
     }
 }

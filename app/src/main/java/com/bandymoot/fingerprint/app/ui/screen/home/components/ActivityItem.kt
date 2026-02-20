@@ -34,7 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bandymoot.fingerprint.app.domain.model.ActivityAction
 import com.bandymoot.fingerprint.app.domain.model.RecentActivity
-import com.bandymoot.fingerprint.app.ui.home.utils.HomeUtils
+import com.bandymoot.fingerprint.app.ui.screen.home.utils.HomeUtils
 
 @Composable
 fun ActivityItem(

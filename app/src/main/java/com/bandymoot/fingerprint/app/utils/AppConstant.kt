@@ -1,6 +1,7 @@
 package com.bandymoot.fingerprint.app.utils
 
 import android.util.Log
+import androidx.compose.ui.graphics.Color
 import java.time.format.DateTimeFormatter
 
 object AppConstant {
@@ -36,6 +37,8 @@ object AppConstant {
     const val SHARED_PREF_LOGIN_TIMESTAMP = "login_timestamp"
     const val SHARED_PREF_USER_ID = "login_user_id"
     const val SHARED_PREF_CURRENT_USER = "current_user"
+
+    val TOP_APP_COLOR = Color.LightGray.copy(alpha = 0.18f)
 
     // For LocalDate::
     // 6 => Saturday

@@ -2,10 +2,11 @@ package com.bandymoot.fingerprint.app.ui
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
-import androidx.core.view.WindowCompat
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.bandymoot.fingerprint.app.data.local.TokenProvider
@@ -26,7 +27,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         // Edge to Edge Application
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        // WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // edge to edge!
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                android.graphics.Color.TRANSPARENT,
+                android.graphics.Color.TRANSPARENT
+            )
+        )
 
         setContent {
             val navController = rememberNavController()

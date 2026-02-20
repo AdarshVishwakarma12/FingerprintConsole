@@ -1,6 +1,7 @@
 package com.bandymoot.fingerprint.app.data.remote
 
 import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.network.ErrorResolver
 import retrofit2.Response
 
 suspend fun <T: Any> safeApiCall(
@@ -11,8 +12,10 @@ suspend fun <T: Any> safeApiCall(
         val response = apiCall()
 
         if(!response.isSuccessful) {
+            val errorMessage = ErrorResolver.resolveHttpError(response.code())
             return RepositoryResult.Failed(
-                Exception("HTTP ${response.code()}")
+                throwable = Exception("HTTP ${response.code()}"),
+                descriptiveError = errorMessage
             )
         }
 
@@ -23,6 +26,6 @@ suspend fun <T: Any> safeApiCall(
 
         RepositoryResult.Success(body)
     } catch (e: Exception) {
-        RepositoryResult.Failed(e)
+        RepositoryResult.Failed(throwable = e, descriptiveError = ErrorResolver.resolve(e))
     }
 }

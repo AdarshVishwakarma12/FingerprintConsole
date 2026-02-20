@@ -5,8 +5,6 @@ import com.bandymoot.fingerprint.app.domain.model.LoginResult
 import com.bandymoot.fingerprint.app.domain.repository.AuthRepository
 import com.bandymoot.fingerprint.app.domain.validation.EmailValidator
 import com.bandymoot.fingerprint.app.domain.validation.PasswordValidator
-import com.bandymoot.fingerprint.app.utils.isValidEmail
-import com.bandymoot.fingerprint.app.utils.isValidPassword
 import javax.inject.Inject
 
 class LogInUseCase @Inject constructor(
@@ -20,6 +18,11 @@ class LogInUseCase @Inject constructor(
             return LoginResult.Failed(AppError.InValidDataEntered())
         }
 
-        return authRepository.loginUser(userEmail = email, password = password)
+        // YUP::This is for Deployment phase too! Cause we may need to show DEMO.
+        return if(email == "demoapplication@gmail.com" && password == "securedDemoApplication") {
+            authRepository.loginFakeUserForDemo(userEmail = email, password = password)
+        } else {
+            authRepository.loginUser(userEmail = email, password = password)
+        }
     }
 }

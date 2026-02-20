@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.bandymoot.fingerprint.app.ui.home.utils.HomeUtils
+import com.bandymoot.fingerprint.app.ui.screen.home.utils.HomeUtils
 import java.time.LocalDateTime
 
 @Composable
