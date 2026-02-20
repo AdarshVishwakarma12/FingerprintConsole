@@ -70,16 +70,16 @@ class LogsViewModel @Inject constructor(
 
     fun updateDeviceList() {
         viewModelScope.launch {
-            val deviceList = deviceRepository.observeDeviceByCurrentManager()
-            when(deviceList) {
-                is RepositoryResult.Failed -> {
-                    showSnackBar(deviceList.throwable.message ?: "Something went wrong while loading Devices")
-                }
-                is RepositoryResult.Success -> {
-                    _uiState.update { it.copy(devices = deviceList.data) }
+            deviceRepository.observeDeviceByCurrentManager().collect { deviceList ->
+                when(deviceList) {
+                    is RepositoryResult.Failed -> {
+                        showSnackBar(deviceList.throwable.message ?: "Something went wrong while loading Devices")
+                    }
+                    is RepositoryResult.Success -> {
+                        _uiState.update { it.copy(devices = deviceList.data) }
+                    }
                 }
             }
-
         }
     }
 

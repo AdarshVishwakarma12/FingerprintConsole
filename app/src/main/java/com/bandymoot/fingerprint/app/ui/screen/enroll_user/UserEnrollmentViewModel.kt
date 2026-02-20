@@ -48,8 +48,10 @@ class UserEnrollmentViewModel @Inject constructor(
         viewModelScope.launch {
             val deviceResult = deviceRepository.observeDeviceByCurrentManager()
             AppConstant.debugMessage("DEVICE LIST: $deviceResult")
-            if(deviceResult is RepositoryResult.Success) {
-                _uiState.update { it.copy(listOfDevice = deviceResult.data) }
+            deviceResult.collect { result ->
+                if(result is RepositoryResult.Success) {
+                    _uiState.update { it.copy(listOfDevice = result.data) }
+                }
             }
         }
     }

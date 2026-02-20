@@ -28,6 +28,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import javax.inject.Singleton
@@ -91,13 +92,15 @@ object RepositoryModule {
         deviceDao: DeviceDao,
         apiServices: ApiServices,
         tokenProvider: TokenProvider,
-        appDatabase: AppDatabase
+        appDatabase: AppDatabase,
+        @ApplicationScope externalScope: CoroutineScope
     ): DeviceRepository {
         return DeviceRepositoryImpl(
             deviceDao = deviceDao,
             apiServices = apiServices,
             tokenProvider = tokenProvider,
-            appDatabase = appDatabase
+            appDatabase = appDatabase,
+            externalScope = externalScope
         )
     }
 

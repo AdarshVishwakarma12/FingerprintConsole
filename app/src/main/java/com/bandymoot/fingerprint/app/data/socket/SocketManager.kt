@@ -10,6 +10,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -20,9 +22,15 @@ import org.json.JSONObject
 object SocketManager {
 
     private var socket: Socket? = null
-    private var listener: ((event: SocketEvent) -> Unit)? = null
+    private var listener: ((event: SocketEvent) -> Unit)? = null // Limitation -> One listener at a time!
+
+    // Time to move to Shared Flow (Use this inside Device Repo! Listen and update the DB) { TOPIC::DEVICE }
+    private val _socketEvent: MutableSharedFlow<SocketEvent> = MutableSharedFlow()
+    val socketEvent: SharedFlow<SocketEvent> get() = _socketEvent
+
     private var tokenJob: Job? = null
     private val managerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val sharedFlowScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun setListener(callback: (event: SocketEvent) -> Unit) {
         listener = callback
@@ -47,7 +55,10 @@ object SocketManager {
             on("Device_Status") { args ->
                 try {
                     val jsonObject = args[0] as JSONObject
-                    listener?.invoke(SocketEvent.Device(jsonObject.toSocketTopicDevice()))
+                    val socketData = SocketEvent.Device(jsonObject.toSocketTopicDevice())
+                    listener?.invoke(socketData)
+                    sharedFlowScope.launch { _socketEvent.emit(socketData) }
+
                 } catch (e: Exception) {
                     listener?.invoke(SocketEvent.Error(message = e.message?:e.localizedMessage))
                 }
@@ -86,7 +97,7 @@ object SocketManager {
                     AppConstant.debugMessage("HI THERE!!!", "NETWORK")
                     AppConstant.debugMessage("tokenFlow: ${tokenFlow.value}", "NETWORK")
                     AppConstant.debugMessage("networkState: ${networkState.value}", "NETWORK")
-                    AppConstant.debugMessage("shouldConnect: ${shouldConnect}", "NETWORK")
+                    AppConstant.debugMessage("shouldConnect: $shouldConnect", "NETWORK")
                     if(shouldConnect) {
                         init(tokenFlow.value ?: "INVALID-TOKEN")
                         connect()

@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface DeviceRepository {
     fun observeAll(): Flow<List<Device>>
-    suspend fun observeDeviceByCurrentManager(): RepositoryResult<List<Device>>
+    fun observeDeviceByCurrentManager(): Flow<RepositoryResult<List<Device>>>
     suspend fun delete(): RepositoryResult<Unit>
     suspend fun enrollNewDevice(requestData: EnrollNewDeviceRequest): RepositoryResult<Unit>
     suspend fun sync(): RepositoryResult<Unit>

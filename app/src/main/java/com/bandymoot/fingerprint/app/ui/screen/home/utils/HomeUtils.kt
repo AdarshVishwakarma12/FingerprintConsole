@@ -23,8 +23,8 @@ object HomeUtils {
     }
 
     fun getDeviceColor(status: DeviceStatusType): Color = when (status) {
-        DeviceStatusType.ONLINE -> Color.Green
-        DeviceStatusType.OFFLINE -> Color.Gray
+        DeviceStatusType.ONLINE -> Color(0xFF2E7D32)
+        DeviceStatusType.OFFLINE -> Color(0xFFF9A825)
         DeviceStatusType.MAINTENANCE -> Color.Yellow
         DeviceStatusType.ERROR -> Color.Red
     }

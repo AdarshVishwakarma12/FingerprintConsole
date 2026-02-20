@@ -4,6 +4,7 @@ import com.bandymoot.fingerprint.app.data.dto.DeviceDto
 import com.bandymoot.fingerprint.app.data.local.entity.DeviceEntity
 import com.bandymoot.fingerprint.app.data.local.entity.DeviceStatusEntityEnum
 import com.bandymoot.fingerprint.app.domain.model.Device
+import com.bandymoot.fingerprint.app.domain.model.DeviceStatusType
 import java.time.Instant
 import kotlin.math.pow
 
@@ -68,6 +69,7 @@ fun DeviceEntity.toDomain(): Device {
         name = name,
         location = location,
         deviceStatus = deviceStatus.toString(),
+        status = deviceStatus.toDomainType(),
         lastSeenAt = lastSeenAt.fromLongToDateString(),
         batteryLevel = batteryLevel,
         enrolledAt = enrolledAt.fromLongToDateString(),
@@ -76,4 +78,13 @@ fun DeviceEntity.toDomain(): Device {
         supportedAlgorithm = supportedAlgorithms,
         templateVersion = templateVersion
     )
+}
+
+fun DeviceStatusEntityEnum.toDomainType(): DeviceStatusType {
+    return when (this) {
+        DeviceStatusEntityEnum.ACTIVE -> DeviceStatusType.ONLINE
+        DeviceStatusEntityEnum.INACTIVE -> DeviceStatusType.OFFLINE
+        DeviceStatusEntityEnum.MAINTENANCE -> DeviceStatusType.MAINTENANCE
+        DeviceStatusEntityEnum.OFFLINE -> DeviceStatusType.OFFLINE
+    }
 }
