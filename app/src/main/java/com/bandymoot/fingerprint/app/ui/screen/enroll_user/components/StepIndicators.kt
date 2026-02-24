@@ -1,4 +1,4 @@
-package com.bandymoot.fingerprint.app.ui.enroll.components
+package com.bandymoot.fingerprint.app.ui.screen.enroll_user.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

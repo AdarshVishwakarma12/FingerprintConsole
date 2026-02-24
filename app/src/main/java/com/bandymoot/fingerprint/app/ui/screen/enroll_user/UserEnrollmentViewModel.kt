@@ -3,13 +3,17 @@ package com.bandymoot.fingerprint.app.ui.screen.enroll_user
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.data.socket.SocketEnrollmentStep
 import com.bandymoot.fingerprint.app.data.socket.SocketEvent
 import com.bandymoot.fingerprint.app.data.socket.SocketManager
+import com.bandymoot.fingerprint.app.data.socket.SocketTopicEnroll
 import com.bandymoot.fingerprint.app.domain.model.NewEnrollUser
 import com.bandymoot.fingerprint.app.domain.repository.DeviceRepository
 import com.bandymoot.fingerprint.app.domain.usecase.EnrollUserUseCase
 import com.bandymoot.fingerprint.app.ui.screen.enroll_user.event.UserEnrollScreenEvent
+import com.bandymoot.fingerprint.app.ui.screen.enroll_user.state.EnrollmentErrorState
 import com.bandymoot.fingerprint.app.ui.screen.enroll_user.state.EnrollmentScreenState
+import com.bandymoot.fingerprint.app.ui.screen.enroll_user.state.EnrollmentSocketState
 import com.bandymoot.fingerprint.app.ui.screen.enroll_user.state.EnrollmentState
 import com.bandymoot.fingerprint.app.utils.AppConstant
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,190 +34,73 @@ class UserEnrollmentViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(EnrollmentState())
     val uiState: StateFlow<EnrollmentState> = _uiState
 
-    private val _socketEvents = MutableStateFlow<SocketEvent>(SocketEvent.IDLE)
-
-    private var stepJob: Job? = null
     private var enrollmentTimeoutJob: Job? = null
 
+    // List Every Device the Manager Has Access to && Add Observer to the Screen!
     init {
-        SocketManager.setListener { event ->
-            viewModelScope.launch {
-                _socketEvents.emit(event)
+        viewModelScope.launch {
+            val deviceResult = deviceRepository.observeDeviceByCurrentManager()
+            deviceResult.collect { result ->
+                if(result is RepositoryResult.Success) _uiState.update { it.copy(listOfDevice = result.data) }
             }
         }
         observeWebSocketState()
     }
 
-    init {
-        viewModelScope.launch {
-            val deviceResult = deviceRepository.observeDeviceByCurrentManager()
-            AppConstant.debugMessage("DEVICE LIST: $deviceResult")
-            deviceResult.collect { result ->
-                if(result is RepositoryResult.Success) {
-                    _uiState.update { it.copy(listOfDevice = result.data) }
-                }
-            }
-        }
-    }
-
     // UI EVENTS
     fun onEvent(event: UserEnrollScreenEvent) {
         when (event) {
-
-            UserEnrollScreenEvent.StartEnrollment -> {
-                if(SocketManager.hasActiveConnection()) {
-                    moveTo(EnrollmentScreenState.UserInput)
-                }
-                else {
-                    moveTo(EnrollmentScreenState.Error("Connection failed"))
-                }
-            }
-
-            UserEnrollScreenEvent.ValidateUserInfoAndStartBiometric -> {
-                startEnrollment()
-            }
-
-            is UserEnrollScreenEvent.TextFieldInput -> {
-                _uiState.update { it.copy(userEnrollInfo = event.newEnrollUser ) }
-            }
-
-            UserEnrollScreenEvent.ResetTextFieldInput -> {
-                _uiState.update {
-                    it.copy(userEnrollInfo = NewEnrollUser())
-                }
-            }
-
-            UserEnrollScreenEvent.RESET -> {
-                // Don't update the userEnrollInfo / it will reset user info!
-                _uiState.update {
-                    it.copy(
-                        isCompleted = false,
-                        // userEnrollInfo = NewEnrollUser(),
-                        enrollmentScreenState = EnrollmentScreenState.IDLE,
-                        isLoading = false
-                    )
-                }
-            }
-
+            is UserEnrollScreenEvent.StartEnrollment -> moveTo(EnrollmentScreenState.ConnectingToSocket)
+            is UserEnrollScreenEvent.TextFieldInput -> _uiState.update { it.copy(userEnrollInfo = event.newEnrollUser ) }
+            is UserEnrollScreenEvent.ResetTextFieldInput -> _uiState.update { it.copy(userEnrollInfo = NewEnrollUser()) }
+            is UserEnrollScreenEvent.ValidateUserInfoAndStartBiometric -> startEnrollment()
+            // FOR UserEnrollScreenEvent.RESET :: Don't update the userEnrollInfo / it will reset user info!
+            is UserEnrollScreenEvent.RESET -> _uiState.update { it.copy(isCompleted = false, enrollmentScreenState = EnrollmentScreenState.IDLE, isLoading = false) }
+            is UserEnrollScreenEvent.DismissError -> _uiState.update { it.copy(enrollmentErrorState = null) }
             else -> Unit
         }
     }
 
-    // ENROLL FLOW
+    // ENROLL FLOW -> Hit the REST Api
     private fun startEnrollment() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-
             when (val data = enrollUserUseCase(_uiState.value.userEnrollInfo)) {
-
                 is RepositoryResult.Success -> {
                     _uiState.update { it.copy(isLoading = false) }
-                    moveTo(EnrollmentScreenState.EnrollingStepOne)
-                    delayAndAdvance()
+                    moveTo(EnrollmentScreenState.WaitForDevice)
                 }
-
                 is RepositoryResult.Failed -> {
                     _uiState.update { it.copy(isLoading = false) }
-                    moveTo(EnrollmentScreenState.Error(data.throwable.message))
+                    fallbackTo(data.throwable.message ?: data.throwable.localizedMessage)
                 }
             }
         }
     }
 
-    // STEP TIMING
-    private fun delayAndAdvance() {
-        stepJob?.cancel()
-        stepJob = viewModelScope.launch {
-            delay(3_000)
-
-            if (_uiState.value.enrollmentScreenState ==
-                EnrollmentScreenState.EnrollingStepOne
-            ) {
-                moveTo(EnrollmentScreenState.EnrollingStepTwo)
-            }
-        }
-    }
-
-    private fun startEnrollmentTimeout() {
-        enrollmentTimeoutJob?.cancel()
-
-        enrollmentTimeoutJob = viewModelScope.launch {
-            delay(AppConstant.ENROLLMENT_TIMEOUT)
-
-            if (_uiState.value.enrollmentScreenState ==
-                EnrollmentScreenState.EnrollingStepTwo
-            ) {
-                AppConstant.debugMessage(
-                    "Enrollment timed out",
-                    "ENROLL"
-                )
-                moveTo(
-                    EnrollmentScreenState.Error("Enrollment timed out. Please try again.")
-                )
-            }
-        }
-    }
-
-    private fun onEnteredState(state: EnrollmentScreenState) {
-        when (state) {
-
-            EnrollmentScreenState.EnrollingStepTwo -> {
-                startEnrollmentTimeout()
-            }
-
-            EnrollmentScreenState.Enrolled,
-            is EnrollmentScreenState.Error,
-            EnrollmentScreenState.Completed -> {
-                enrollmentTimeoutJob?.cancel()
-            }
-
-            else -> Unit
-        }
-    }
-
-
-    // SOCKET EVENTS
+    // SOCKET EVENTS -> Ears of screen
     private fun observeWebSocketState() {
         viewModelScope.launch {
-            _socketEvents.collect { event ->
-                when (event) {
-                    is SocketEvent.Attendance -> handleAttendance(event)
-
-                    is SocketEvent.Error -> {
-                        moveTo(EnrollmentScreenState.Error("Socket error"))
-                    }
-
-                    is SocketEvent.Disconnected -> {
-                        moveTo(EnrollmentScreenState.Error("Disconnected from socket"))
-                    }
-
+            SocketManager.socketEvent.collect { event ->
+                when (val current = event) {
+                    is SocketEvent.EnrollProgress -> handleEnrollSteps(current.data)
+                    is SocketEvent.Error -> fallbackTo(event.message)
+                    is SocketEvent.Disconnected -> createConnectionWithSocket() // Even for un-expected Disconnect, retry again.
                     else -> Unit
                 }
             }
         }
     }
 
-    private fun handleAttendance(event: SocketEvent.Attendance) {
-        val state = _uiState.value
-
-        val validStep =
-            state.enrollmentScreenState is EnrollmentScreenState.EnrollingStepOne ||
-                    state.enrollmentScreenState is EnrollmentScreenState.EnrollingStepTwo
-
-        if (!validStep) {
-            AppConstant.debugMessage(
-                "Attendance ignored — invalid state: ${state.enrollmentScreenState}",
-                "ENROLL"
-            )
-            return
-        }
-
-        if (state.userEnrollInfo.name == event.data.name) {
-            stepJob?.cancel()
-            enrollmentTimeoutJob?.cancel()
-            moveTo(EnrollmentScreenState.Enrolled)
-        } else {
-            moveTo(EnrollmentScreenState.Error("Different user enrolled"))
+    private fun handleEnrollSteps(data: SocketTopicEnroll) {
+        when(data.step) {
+            is SocketEnrollmentStep.Start -> moveTo(EnrollmentScreenState.EnrollmentStarted)
+            is SocketEnrollmentStep.CheckDuplicateFinger -> moveTo(EnrollmentScreenState.CheckDuplicateFinger)
+            is SocketEnrollmentStep.FirstScan -> moveTo(EnrollmentScreenState.FirstScan)
+            is SocketEnrollmentStep.SecondScan -> moveTo(EnrollmentScreenState.SecondScan)
+            is SocketEnrollmentStep.Success -> moveTo(EnrollmentScreenState.Enrolled)
+            is SocketEnrollmentStep.Failed -> fallbackTo(data.message)
+            is SocketEnrollmentStep.UndefinedStep -> Unit
         }
     }
 
@@ -224,57 +111,74 @@ class UserEnrollmentViewModel @Inject constructor(
             val currentState = current.enrollmentScreenState
 
             val allowed = when (currentState) {
-                EnrollmentScreenState.IDLE ->
-                    next is EnrollmentScreenState.UserInput || next is EnrollmentScreenState.Error
-
-                EnrollmentScreenState.UserInput ->
-                        next is EnrollmentScreenState.EnrollingStepOne || next is EnrollmentScreenState.Error
-
-                EnrollmentScreenState.EnrollingStepOne ->
-                    next is EnrollmentScreenState.EnrollingStepTwo
-
-                EnrollmentScreenState.EnrollingStepTwo ->
-                    next is EnrollmentScreenState.Enrolled || next is EnrollmentScreenState.Error
-
-                EnrollmentScreenState.Enrolled ->
-                    next is EnrollmentScreenState.Verifying || next is EnrollmentScreenState.Error
-
-                EnrollmentScreenState.Verifying ->
-                    next is EnrollmentScreenState.Completed
-
-                EnrollmentScreenState.Completed ->
-                    false
-
-                is EnrollmentScreenState.Error ->
-                    next is EnrollmentScreenState.IDLE
+                EnrollmentScreenState.IDLE -> next is EnrollmentScreenState.ConnectingToSocket
+                EnrollmentScreenState.ConnectingToSocket -> next is EnrollmentScreenState.UserInfoInput
+                EnrollmentScreenState.UserInfoInput -> next is EnrollmentScreenState.WaitForDevice
+                EnrollmentScreenState.WaitForDevice -> next is EnrollmentScreenState.EnrollmentStarted
+                EnrollmentScreenState.EnrollmentStarted -> next is EnrollmentScreenState.CheckDuplicateFinger
+                EnrollmentScreenState.CheckDuplicateFinger -> next is EnrollmentScreenState.FirstScan
+                EnrollmentScreenState.FirstScan -> next is EnrollmentScreenState.SecondScan
+                EnrollmentScreenState.SecondScan -> next is EnrollmentScreenState.Enrolled
+                EnrollmentScreenState.Enrolled -> false
             }
 
-            if (!allowed) {
-                AppConstant.debugMessage(
-                    "Invalid transition: $currentState → $next",
-                    "ENROLL"
-                )
-                return@update current
-            }
-
-            AppConstant.debugMessage(
-                "Transition: $currentState → $next",
-                "ENROLL"
-            )
-
-            current.copy(
-                enrollmentScreenState = next,
-                errorMessage = null
-            )
+            if (!allowed) { return@update current }
+            current.copy(enrollmentScreenState = next, errorMessage = null)
         }
-
-        onEnteredState(next)
+        startOrCancelEnrollmentTimeout(next)
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        stepJob?.cancel()
-        enrollmentTimeoutJob?.cancel()
-        // SocketManager.clearListener()
+    private fun fallbackTo(error: String) {
+        _uiState.update { current ->
+
+            val currentState = current.enrollmentScreenState
+
+            val fallbackState: EnrollmentScreenState = when(currentState) {
+                is EnrollmentScreenState.IDLE,
+                is EnrollmentScreenState.ConnectingToSocket -> {
+                    EnrollmentScreenState.IDLE
+                }
+                is EnrollmentScreenState.UserInfoInput,
+                is EnrollmentScreenState.WaitForDevice,
+                is EnrollmentScreenState.EnrollmentStarted,
+                is EnrollmentScreenState.CheckDuplicateFinger,
+                is EnrollmentScreenState.FirstScan,
+                is EnrollmentScreenState.SecondScan -> {
+                    EnrollmentScreenState.UserInfoInput
+                }
+                is EnrollmentScreenState.Enrolled -> {
+                    EnrollmentScreenState.Enrolled
+                }
+            }
+
+            current.copy(enrollmentScreenState = fallbackState, enrollmentErrorState = EnrollmentErrorState(error))
+        }
+    }
+
+    private fun startOrCancelEnrollmentTimeout(step: EnrollmentScreenState) {
+        when(step) {
+            is EnrollmentScreenState.ConnectingToSocket -> { createConnectionWithSocket() }
+            is EnrollmentScreenState.WaitForDevice -> {
+                enrollmentTimeoutJob?.cancel()
+                enrollmentTimeoutJob = viewModelScope.launch {
+                    delay(AppConstant.ENROLLMENT_TIMEOUT)
+                    fallbackTo("Enrollment timed out. Please try again.")
+                }
+            }
+            is EnrollmentScreenState.Enrolled -> { enrollmentTimeoutJob?.cancel() }
+            else -> Unit
+        }
+    }
+
+    private fun createConnectionWithSocket() {
+        // build the exponential-backoff tries to connect to Socket! - for weak connections!
+        val connectedWithSocket = SocketManager.hasActiveConnection()
+        if(connectedWithSocket) {
+            _uiState.update { it.copy(enrollmentSocketState = EnrollmentSocketState.CONNECTED) }
+            viewModelScope.launch { delay(3000); moveTo(EnrollmentScreenState.UserInfoInput) }
+        } else {
+            _uiState.update { it.copy(enrollmentSocketState = EnrollmentSocketState.DISCONNECTED) }
+            fallbackTo("Failed to build connection with Socket")
+        }
     }
 }

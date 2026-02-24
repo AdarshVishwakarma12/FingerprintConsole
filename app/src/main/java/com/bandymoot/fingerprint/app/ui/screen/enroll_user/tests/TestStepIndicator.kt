@@ -2,7 +2,7 @@ package com.bandymoot.fingerprint.app.ui.screen.enroll_user.tests
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import com.bandymoot.fingerprint.app.ui.enroll.components.StepIndicators
+import com.bandymoot.fingerprint.app.ui.screen.enroll_user.components.StepIndicators
 
 @Preview(showBackground = true)
 @Composable

@@ -94,7 +94,7 @@ class DeviceRepositoryImpl @Inject constructor(
         val tokenValue = tokenProvider.tokenFLow.value ?: return RepositoryResult.Failed(Exception("Token Not Found"))
         val response = safeApiCall { apiServices.enrollNewDevice(tokenValue, requestData) }
 
-        if(response is RepositoryResult.Failed) return response
+        if(response is RepositoryResult.Failed) RepositoryResult.Failed(throwable = response.throwable, descriptiveError = ErrorResolver.resolveHttpError(response.hashCode()))
         if((response as RepositoryResult.Success).data.success) return RepositoryResult.Success(Unit)
 
         return RepositoryResult.Failed(Exception("Couldn't Enroll Device"))

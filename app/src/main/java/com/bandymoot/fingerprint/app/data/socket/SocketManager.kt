@@ -2,6 +2,7 @@ package com.bandymoot.fingerprint.app.data.socket
 
 import com.bandymoot.fingerprint.app.data.mapper.toSocketTopicAttendance
 import com.bandymoot.fingerprint.app.data.mapper.toSocketTopicDevice
+import com.bandymoot.fingerprint.app.data.mapper.toSocketTopicEnrollProgress
 import com.bandymoot.fingerprint.app.network.NetworkState
 import com.bandymoot.fingerprint.app.utils.AppConstant
 import io.socket.client.IO
@@ -52,7 +53,7 @@ object SocketManager {
         socket?.apply {
             on(Socket.EVENT_CONNECT) { listener?.invoke(SocketEvent.Connected) }
             on(Socket.EVENT_DISCONNECT) { listener?.invoke(SocketEvent.Disconnected) }
-            on("Device_Status") { args ->
+            on(SocketTopic.TOPIC_DEVICE_STATUS) { args ->
                 try {
                     val jsonObject = args[0] as JSONObject
                     val socketData = SocketEvent.Device(jsonObject.toSocketTopicDevice())
@@ -63,7 +64,7 @@ object SocketManager {
                     listener?.invoke(SocketEvent.Error(message = e.message?:e.localizedMessage))
                 }
             }
-            on("Attendance_Status") { args ->
+            on(SocketTopic.TOPIC_ATTENDANCE_STATUS) { args ->
                 try {
                     val jsonObject = args[0] as JSONObject
                     listener?.invoke(SocketEvent.Attendance(jsonObject.toSocketTopicAttendance()))
@@ -71,7 +72,17 @@ object SocketManager {
                     listener?.invoke(SocketEvent.Error(message = e.message?:e.localizedMessage))
                 }
             }
-            on("message") { args ->  }
+            on(SocketTopic.TOPIC_ENROLL_PROGRESS) { args ->
+                try {
+                    val jsonObject = args[0] as JSONObject
+                    val event = SocketEvent.EnrollProgress(data = jsonObject.toSocketTopicEnrollProgress())
+                    sharedFlowScope.launch { _socketEvent.emit(event) }
+                } catch (e: Exception) {
+                    val errorEvent = SocketEvent.Error(message = e.message ?: e.localizedMessage)
+                    sharedFlowScope.launch { _socketEvent.emit(errorEvent) }
+                }
+            }
+            on(SocketTopic.TOPIC_MESSAGE) { args ->  }
         }
     }
 
@@ -80,12 +91,8 @@ object SocketManager {
     // Just use the ViewModel, which explore the states! using SharedFlow
     fun observeToken(tokenFlow: StateFlow<String?>, networkState: StateFlow<NetworkState>) {
         // Cancel previous job if any
-        // This runs in background which is Dispatchers.IO, and always collect the Latest data from TokenProvder
+        // This runs in background which is Dispatchers.IO, and always collect the Latest data from TokenProvider
         // Combined with the NetworkManager
-
-        AppConstant.debugMessage("HI THERE!!!", "NETWORK")
-        AppConstant.debugMessage("tokenFlow: ${tokenFlow.value}", "NETWORK")
-        AppConstant.debugMessage("networkState: ${networkState.value}", "NETWORK")
 
         tokenJob?.cancel()
         tokenJob = managerScope.launch {
@@ -94,14 +101,9 @@ object SocketManager {
             }
                 .distinctUntilChanged()
                 .collectLatest { shouldConnect ->
-                    AppConstant.debugMessage("HI THERE!!!", "NETWORK")
-                    AppConstant.debugMessage("tokenFlow: ${tokenFlow.value}", "NETWORK")
-                    AppConstant.debugMessage("networkState: ${networkState.value}", "NETWORK")
-                    AppConstant.debugMessage("shouldConnect: $shouldConnect", "NETWORK")
                     if(shouldConnect) {
                         init(tokenFlow.value ?: "INVALID-TOKEN")
                         connect()
-                        AppConstant.debugMessage("CONNECTION STATE: ${hasActiveConnection()}", "NETWORK")
                     } else {
                         disconnect()
                     }

@@ -13,18 +13,16 @@ import com.bandymoot.fingerprint.app.ui.screen.socket.SocketEventViewModel
 fun StartEnrollmentProcess(
     onCompleteEnrollment: () -> Unit,
     navBackStackEntry: NavBackStackEntry?,
-    socketViewModel: SocketEventViewModel = hiltViewModel()
 ) {
     val viewModel: UserEnrollmentViewModel = if(navBackStackEntry==null) { hiltViewModel() } else { hiltViewModel(navBackStackEntry) }
     val uiState by viewModel.uiState.collectAsState()
 
     FingerprintEnrollmentScreen(
         uiState = uiState,
+        onRetry = { viewModel.onEvent(UserEnrollScreenEvent.DismissError) },
         onStartEnrollment = { viewModel.onEvent(UserEnrollScreenEvent.StartEnrollment) },
-        onRetry = { viewModel.onEvent(UserEnrollScreenEvent.RESET) },
+        onInputChanged = { it -> viewModel.onEvent(UserEnrollScreenEvent.TextFieldInput(it)) },
         onValidateInputAndStartEnroll = { viewModel.onEvent(UserEnrollScreenEvent.ValidateUserInfoAndStartBiometric) },
-        onComplete = { },
         onCompleteEnrollment = onCompleteEnrollment,
-        onInputChanged = { it -> viewModel.onEvent(UserEnrollScreenEvent.TextFieldInput(it)) }
     )
 }

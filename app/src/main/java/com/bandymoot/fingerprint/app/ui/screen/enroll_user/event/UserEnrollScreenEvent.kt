@@ -13,4 +13,6 @@ sealed class UserEnrollScreenEvent {
 
     data class TextFieldInput(val newEnrollUser: NewEnrollUser): UserEnrollScreenEvent()
     object ResetTextFieldInput: UserEnrollScreenEvent() // Do use me!
+
+    object DismissError: UserEnrollScreenEvent()
 }

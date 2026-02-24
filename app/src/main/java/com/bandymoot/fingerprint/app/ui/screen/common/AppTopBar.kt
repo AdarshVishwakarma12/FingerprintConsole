@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import com.bandymoot.fingerprint.app.ui.home.components.DashboardTopBar
 import com.bandymoot.fingerprint.app.ui.navigation.Route
 import com.bandymoot.fingerprint.app.ui.screen.devices.components.DeviceTopBar
+import com.bandymoot.fingerprint.app.ui.screen.enroll_user.components.EnrollmentTopBar
 import com.bandymoot.fingerprint.app.ui.screen.logs.components.AttendanceTopBar
 import com.bandymoot.fingerprint.app.ui.screen.profile.components.ProfileTopBar
 import com.bandymoot.fingerprint.app.ui.screen.users.components.UsersListTopBar
@@ -11,6 +12,7 @@ import com.bandymoot.fingerprint.app.ui.screen.users.components.UsersListTopBar
 @Composable
 fun AppTopBar(
     currentRoute: String?,
+    backOperation: () -> Unit
 ) {
     when(currentRoute) {
         Route.Home.route -> {
@@ -34,6 +36,9 @@ fun AppTopBar(
         }
         Route.Settings.route -> {
             ProfileTopBar()
+        }
+        Route.UserEnroll.route -> {
+            EnrollmentTopBar(backOperation) // Add popFromBackStack!!
         }
         else -> { }
     }

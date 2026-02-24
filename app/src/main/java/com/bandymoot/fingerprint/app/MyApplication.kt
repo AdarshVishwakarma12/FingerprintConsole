@@ -16,7 +16,6 @@ class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
         SocketManager.observeToken(tokenProvider.tokenFLow, networkManager.networkState)
-
         syncManager.startObserving()
     }
 }

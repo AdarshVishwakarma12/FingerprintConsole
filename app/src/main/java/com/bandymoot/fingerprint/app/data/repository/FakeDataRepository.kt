@@ -497,6 +497,10 @@ class FakeDataRepository(
      * Simple function to create attendance records
      * Creates attendance for the last 30 days for all users
      */
+    /**
+     * Generate attendance records for the last 6 months (approx 180 days)
+     * Includes realistic variations: lower attendance in December, higher in summer, etc.
+     */
     private fun createAttendanceRecords(
         orgId: String,
         managers: List<ManagerEntity>,
@@ -505,45 +509,56 @@ class FakeDataRepository(
     ): List<AttendanceRecordEntity> {
         val attendanceRecords = mutableListOf<AttendanceRecordEntity>()
         val now = System.currentTimeMillis()
+        val sixMonthsInMillis = 180L * 24 * 60 * 60 * 1000 // Approx 180 days
 
-        // Generate attendance for the last 30 days
-        for (dayOffset in 0 until 30) {
+        // Generate for the last 180 days
+        for (dayOffset in 0 until 180) {
             val currentDate = getStartOfDay(now - (dayOffset * 24 * 60 * 60 * 1000L))
             val calendar = Calendar.getInstance().apply {
                 timeInMillis = currentDate
             }
             val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-            val month = calendar.get(Calendar.MONTH)
+            val month = calendar.get(Calendar.MONTH) // 0 = January, 11 = December
 
-            // Skip weekends
+            // Skip weekends (Saturday & Sunday)
             val isWeekend = dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY
             if (isWeekend) continue
 
+            // Adjust attendance probability based on month
+            val basePresentProb = when (month) {
+                // December holidays -> lower attendance
+                11 -> 0.75
+                // July/August summer vacation -> slightly lower
+                6, 7 -> 0.85
+                // January (post-holidays) -> slightly lower
+                0 -> 0.85
+                else -> 0.92
+            }
+
             users.forEach { user ->
-                // Decide if user is present today (90% chance)
-                val isPresent = Random.Default.nextDouble() < 0.9
+                // Some users might have different patterns, but keep simple
+                val isPresent = Random.Default.nextDouble() < basePresentProb
 
                 if (isPresent) {
-                    // Regular 9 AM to 5 PM work day
+                    // Regular 9 AM to 5 PM work day with variations
                     val checkInTime = currentDate + (9 * 60 * 60 * 1000) +
-                            Random.Default.nextInt(-15, 16) * 60 * 1000 // -15 to +15 minutes variation
+                            Random.Default.nextInt(-20, 21) * 60 * 1000 // -20 to +20 minutes
 
                     val checkOutTime = currentDate + (17 * 60 * 60 * 1000) +
-                            Random.Default.nextInt(-30, 61) * 60 * 1000 // -30 to +60 minutes variation
+                            Random.Default.nextInt(-30, 91) * 60 * 1000 // -30 to +90 minutes
 
                     val workingMinutes = ((checkOutTime - checkInTime) / (1000 * 60)).toInt()
-                    val breakMinutes = 60 // Standard 1 hour break
+                    val breakMinutes = 60
                     val netWorkingMinutes = (workingMinutes - breakMinutes).coerceAtLeast(0)
 
-                    // Calculate overtime (anything over 8 hours)
-                    val standardWorkMinutes = 480 // 8 hours
+                    val standardWorkMinutes = 480
                     val overtimeMinutes = (netWorkingMinutes - standardWorkMinutes).coerceAtLeast(0)
 
-                    // Determine status (mostly present, some late)
-                    val status = if (Random.Default.nextDouble() < 0.8) {
-                        AttendanceStatus.PRESENT
-                    } else {
+                    // Status: 85% present, 15% late (more realistic than 80/20)
+                    val status = if (Random.Default.nextDouble() < 0.15) {
                         AttendanceStatus.LATE
+                    } else {
+                        AttendanceStatus.PRESENT
                     }
 
                     attendanceRecords.add(
@@ -565,14 +580,18 @@ class FakeDataRepository(
                         )
                     )
                 } else {
-                    // User is absent (10% chance)
+                    // Absent
                     attendanceRecords.add(
                         AttendanceRecordEntity(
                             serverAttendanceId = "att-${UUID.randomUUID()}",
                             userServerId = user.serverUserId,
                             date = currentDate,
                             status = AttendanceStatus.ABSENT,
-                            remarks = "Sick leave",
+                            remarks = when (month) {
+                                11 -> "Holiday leave"
+                                6,7 -> "Vacation"
+                                else -> "Sick leave"
+                            },
                             organizationServerId = orgId,
                             month = month,
                             deviceServerId = devices.random().serverDeviceId
@@ -582,6 +601,7 @@ class FakeDataRepository(
             }
         }
 
+        println("✅ Generated ${attendanceRecords.size} attendance records for last 6 months")
         return attendanceRecords
     }
 

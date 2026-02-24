@@ -41,7 +41,7 @@ fun MyAppScaffold(
         modifier = modifier.fillMaxSize(),
 
         topBar = {
-            AppTopBar(currentRoute)
+            AppTopBar(currentRoute = currentRoute, backOperation = { navController.popBackStack() })
         },
 
         bottomBar = {
@@ -85,7 +85,9 @@ fun MyAppScaffold(
 
         Box {
             MyAppNavHost(navController = navController, innerPadding = innerPadding)
-            SnackbarHost(hostState = snackBarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = innerPadding.calculateBottomPadding()))
+            SnackbarHost(hostState = snackBarHostState, modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = innerPadding.calculateBottomPadding()))
         }
     }
 }

@@ -27,7 +27,7 @@ object AppConstant {
     const val MAX_PASSWORD_LENGTH = 128
 
     // Enroll Timeout
-    const val ENROLLMENT_TIMEOUT: Long = 35_000
+    const val ENROLLMENT_TIMEOUT: Long = 65_000
 
     // SHARED PREFERENCE
     const val SHARED_PREF = "secure_prefs"
