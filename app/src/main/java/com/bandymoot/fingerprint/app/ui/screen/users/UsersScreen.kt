@@ -15,6 +15,7 @@ import com.bandymoot.fingerprint.app.domain.model.User
 import com.bandymoot.fingerprint.app.domain.model.UserDetail
 import com.bandymoot.fingerprint.app.ui.screen.users.components.EmptyUsersState
 import com.bandymoot.fingerprint.app.ui.screen.user_detail.UserDetailsDialog
+import com.bandymoot.fingerprint.app.ui.screen.users.components.SearchHeader
 import com.bandymoot.fingerprint.app.ui.screen.users.components.UsersList
 import com.bandymoot.fingerprint.app.ui.screen.users.event.UsersUiEvent
 import com.bandymoot.fingerprint.app.ui.screen.users.state.DetailUserUiState
@@ -59,27 +60,36 @@ fun UsersListScreen(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                when(uiState.listState) {
-                    is UsersListState.Loading -> { }
-                    is UsersListState.Success -> {
-                        if((uiState.listState as UsersListState.Success).users.isEmpty()) {
-                            EmptyUsersState(
-                                searchQuery = (uiState.searchQueryUiState as? SearchQueryUiState.Active)?.searchQuery.orEmpty(),
-                                onAddUserClick = { onEnrollUser(null) }
-                            )
-                        } else {
-                            UsersList(
-                                users = (uiState.listState as UsersListState.Success).users,
-                                onUserClick = { user -> userScreenViewModel.onEvent(UsersUiEvent.OpenUserDetail(user)) },
-                                onEnrollUser = onEnrollUser,
-                                onDeleteUser = { },
-                                modifier = modifier
-                            )
+                Column {
+                    SearchHeader(
+                        query = uiState.searchQueryUiState.searchQuery,
+                        onOpenSearch = {  userScreenViewModel.onEvent(UsersUiEvent.OpenSearch) },
+                        onSearchQueryChanged = { userScreenViewModel.onEvent(UsersUiEvent.SearchQueryChanged(it)) },
+                        onCloseSearch = { userScreenViewModel.onEvent(UsersUiEvent.CloseSearch) },
+                    )
+
+                    when(val userListState = uiState.listState) {
+                        is UsersListState.Loading -> { }
+                        is UsersListState.Success -> {
+                            if(userListState.users.isEmpty()) {
+                                EmptyUsersState(
+                                    searchQuery = (uiState.searchQueryUiState as? SearchQueryUiState.Active)?.searchQuery.orEmpty(),
+                                    onAddUserClick = { onEnrollUser(null) }
+                                )
+                            } else {
+                                UsersList(
+                                    users = userListState.users,
+                                    onUserClick = { user -> userScreenViewModel.onEvent(UsersUiEvent.OpenUserDetail(user)) },
+                                    onEnrollUser = onEnrollUser,
+                                    onDeleteUser = { },
+                                    modifier = modifier
+                                )
+                            }
                         }
-                    }
-                    is UsersListState.Error -> {
-                        // Update in SnackBarHostState / Manager
-                        // Through viewModel!
+                        is UsersListState.Error -> {
+                            // Update in SnackBarHostState / Manager
+                            // Through viewModel!
+                        }
                     }
                 }
             }

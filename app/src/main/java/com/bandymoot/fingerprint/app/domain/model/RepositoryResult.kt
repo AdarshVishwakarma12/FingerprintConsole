@@ -1,4 +1,4 @@
-package com.bandymoot.fingerprint.app.data.repository
+package com.bandymoot.fingerprint.app.domain.model
 
 sealed class RepositoryResult<out T> {
     data class Success<out T>(val data: T) : RepositoryResult<T>()

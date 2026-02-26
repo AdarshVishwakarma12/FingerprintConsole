@@ -1,6 +1,6 @@
 package com.bandymoot.fingerprint.app.data.remote
 
-import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.network.ErrorResolver
 import retrofit2.Response
 

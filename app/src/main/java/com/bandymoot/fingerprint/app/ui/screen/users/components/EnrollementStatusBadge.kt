@@ -42,25 +42,20 @@ fun EnrollmentStatusBadge(
             MaterialTheme.colorScheme.errorContainer,
             Icons.Default.Warning
         )
-        EnrollmentStatus.EXPIRED -> Triple(
-            "Expired",
-            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f),
-            Icons.Default.Cancel
-        )
     }
 
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
             .background(color)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = 8.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            modifier = Modifier.size(12.dp),
+            modifier = Modifier.size(10.dp),
             tint = MaterialTheme.colorScheme.onPrimaryContainer
         )
         Text(

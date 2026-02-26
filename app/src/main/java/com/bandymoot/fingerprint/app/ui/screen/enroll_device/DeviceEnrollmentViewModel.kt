@@ -2,7 +2,7 @@ package com.bandymoot.fingerprint.app.ui.screen.enroll_device
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.domain.usecase.EnrollDeviceUseCase
 import com.bandymoot.fingerprint.app.ui.screen.enroll_device.event.DeviceEnrollScreenUiEvent
 import com.bandymoot.fingerprint.app.ui.screen.enroll_device.state.DeviceEnrollScreenInputState
@@ -36,7 +36,7 @@ class DeviceEnrollmentViewModel @Inject constructor(
                 onEnroll()
             }
             is DeviceEnrollScreenUiEvent.ValidateDeviceName -> {
-                if(!isValidInput(_uiState.value.deviceName.value)) _uiState.update { it.copy(deviceName = DeviceEnrollScreenInputState(value = it.deviceName.value, isValid = false)) }
+                if(!isValidDeviceName(_uiState.value.deviceName.value)) _uiState.update { it.copy(deviceName = DeviceEnrollScreenInputState(value = it.deviceName.value, isValid = false)) }
                 else _uiState.update { it.copy(deviceName = DeviceEnrollScreenInputState(value = it.deviceName.value, isValid = true)) }
             }
             is DeviceEnrollScreenUiEvent.ValidateDeviceCode -> {
@@ -53,7 +53,7 @@ class DeviceEnrollmentViewModel @Inject constructor(
     fun onEnroll() {
         viewModelScope.launch {
             val enrollResponse = enrollDeviceUseCase(
-                _uiState.value.deviceName.value,
+                _uiState.value.deviceName.value.trim(), // The trim one is Important and Intentional here! [ No offence ]
                 _uiState.value.deviceCode.value,
                 _uiState.value.deviceSecret.value
             )
@@ -73,6 +73,12 @@ class DeviceEnrollmentViewModel @Inject constructor(
     private fun isValidInput(value: String): Boolean {
         if (value.isBlank()) return false
         val regex = Regex("^[A-Za-z0-9]+$") // regex!
+        return regex.matches(value)
+    }
+
+    private fun isValidDeviceName(value: String): Boolean {
+        if(value.isBlank()) return false
+        val regex = Regex("^[A-Za-z0-9 ]+$")
         return regex.matches(value)
     }
 }

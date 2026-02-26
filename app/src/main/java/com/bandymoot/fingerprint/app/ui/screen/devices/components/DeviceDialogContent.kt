@@ -2,6 +2,7 @@ package com.bandymoot.fingerprint.app.ui.screen.devices.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bandymoot.fingerprint.app.domain.model.Device
 import com.bandymoot.fingerprint.app.domain.model.DeviceStatusType
@@ -86,9 +88,10 @@ fun DeviceDetailContent(device: Device) {
                 InfoRow(label = "Vendor", value = device.vendor)
                 InfoRow(label = "Algorithm", value = device.supportedAlgorithm)
                 InfoRow(label = "Template v.", value = device.templateVersion)
-                SecretRow(label = "Secret Key", secret = device.secretKey)
             }
         }
+
+        SecretRow(label = "Secret Key", secret = device.secretKey)
     }
 }
 
@@ -107,29 +110,34 @@ private fun InfoRow(label: String, value: String) {
 // Cause making it survival takes a lot of time!
 // And kind of unnecessary - Just make default { false }, no more rocket science.
 @Composable
-private fun SecretRow(label: String, secret: String) {
+private fun SecretRow(
+    label: String,
+    secret: String
+) {
     var isSecretVisible by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        onClick = { isSecretVisible = !isSecretVisible },
+        shape = RoundedCornerShape(8.dp),
+        color = Color(0xFFECEFF1), // Muted Slate Bg
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = Color.Gray
-        )
 
-        // The "Pill" container for the secret
-        Surface(
-            onClick = { isSecretVisible = !isSecretVisible },
-            shape = RoundedCornerShape(8.dp),
-            color = Color(0xFFECEFF1), // Muted Slate Bg
-            modifier = Modifier.padding(start = 8.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 2.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.Gray,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+
+            // The "Pill" container for the secret
+
             Row(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -137,11 +145,16 @@ private fun SecretRow(label: String, secret: String) {
             ) {
                 Text(
                     text = if (isSecretVisible) secret else "••••••••••••",
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f) // (1) Limit the "Squeeze" to 70% of parent width
+                        .horizontalScroll(rememberScrollState()), // (2) Enable horizontal swiping
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = FontFamily.Monospace // Makes it look like a key/code
+                        fontFamily = FontFamily.Monospace
                     ),
-                    color = Color(0xFF455A64), // Deep Slate Text
-                    fontWeight = FontWeight.Bold
+                    color = Color(0xFF455A64),
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1, // (3) Force it to stay on one line
+                    softWrap = false // (4) Prevent it from wrapping to a new line
                 )
 
                 Icon(

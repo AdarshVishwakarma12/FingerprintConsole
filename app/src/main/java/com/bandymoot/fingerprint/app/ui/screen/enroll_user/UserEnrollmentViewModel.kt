@@ -2,7 +2,7 @@ package com.bandymoot.fingerprint.app.ui.screen.enroll_user
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.data.socket.SocketEnrollmentStep
 import com.bandymoot.fingerprint.app.data.socket.SocketEvent
 import com.bandymoot.fingerprint.app.data.socket.SocketManager
@@ -34,6 +34,10 @@ class UserEnrollmentViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(EnrollmentState())
     val uiState: StateFlow<EnrollmentState> = _uiState
 
+    // STOPPED --> [For next version.] (right now, spending time here isn't worth it)
+    // High-Frequency Stream (we separate from _uiState to optimize the performance, as the timer is secondary focus for us)
+    // private val _timerState: MutableStateFlow<Int> = MutableStateFlow(AppConstant.INDIVIDUAL_STATE_TIMEOUT)
+    // val timerState: StateFlow<Int> get() = _timerState
     private var enrollmentTimeoutJob: Job? = null
 
     // List Every Device the Manager Has Access to && Add Observer to the Screen!
@@ -181,4 +185,10 @@ class UserEnrollmentViewModel @Inject constructor(
             fallbackTo("Failed to build connection with Socket")
         }
     }
+
+    // The Purpose is to check the state - without encountering the Edge Cases!
+    // private fun emitAndCheckDeviceStatus(deviceId: String) {
+    //     AppConstant.debugMessage("Sending Emit Signal, for device: $deviceId")
+    //     SocketManager.emit("Check_Device_Status", deviceId)
+    // }
 }

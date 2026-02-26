@@ -45,7 +45,7 @@ fun UserAvatar(
                 .size(size)
                 .clip(CircleShape)
                 .background(
-                    color = UserUtils.getAvatarColor(userName)
+                    color = UserUtils.getAvatarColor(userName )
                 )
         ) {
             Text(

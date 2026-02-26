@@ -1,7 +1,7 @@
 package com.bandymoot.fingerprint.app.ui.screen.enroll_user
 
 import app.cash.turbine.test
-import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.data.socket.SocketEnrollmentStep
 import com.bandymoot.fingerprint.app.data.socket.SocketEvent
 import com.bandymoot.fingerprint.app.data.socket.SocketManager

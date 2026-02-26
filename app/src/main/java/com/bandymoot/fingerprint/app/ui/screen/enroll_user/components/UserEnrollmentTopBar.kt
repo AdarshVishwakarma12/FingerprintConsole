@@ -15,7 +15,7 @@ import com.bandymoot.fingerprint.app.utils.AppConstant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EnrollmentTopBar(
+fun UserEnrollmentTopBar(
     onBackClick: () -> Unit
 ) {
     TopAppBar(

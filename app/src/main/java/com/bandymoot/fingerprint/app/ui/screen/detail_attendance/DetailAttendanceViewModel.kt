@@ -2,7 +2,7 @@ package com.bandymoot.fingerprint.app.ui.screen.detail_attendance
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.domain.repository.UserRepository
 import com.bandymoot.fingerprint.app.domain.usecase.GetAttendanceGroupedByDate
 import com.bandymoot.fingerprint.app.ui.screen.detail_attendance.event.AttendanceScreenUiEvent

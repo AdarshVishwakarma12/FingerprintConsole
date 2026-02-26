@@ -2,6 +2,7 @@ package com.bandymoot.fingerprint.app.data.mapper
 
 import com.bandymoot.fingerprint.app.data.local.entity.UserEntity
 import com.bandymoot.fingerprint.app.data.local.projection.UserEntityProjection
+import com.bandymoot.fingerprint.app.domain.model.EnrollmentStatus
 import com.bandymoot.fingerprint.app.domain.model.User
 import com.bandymoot.fingerprint.app.domain.model.UserDetail
 import com.bandymoot.fingerprint.app.utils.AppConstant
@@ -18,6 +19,7 @@ fun UserEntity.toDomain(): User {
         department = department,
         notes = notes,
         isActive = isActive,
+        enrollmentStatus = if(isActive) EnrollmentStatus.ENROLLED else EnrollmentStatus.NOT_ENROLLED,
         enrolledAt = enrolledAt.fromLongToDateString()
     )
 }

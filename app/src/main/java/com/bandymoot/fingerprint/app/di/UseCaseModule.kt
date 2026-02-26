@@ -13,6 +13,7 @@ import com.bandymoot.fingerprint.app.domain.usecase.GetAttendanceByUserAndMonthU
 import com.bandymoot.fingerprint.app.domain.usecase.GetAttendanceGroupedByDate
 import com.bandymoot.fingerprint.app.domain.usecase.GetUserByIdUseCase
 import com.bandymoot.fingerprint.app.domain.usecase.InitialSyncUseCase
+import com.bandymoot.fingerprint.app.domain.usecase.SyncAttendanceUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -51,17 +52,28 @@ object UseCaseModule {
     }
 
     @Provides
+    fun provideSyncAttendanceUseCase(
+        userRepository: UserRepository,
+        attendanceRepository: AttendanceRepository
+    ): SyncAttendanceUseCase {
+        return SyncAttendanceUseCase(
+            userRepository = userRepository,
+            attendanceRepository = attendanceRepository
+        )
+    }
+
+    @Provides
     fun provideInitialSyncUseCase(
         managerRepository: ManagerRepository,
         deviceRepository: DeviceRepository,
         userRepository: UserRepository,
-        attendanceRepository: AttendanceRepository
+        syncAttendanceUseCase: SyncAttendanceUseCase
     ): InitialSyncUseCase {
         return InitialSyncUseCase(
             managerRepository = managerRepository,
             deviceRepository = deviceRepository,
             userRepository = userRepository,
-            attendanceRepository = attendanceRepository
+            syncAttendanceUseCase = syncAttendanceUseCase
         )
     }
 

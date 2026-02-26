@@ -31,6 +31,9 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE organization_server_id = :orgId")
     suspend fun getByOrganization(orgId: String): List<UserEntity>
 
+    @Query("SELECT server_user_id FROM users")
+    suspend fun getAllUserIds(): List<String>
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(entity: UserEntity)
 

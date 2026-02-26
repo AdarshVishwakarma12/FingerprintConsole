@@ -7,7 +7,7 @@ data class UsersUiState (
     val isRefreshing: Boolean = false,
     val listState: UsersListState = UsersListState.Loading,
     val detailUserUiState: DetailUserUiState = DetailUserUiState.Hidden,
-    val searchQueryUiState: SearchQueryUiState = SearchQueryUiState.InActive
+    val searchQueryUiState: SearchQueryUiState.Active = SearchQueryUiState.Active(searchQuery = "")
 )
 
 // this is less error prone!
@@ -26,6 +26,6 @@ sealed class DetailUserUiState {
 }
 
 sealed class SearchQueryUiState() {
-    object InActive: SearchQueryUiState()
+    // object InActive: SearchQueryUiState() // We don't need this any more!
     data class Active(val searchQuery: String): SearchQueryUiState()
 }

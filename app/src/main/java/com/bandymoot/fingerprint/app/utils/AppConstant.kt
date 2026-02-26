@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 import java.time.format.DateTimeFormatter
 
 object AppConstant {
-    const val SERVER_URL =  "137.97.126.110:4003" // "192.168.0.139:4000"
+    const val SERVER_URL = "192.168.0.134:4000" // "137.97.126.110:4003" //
     const val BASE_URL = "http://$SERVER_URL/"
     const val WEB_SOCKET_URL = "ws://$SERVER_URL"
     const val SOCKET_URL = "http://$SERVER_URL"
@@ -27,7 +27,10 @@ object AppConstant {
     const val MAX_PASSWORD_LENGTH = 128
 
     // Enroll Timeout
-    const val ENROLLMENT_TIMEOUT: Long = 65_000
+    const val ENROLLMENT_TIMEOUT: Long = 65_000 // 65-seconds, this is not synced with backend - which is kind of bad! - a mismatch, can lead to a bad UX.
+    const val INDIVIDUAL_STATE_TIMEOUT: Int = 18_000 // 18-seconds
+    const val STATE_TRANSITION_TIMEOUT: Long = 1500 //1.5-seconds
+    const val RELOAD_STATE_UX_TIMEOUT: Long = 1500 // 1.5-seconds
 
     // SHARED PREFERENCE
     const val SHARED_PREF = "secure_prefs"
@@ -54,7 +57,7 @@ object AppConstant {
         }
     }
 
-    // Api Attendnce Url pattern
+    // Api Attendance Url pattern
     val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
 }

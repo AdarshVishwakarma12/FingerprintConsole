@@ -3,7 +3,6 @@ package com.bandymoot.fingerprint.app.ui.screen.devices.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,7 +16,8 @@ import com.bandymoot.fingerprint.app.ui.screen.enroll_user.state.EnrollmentError
 @Composable
 fun ErrorEnrollmentAlertDialog(
     error: EnrollmentErrorState,
-    onRetry: () -> Unit
+    onRetry: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = { /* Handle if needed */ },
@@ -30,7 +30,7 @@ fun ErrorEnrollmentAlertDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = { }) {
+            TextButton(onClick = onDismiss) {
                 Text("Dismiss", color = Color.Red.copy(alpha = 0.75f))
             }
         }

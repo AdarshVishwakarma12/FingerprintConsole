@@ -17,15 +17,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bandymoot.fingerprint.app.domain.model.User
 
+@Preview
 @Composable
 fun UserListItem(
-    user: User,
-    onClick: () -> Unit,
-    onEnroll: () -> Unit,
-    onDelete: () -> Unit,
+    user: User = User("", "1011", "Arvind Vishwakarma", "arvind@gmail.com", "8887913295", "Computer Science and Engineering", "Nothing", false, ""),
+    onClick: () -> Unit = {},
+    onEnroll: () -> Unit = {},
+    onDelete: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -40,14 +42,14 @@ fun UserListItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Profile image/avatar
             UserAvatar(
                 userName = user.fullName,
                 enrollmentStatus = user.enrollmentStatus,
-                size = 56.dp
+                size = 46.dp
             )
 
             // User info
@@ -61,7 +63,7 @@ fun UserListItem(
                 ) {
                     Text(
                         text = user.fullName.capitalize(),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -72,7 +74,7 @@ fun UserListItem(
 
                 Text(
                     text = user.email ?:  "Email not available" ,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = if (user.email == null) Color.Gray else Color.Black,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

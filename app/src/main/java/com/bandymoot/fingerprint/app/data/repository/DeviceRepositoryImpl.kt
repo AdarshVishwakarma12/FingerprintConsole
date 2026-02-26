@@ -14,6 +14,7 @@ import com.bandymoot.fingerprint.app.data.socket.SocketManager
 import com.bandymoot.fingerprint.app.data.socket.SocketTopicDeviceStatus
 import com.bandymoot.fingerprint.app.di.AppDatabase
 import com.bandymoot.fingerprint.app.domain.model.Device
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.domain.repository.DeviceRepository
 import com.bandymoot.fingerprint.app.network.ErrorResolver
 import com.bandymoot.fingerprint.app.utils.AppConstant

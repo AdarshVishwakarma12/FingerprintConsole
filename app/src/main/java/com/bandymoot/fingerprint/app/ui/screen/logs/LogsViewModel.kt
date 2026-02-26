@@ -2,9 +2,11 @@ package com.bandymoot.fingerprint.app.ui.screen.logs
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResultAdvanced
 import com.bandymoot.fingerprint.app.domain.repository.AttendanceRepository
 import com.bandymoot.fingerprint.app.domain.repository.DeviceRepository
+import com.bandymoot.fingerprint.app.domain.usecase.SyncAttendanceUseCase
 import com.bandymoot.fingerprint.app.ui.screen.logs.event.LogsScreenUiEvent
 import com.bandymoot.fingerprint.app.ui.screen.logs.state.LogsScreenUiState
 import com.bandymoot.fingerprint.app.ui.screen.logs.state.SlideDirection
@@ -22,8 +24,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LogsViewModel @Inject constructor(
-    val deviceRepository: DeviceRepository,
-    val attendanceRecordRepository: AttendanceRepository
+    private val deviceRepository: DeviceRepository,
+    private val attendanceRepository: AttendanceRepository,
+    private val syncAttendanceUseCase: SyncAttendanceUseCase
 ): ViewModel() {
 
     private val _uiState: MutableStateFlow<LogsScreenUiState> = MutableStateFlow(LogsScreenUiState())
@@ -94,12 +97,29 @@ class LogsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val fetchAttendanceResponse = attendanceRecordRepository.sync(
-                    date.format(AppConstant.dateTimeFormatter),
-                    date.format(AppConstant.dateTimeFormatter)
+                val fetchAttendanceResponse = syncAttendanceUseCase(
+                    startLocalDate = date,
+                    endLocalDate = date
                 )
-                if(fetchAttendanceResponse is RepositoryResult.Failed) showSnackBar("Failed to fetch attendance for: ${date.format(AppConstant.dateTimeFormatter)}")
-                val attendanceData = attendanceRecordRepository.getAttendanceByDate(date)
+
+                when(fetchAttendanceResponse) {
+                    is RepositoryResultAdvanced.Success -> Unit
+                    is RepositoryResultAdvanced.PartialSuccess -> {
+                        showSnackBar(
+                            message = fetchAttendanceResponse.errorMessage
+                        )
+                    }
+                    is RepositoryResultAdvanced.Failed -> {
+                        showSnackBar(
+                            message = fetchAttendanceResponse.descriptiveError
+                                ?: fetchAttendanceResponse.throwable.message
+                                ?: fetchAttendanceResponse.throwable.localizedMessage
+                        )
+                    }
+
+                }
+
+                val attendanceData = attendanceRepository.getAttendanceByDate(date)
                 when(attendanceData) {
                     is RepositoryResult.Success -> {
 

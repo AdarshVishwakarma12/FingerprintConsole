@@ -1,6 +1,6 @@
 package com.bandymoot.fingerprint.app.domain.usecase
 
-import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.domain.model.AttendanceRecord
 import com.bandymoot.fingerprint.app.domain.repository.AttendanceRepository
 import com.bandymoot.fingerprint.app.utils.AppConstant

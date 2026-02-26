@@ -1,7 +1,7 @@
 package com.bandymoot.fingerprint.app.domain.usecase
 
 import com.bandymoot.fingerprint.app.data.dto.EnrollNewDeviceRequest
-import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.domain.repository.DeviceRepository
 import java.lang.Exception
 import javax.inject.Inject
@@ -17,7 +17,7 @@ class EnrollDeviceUseCase @Inject constructor(
         // There is no separation of Error module of Repository and UiLayer! This is intensional, cause refactoring take a lot of time, and expensive right now!.
         // Better to be ship now, and debug later.
 
-        // Validate data
+        // Validate data - the viewmodel have regex and not this??
         if(deviceName.isEmpty()) return RepositoryResult.Failed(Exception("Empty Device Name"))
         if(deviceCode.isEmpty()) return RepositoryResult.Failed(Exception("Empty Device Code"))
         if(deviceSecret.isEmpty()) return RepositoryResult.Failed(Exception("Empty Device Secret"))

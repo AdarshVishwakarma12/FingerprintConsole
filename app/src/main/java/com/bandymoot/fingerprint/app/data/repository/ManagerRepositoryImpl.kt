@@ -10,6 +10,7 @@ import com.bandymoot.fingerprint.app.data.remote.api.ApiServices
 import com.bandymoot.fingerprint.app.data.remote.safeApiCall
 import com.bandymoot.fingerprint.app.di.AppDatabase
 import com.bandymoot.fingerprint.app.domain.model.Manager
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.domain.repository.ManagerRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

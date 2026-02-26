@@ -7,6 +7,7 @@ import com.bandymoot.fingerprint.app.data.websocket.EnrollmentSocketDataSourceIm
 import com.bandymoot.fingerprint.app.domain.model.EnrollmentSocketCommand
 import com.bandymoot.fingerprint.app.domain.model.EnrollmentSocketEvent
 import com.bandymoot.fingerprint.app.domain.model.NewEnrollUser
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.domain.repository.EnrollmentRepository
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONObject

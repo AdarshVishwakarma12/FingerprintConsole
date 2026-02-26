@@ -8,9 +8,11 @@ import com.bandymoot.fingerprint.app.data.mapper.toEntity
 import com.bandymoot.fingerprint.app.data.remote.api.ApiServices
 import com.bandymoot.fingerprint.app.data.remote.safeApiCall
 import com.bandymoot.fingerprint.app.di.AppDatabase
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.domain.model.User
 import com.bandymoot.fingerprint.app.domain.model.UserDetail
 import com.bandymoot.fingerprint.app.domain.repository.UserRepository
+import com.bandymoot.fingerprint.app.network.ErrorResolver
 import com.bandymoot.fingerprint.app.utils.AppConstant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -54,6 +56,16 @@ class UserRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             return RepositoryResult.Failed(e)
         }
+    }
+
+    // Help inside SyncAttendanceUseCase to filter valid userIds
+    override suspend fun getAllUserIds(): RepositoryResult<List<String>> {
+       return try {
+            val validUserId = userDao.getAllUserIds()
+            RepositoryResult.Success(data = validUserId)
+       } catch (e: Exception) {
+            RepositoryResult.Failed(throwable = e, descriptiveError = ErrorResolver.resolve(e))
+       }
     }
 
     override suspend fun delete(id: UUID): RepositoryResult<Unit> {

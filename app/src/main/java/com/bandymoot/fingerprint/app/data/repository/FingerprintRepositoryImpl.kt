@@ -1,6 +1,7 @@
 package com.bandymoot.fingerprint.app.data.repository
 
 import com.bandymoot.fingerprint.app.domain.model.Fingerprint
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.domain.repository.FingerprintRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch

@@ -53,7 +53,8 @@ fun MyAppNavHost(
         composable(route = Route.UserEnroll.route) {
             StartEnrollmentProcess(
                 onCompleteEnrollment = { navController.navigate(Route.UserEnroll.route) },
-                navBackStackEntry = navBackStackEntry
+                navBackStackEntry = navBackStackEntry,
+                onDismiss = { navController.popBackStack() } // I am not too sure about this operation!
             )
         }
 

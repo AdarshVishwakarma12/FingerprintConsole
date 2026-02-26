@@ -1,6 +1,7 @@
 package com.bandymoot.fingerprint.app.domain.usecase
 
-import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResultAdvanced
 import com.bandymoot.fingerprint.app.domain.repository.AttendanceRepository
 import com.bandymoot.fingerprint.app.domain.repository.DeviceRepository
 import com.bandymoot.fingerprint.app.domain.repository.ManagerRepository
@@ -13,18 +14,17 @@ class InitialSyncUseCase @Inject constructor(
     private val managerRepository: ManagerRepository,
     private val deviceRepository: DeviceRepository,
     private val userRepository: UserRepository,
-    private val attendanceRepository: AttendanceRepository
+    private val syncAttendanceUseCase: SyncAttendanceUseCase
 ) {
-
     suspend fun execute(): RepositoryResult<Unit> {
         val managerSync = managerRepository.sync()
         if(managerSync is RepositoryResult.Failed) return managerSync
 
         val deviceSync = deviceRepository.sync()
         val userSync = userRepository.sync()
-        val attendanceSync = attendanceRepository.sync(
-            startDate = LocalDate.now().format(AppConstant.dateTimeFormatter),
-            endDate = LocalDate.now().format(AppConstant.dateTimeFormatter)
+        val attendanceSync = syncAttendanceUseCase(
+            startLocalDate = LocalDate.now(),
+            endLocalDate = LocalDate.now()
         )
 
         AppConstant.debugMessage("CHECK DEVICE SYNC::$deviceSync")
@@ -33,7 +33,8 @@ class InitialSyncUseCase @Inject constructor(
 
         if(deviceSync is RepositoryResult.Failed) return deviceSync
         if(userSync is RepositoryResult.Failed) return userSync
-        if(attendanceSync is RepositoryResult.Failed) return attendanceSync
+        // Yup the Mapper is important, but we'll do that in next version!
+        if(attendanceSync is RepositoryResultAdvanced.Failed) return RepositoryResult.Failed(throwable = attendanceSync.throwable, descriptiveError = attendanceSync.descriptiveError)
 
         return RepositoryResult.Success(Unit)
     }

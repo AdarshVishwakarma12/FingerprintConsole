@@ -50,14 +50,14 @@ fun DeviceStatusRow(
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(14.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 1. Device Type Icon with a subtle background
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(42.dp)
                     .background(
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                         shape = RoundedCornerShape(12.dp)

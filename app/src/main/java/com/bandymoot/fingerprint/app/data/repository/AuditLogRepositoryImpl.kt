@@ -1,6 +1,7 @@
 package com.bandymoot.fingerprint.app.data.repository
 
 import com.bandymoot.fingerprint.app.domain.model.AuditLog
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.domain.repository.AuditLogRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

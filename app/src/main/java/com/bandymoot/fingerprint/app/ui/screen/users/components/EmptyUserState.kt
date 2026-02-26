@@ -32,7 +32,7 @@ fun EmptyUsersState(
             .fillMaxSize()
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top,
     ) {
         Icon(
             imageVector = Icons.Default.People,

@@ -2,7 +2,7 @@ package com.bandymoot.fingerprint.app.ui.screen.devices
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.domain.repository.DeviceRepository
 import com.bandymoot.fingerprint.app.network.ErrorResolver
 import com.bandymoot.fingerprint.app.ui.screen.devices.event.DeviceUiEvent

@@ -21,6 +21,7 @@ fun FingerprintEnrollmentScreen(
     onInputChanged: (NewEnrollUser) -> Unit,
     onValidateInputAndStartEnroll: () -> Unit,
     onCompleteEnrollment: () -> Unit,
+    onDismiss: () -> Unit
 ) {
 
     // val focusManager = LocalFocusManager.current
@@ -68,7 +69,7 @@ fun FingerprintEnrollmentScreen(
             }
 
             // Global Error Footer
-            uiState.enrollmentErrorState?.let { error -> ErrorEnrollmentAlertDialog(error, onRetry = onRetry) }
+            uiState.enrollmentErrorState?.let { error -> ErrorEnrollmentAlertDialog(error, onRetry = onRetry, onDismiss = onDismiss) }
         }
     }
 }

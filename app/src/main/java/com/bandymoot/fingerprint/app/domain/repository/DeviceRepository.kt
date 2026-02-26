@@ -1,7 +1,7 @@
 package com.bandymoot.fingerprint.app.domain.repository
 
 import com.bandymoot.fingerprint.app.data.dto.EnrollNewDeviceRequest
-import com.bandymoot.fingerprint.app.data.repository.RepositoryResult
+import com.bandymoot.fingerprint.app.domain.model.RepositoryResult
 import com.bandymoot.fingerprint.app.domain.model.Device
 import kotlinx.coroutines.flow.Flow
 

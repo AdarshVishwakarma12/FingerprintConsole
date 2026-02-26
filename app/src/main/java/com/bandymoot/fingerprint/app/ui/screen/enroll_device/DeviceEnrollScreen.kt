@@ -1,8 +1,6 @@
 package com.bandymoot.fingerprint.app.ui.screen.enroll_device
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.ScrollableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,13 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.bandymoot.fingerprint.app.ui.screen.auth.components.AppTitle
 import com.bandymoot.fingerprint.app.ui.screen.auth.components.AuthErrorBanner
-import com.bandymoot.fingerprint.app.ui.screen.auth.event.LoginUiEvent
 import com.bandymoot.fingerprint.app.ui.screen.enroll_device.component.CustomActionButton
 import com.bandymoot.fingerprint.app.ui.screen.enroll_device.component.CustomField
 import com.bandymoot.fingerprint.app.ui.screen.enroll_device.event.DeviceEnrollScreenUiEvent
-import com.bandymoot.fingerprint.app.ui.screen.enroll_device.state.DeviceEnrollScreenUiState
 import com.bandymoot.fingerprint.app.utils.authColors
 
 @Composable
@@ -59,10 +54,6 @@ fun DeviceEnrollScreen(
             },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        AppTitle("Enroll Device", authColors())
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         CustomField(
             colors = authColors(),
